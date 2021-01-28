@@ -1,6 +1,6 @@
-h1. SOLID Implementation Open questions
+# SOLID Implementation Open questions
 
-h2. What is the difference between the publicKeys and Authentication sections?
+## What is the difference between the publicKeys and Authentication sections?
 
 "publicKeys" is used for referencing from other sources, see e.g. here. https://w3c.github.io/did-core/#authentication.
 You can define a key once, then reuse it in the different "verificationMethod" sections, such as authentication, keyAgreement etc.
@@ -24,11 +24,11 @@ I would be strongly in favour of option 1.
 
 Later on, having support for a DID "controller" separate to the DID itself will be necessary, to allow for DIDs representing institutions, buildings, children etc.
 
-h2. DID method
+## DID method
 
 At the moment I am calling our DID method "solid" because it is cool. :) This may change though. Any opinions?
 
-h2. DID method identifier
+## DID method identifier
 
 In a DID like did:solid:abcde, the DID method identifier is the abcde.
 
@@ -37,7 +37,7 @@ I don't want to rush the decision of how this is calculated, but it may depend o
 
 We can also choose to create DIDs off chain and pass them as an input to the DID program constructor, but generating on-chain from a pubkey would be "neater".
 
-h2. DID Creation
+## DID Creation
 
 Here's my proposal for an initial creation API:
 
