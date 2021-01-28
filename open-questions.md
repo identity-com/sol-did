@@ -1,4 +1,4 @@
-# SOLID Implementation Open questions
+# SOLID Implementation Open Questions
 
 ## What is the difference between the publicKeys and Authentication sections?
 
