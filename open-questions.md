@@ -53,6 +53,16 @@ This means that the client needs to be able to determine the account address A f
 
 TODO @solana is "Program Accounts" a possible alternative here?
 
+For the method identifier section -- as you say, solana programs are stateless so they cannot have a registry stored inside of them.
+
+We can use program addresses to generate "x" -- these are derived using a one-way hash function, exactly as you suggest.  So we can actually abide by the rule that the DID method identifier is derivable from the user's public key.
+
+We just need to agree on a convention.  The easiest way is follow the associated token program model, described at https://spl.solana.com/associated-token-account#finding-the-associated-token-account-address
+
+On the other hand, no matter what, the client-side will need to know that convention in order to fetch the right account.  So it loses that "neatness" you mention. No matter what, accounts must be declared beforehand.
+
+I don't even think we'll need an onchain program specifically for resolving, since we can directly use JSON RPC to fetch the account as JSON.
+
 
 ## DID Creation
 
@@ -101,6 +111,14 @@ or
 b) merge the owner key (i.e. the above sparse DID) with the content property.
 
 @solana Which would you say is easier to implement?
+
+Regarding validation:
+
+* on the program side, the deserialization logic takes care of validation -- the data provided must be deserialized into a DID struct before saving
+* on the client side, the JS library could accept any JSON and automatically validate while attempting to convert it to the program's binary format before sending it off
+* This is limiting at first, but then we're sure of every field provided.  We can expand to more / optional fields in a later version.
+
+To answer your question, it's probably better to check the owner in the capabilityInvocation, in the program, rather than silently tweak the data provided.
 
 ## DID Editing & Revocation
 
