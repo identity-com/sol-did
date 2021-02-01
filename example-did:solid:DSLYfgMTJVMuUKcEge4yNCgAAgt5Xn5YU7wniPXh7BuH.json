@@ -10,7 +10,7 @@
       "controller": "did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH"
     },
     {
-      "publicKeyBase58": "FMorssisBJn1i2Q7HiWcV1S1JFsQwwTWLpQVJTNwwhed",
+      "publicKeyBase58": "DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH",
       "id": "did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2",
       "usage": "encryption",
       "type": "X25519KeyAgreementKey2019",
