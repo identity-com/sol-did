@@ -5,7 +5,9 @@
 "publicKeys" is used for referencing from other sources, see e.g. here. https://w3c.github.io/did-core/#authentication.
 You can define a key once, then reuse it in the different "verificationMethod" sections, such as authentication, keyAgreement etc.
 Note, this means the verificationMethod sections have the type Array<String | Key>, not sure if that would be a problem. We could simplify this on-chain if needed.
-Who gets to update a DID?
+
+## Who gets to update a DID?
+
 Regarding authorization for updating a DID Document, this is what the spec says:
 Determining the authority of a party to carry out the operations is method-specific. For example, a DID method might:
 - make use of the controller property.
@@ -32,10 +34,17 @@ At the moment I am calling our DID method "solid" because it is cool. :) This ma
 
 In a DID like did:solid:abcde, the DID method identifier is the abcde.
 
-The recommendation is that DID methods identifiers are cryptographically derivable from the user's public key, but not equal to it.
-I don't want to rush the decision of how this is calculated, but it may depend on what can be done cheaply on chain. My initial suggestion would be a hash function like base58(sha256(sha256(publicKey))) (Similar to bitcoin). Or base58(sha3(publicKey)) (similar to ethereum). Do you have any thoughts there?
+~~The recommendation is that DID method identifiers are cryptographically derivable from the user's public key, but not equal to it.
+I don't want to rush the decision of how this is calculated, but it may depend on what can be done cheaply on chain. My initial suggestion would be a hash function like base58(sha256(sha256(publicKey))) (Similar to bitcoin). Or base58(sha3(publicKey)) (similar to ethereum). Do you have any thoughts there?~~
 
-We can also choose to create DIDs off chain and pass them as an input to the DID program constructor, but generating on-chain from a pubkey would be "neater".
+~~We can also choose to create DIDs off chain and pass them as an input to the DID program constructor, but generating on-chain from a pubkey would be "neater".~~
+
+EDIT: After thinking about this, I suspect on Solana, we may have to relax the rule: "DID method identifiers are cryptographically derivable from the user's public key, but not equal to it".  The reason is (please correct me if I'm wrong), Solana has no concept of an on-chain "registry", where data can be stored by the smart contract (i.e. program).  Rather, pointers to any existing on-chain data need to be passed to the program as input accounts. 
+
+This means that, if a DID Document for "did:solid:x" is stored in account A, the DID resolver program needs to be passed account A when resolving. (In fact, resolution itself will happen off-chain by first i) retrieving the data in account A from a solana node, then ii) resolving it via the DID program running on the client.)
+
+This means that the client needs to be able to determine the account address A from the DID "did:solid:x". A non-reversible hash function like the one described above will therefore not work. We could use a reversible transform to convert x into A but I don't think that gives us much benefit. So the most likely solution is to simply use the public key / address A as x.
+
 
 ## DID Creation
 
@@ -52,7 +61,7 @@ new DID(owner: PublicKey, content: DIDDocument)
 The DID method identifier should be created from the owner public key (see above).
 
 Both inputs are optional. If the owner is missing, the owner is the signer of the TX (i.e. creating a DID for yourself)
-The content can be missing. In that case a "sparse DID" will be created, which will basically look like this:
+The content can be missing. In that case a "sparse DID" will be created, which will look like this:
 
 ```
 {
@@ -60,21 +69,23 @@ The content can be missing. In that case a "sparse DID" will be created, which w
     "https://w3id.org/did/v1.0",
     "https://w3id.org/solid/v1"
   ],
-  "id": "did:solid:TODO",
+  "id": "did:solid:BeqWbk3sPvujQgBySrwUbinjtXc1oAfg3iD87ShtVrKb",
   "publicKeys": [
     {
       "id": "did:solid:TODO#key1",
       "type": "Ed25519VerificationKey2018",
-      "controller": "did:solid:TODO",
+      "controller": "did:solid:BeqWbk3sPvujQgBySrwUbinjtXc1oAfg3iD87ShtVrKb",
       "publicKeyBase58": "BeqWbk3sPvujQgBySrwUbinjtXc1oAfg3iD87ShtVrKb"
     }
   ],
   "authentication": [
-    "did:solid:TODO#key1"
+    "did:solid:BeqWbk3sPvujQgBySrwUbinjtXc1oAfg3iD87ShtVrKb#key1"
+  ],
+  "capabilityInvocation": [
+    "did:solid:BeqWbk3sPvujQgBySrwUbinjtXc1oAfg3iD87ShtVrKb#key1"
   ]
 }
 ```
-@context metadata and method identifier (TODO above) are temporary.
 
 If the content property is not missing, it should be JSON that matches the DID spec. Again, I think validating this JSON on-chain is not necessary, but we should probably either
 a) check that the "owner" key is present in the "authentication" section
@@ -82,3 +93,9 @@ or
 b) merge the owner key (i.e. the above sparse DID) with the content property.
 
 @solana Which would you say is easier to implement?
+
+## DID Editing & Revocation
+
+The program should accept an edit to a DID document signed by any private key if he public key for this private key exists in or is referenced in the [capabilityInvocation](https://www.w3.org/TR/did-core/#capability-invocation) (TODO confirm this is the appropriate verificationMethod to use) block.
+
+TODO: Do we want more fine-grained RBAC here?
