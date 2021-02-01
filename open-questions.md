@@ -45,6 +45,8 @@ This means that, if a DID Document for "did:solid:x" is stored in account A, the
 
 This means that the client needs to be able to determine the account address A from the DID "did:solid:x". A non-reversible hash function like the one described above will therefore not work. We could use a reversible transform to convert x into A but I don't think that gives us much benefit. So the most likely solution is to simply use the public key / address A as x.
 
+TODO @solana is "Program Accounts" a possible alternative here?
+
 
 ## DID Creation
 
