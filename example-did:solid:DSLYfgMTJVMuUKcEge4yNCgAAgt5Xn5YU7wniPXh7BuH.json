@@ -30,7 +30,7 @@
   "assertion": [
     "did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1"
   ],
-  "services": [
+  "service": [
     {
       "id": "did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#agent",
       "type": "AgentService",
