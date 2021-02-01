@@ -17,14 +17,20 @@ Determining the authority of a party to carry out the operations is method-speci
 
 Since we are going for a "v1" DID program to get started, I would suggest either:
 1. "use the verification methods listed under authentication to decide whether an update/deactivate operation is allowed."
-This matches what we discussed yesterday, i.e. find all keys under "authentication" where the type is "Ed25519VerificationKey2018" (TODO is this type correct?). If the tx signer is in the list, allow the update.
+This matches what we discussed yesterday, i.e. find all keys under "authentication" where the type is "Ed25519VerificationKey2018". If the tx signer is in the list, allow the update.
 or
 22. not use the DID Document at all to decide this, but have rules that are "built into" the method.
 This would be basically the TokenAccount pattern, i.e. define a solana publicKey as the owner of the Account that stores the DID. Presumably this key would also be referenced in the DID Document.
 
 I would be strongly in favour of option 1.
 
-Later on, having support for a DID "controller" separate to the DID itself will be necessary, to allow for DIDs representing institutions, buildings, children etc.
+However: The Spec is a little inconsistent here, and later it suggests: 
+
+> The capabilityInvocation verification relationship is used to specify a verification method that might be used by the DID subject to invoke a cryptographic capability, such as the authorization to update the DID Document or the authorization to access an HTTP API.
+
+Therefore, I suggest we use a union of the "authentication" and "capabilityInvocation" verification methods, but for simplicity in v1 it is acceptable to choose just one.
+
+Note: Later on, having support for a DID "controller" separate to the DID itself will be necessary, to allow for DIDs representing institutions, buildings, children etc.
 
 ## DID method
 
@@ -90,7 +96,7 @@ The content can be missing. In that case a "sparse DID" will be created, which w
 ```
 
 If the content property is not missing, it should be JSON that matches the DID spec. Again, I think validating this JSON on-chain is not necessary, but we should probably either
-a) check that the "owner" key is present in the "authentication" section
+a) check that the "owner" key is present in the "capabilityInvocation" section
 or
 b) merge the owner key (i.e. the above sparse DID) with the content property.
 
@@ -98,6 +104,6 @@ b) merge the owner key (i.e. the above sparse DID) with the content property.
 
 ## DID Editing & Revocation
 
-The program should accept an edit to a DID document signed by any private key if he public key for this private key exists in or is referenced in the [capabilityInvocation](https://www.w3.org/TR/did-core/#capability-invocation) (TODO confirm this is the appropriate verificationMethod to use) block.
+The program should accept an edit to a DID document signed by any private key if he public key for this private key exists in or is referenced in the [capabilityInvocation](https://www.w3.org/TR/did-core/#capability-invocation) or [authentication](https://www.w3.org/TR/did-core/#authentication) blocks.
 
 TODO: Do we want more fine-grained RBAC here?
