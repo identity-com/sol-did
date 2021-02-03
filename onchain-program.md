@@ -6,16 +6,16 @@ The following is an overall design document for the on-chain SOLID program.
 
 #### DID Fields
 
-* @context: Array<string>
+* @context: `Array<string>`
   - example `[ "https://w3id.org/did/v1.0", "https://w3id.org/solid/v1" ]`
 * id: did uri string in the form "did:solid:account_pubkey"
   - example: `"did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH"`
-* publicKey: Array<VerificationMethod>
-* authentication: Array<DID>
-* capabilityInvocation: Array<DID>
-* keyAgreement: Array<DID>
-* assertion: Array<DID>
-* service: Array<Service>
+* publicKey: `Array<VerificationMethod>`
+* authentication: `Array<DID>`
+* capabilityInvocation: `Array<DID>`
+* keyAgreement: `Array<DID>`
+* assertion: `Array<DID>`
+* service: `Array<Service>`
 
 #### VerificationMethod
 
