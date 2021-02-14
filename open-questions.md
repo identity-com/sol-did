@@ -8,61 +8,62 @@ Note, this means the verificationMethod sections have the type Array<String | Ke
 
 ## Who gets to update a DID?
 
-Regarding authorization for updating a DID Document, this is what the spec says:
-Determining the authority of a party to carry out the operations is method-specific. For example, a DID method might:
-- make use of the controller property.
-- use the verification methods listed under authentication to decide whether an update/deactivate operation is allowed.
-- use other constructs in the DID Document to decide if, for example, a verification method specified under capabilityInvocation could be used to verify the invocation of a capability to update the DID Document.
-- not use the DID Document at all to decide this, but have rules that are "built into" the method.
-
-Since we are going for a "v1" DID program to get started, I would suggest either:
-1. "use the verification methods listed under authentication to decide whether an update/deactivate operation is allowed."
-This matches what we discussed yesterday, i.e. find all keys under "authentication" where the type is "Ed25519VerificationKey2018". If the tx signer is in the list, allow the update.
-or
-22. not use the DID Document at all to decide this, but have rules that are "built into" the method.
-This would be basically the TokenAccount pattern, i.e. define a solana publicKey as the owner of the Account that stores the DID. Presumably this key would also be referenced in the DID Document.
-
-I would be strongly in favour of option 1.
-
-However: The Spec is a little inconsistent here, and later it suggests: 
+Referencing the [DID specification](https://www.w3.org/TR/did-core/#capability-invocation):
 
 > The capabilityInvocation verification relationship is used to specify a verification method that might be used by the DID subject to invoke a cryptographic capability, such as the authorization to update the DID Document or the authorization to access an HTTP API.
 
-Therefore, I suggest we use a union of the "authentication" and "capabilityInvocation" verification methods, but for simplicity in v1 it is acceptable to choose just one.
+SOLID DIDs use the capabilityInvocation verification method to validate whether a transaction signer
+has permission to update a DID. These keys must therefore have types:
+
+- Ed25519VerificationKey2018
+
+or
+
+- X25519KeyAgreementKey2019
 
 Note: Later on, having support for a DID "controller" separate to the DID itself will be necessary, to allow for DIDs representing institutions, buildings, children etc.
 
 ## DID method
 
-At the moment I am calling our DID method "solid" because it is cool. :) This may change though. Any opinions?
+The DID method for DIDs resolved on Solana is "solid".
 
 ## DID method identifier
 
-In a DID like did:solid:abcde, the DID method identifier is the abcde.
+In a DID like did:solid:abcde, the DID method identifier is the `abcde`.
 
-~~The recommendation is that DID method identifiers are cryptographically derivable from the user's public key, but not equal to it.
-I don't want to rush the decision of how this is calculated, but it may depend on what can be done cheaply on chain. My initial suggestion would be a hash function like base58(sha256(sha256(publicKey))) (Similar to bitcoin). Or base58(sha3(publicKey)) (similar to ethereum). Do you have any thoughts there?~~
+An example Solid DID: `did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP`
 
-~~We can also choose to create DIDs off chain and pass them as an input to the DID program constructor, but generating on-chain from a pubkey would be "neater".~~
+TODO: Add a real resolvable example once one exists.
 
-EDIT: After thinking about this, I suspect on Solana, we may have to relax the rule: "DID method identifiers are cryptographically derivable from the user's public key, but not equal to it".  The reason is (please correct me if I'm wrong), Solana has no concept of an on-chain "registry", where data can be stored by the smart contract (i.e. program).  Rather, pointers to any existing on-chain data need to be passed to the program as input accounts. 
+The method identifier in SOLID is a Solana [Program Address](https://docs.solana.com/developing/programming-model/calling-between-programs#program-derived-addresses)
+which is derived by hashing the owner address, program ID and a "bump seed" which ensures the resultant
+address cannot clash with the account address space (which lie on the Curve25519 elliptic curve).
 
-This means that, if a DID Document for "did:solid:x" is stored in account A, the DID resolver program needs to be passed account A when resolving. (In fact, resolution itself will happen off-chain by first i) retrieving the data in account A from a solana node, then ii) resolving it via the DID program running on the client.)
+The program ID is published for each chain. The bump seed is deterministically derivable off-chain as follows:
 
-This means that the client needs to be able to determine the account address A from the DID "did:solid:x". A non-reversible hash function like the one described above will therefore not work. We could use a reversible transform to convert x into A but I don't think that gives us much benefit. So the most likely solution is to simply use the public key / address A as x.
+```pseudocode
+Initialize the seed to 256 (2^8-1)
+Do:
+  Decrement the seed by 1
+  Hash the owner address, program ID, and seed 
+While the resultant point is not on the Curve25519 curve
+```
 
-TODO @solana is "Program Accounts" a possible alternative here?
+See [here](https://docs.solana.com/developing/programming-model/calling-between-programs#hash-based-generated-program-addresses)
+for more details.
 
-For the method identifier section -- as you say, solana programs are stateless so they cannot have a registry stored inside of them.
+SOLID Method identifiers therefore follow the same syntax as Solana program addresses, in that they
+are an EC-256 (256-bit) public key encoded in Base58 and have length between 31 and 44 characters. (TODO check this)
 
-We can use program addresses to generate "x" -- these are derived using a one-way hash function, exactly as you suggest.  So we can actually abide by the rule that the DID method identifier is derivable from the user's public key.
+### Non-mainnet DIDs
 
-We just need to agree on a convention.  The easiest way is follow the associated token program model, described at https://spl.solana.com/associated-token-account#finding-the-associated-token-account-address
+DIDs registered on [clusters](https://docs.solana.com/clusters) other than Solana mainnet have their cluster name as a prefix.
 
-On the other hand, no matter what, the client-side will need to know that convention in order to fetch the right account.  So it loses that "neatness" you mention. No matter what, accounts must be declared beforehand.
-
-I don't even think we'll need an onchain program specifically for resolving, since we can directly use JSON RPC to fetch the account as JSON.
-
+```
+did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP  // mainnet
+did:solid:testnet:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP // testnet
+did:solid:devnet:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP // devnet
+```
 
 ## DID Creation
 
@@ -70,7 +71,7 @@ Here's my proposal for an initial creation API:
 
 Anyone can create a DID for anyone else. This may have change later on for security reasons i.e. if you own the private key, you must have been the one to create the DID, but I think it is safe for now.
 
-DID Creation has the following inputs:
+DID creation has the following inputs:
 
 ```
 new DID(owner: PublicKey, content: DIDDocument)
@@ -87,30 +88,29 @@ The content can be missing. In that case a "sparse DID" will be created, which w
     "https://w3id.org/did/v1.0",
     "https://w3id.org/solid/v1"
   ],
-  "id": "did:solid:BeqWbk3sPvujQgBySrwUbinjtXc1oAfg3iD87ShtVrKb",
+  "id": "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP",
   "publicKeys": [
     {
-      "id": "did:solid:TODO#key1",
+      "id": "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP#key1",
       "type": "Ed25519VerificationKey2018",
-      "controller": "did:solid:BeqWbk3sPvujQgBySrwUbinjtXc1oAfg3iD87ShtVrKb",
+      "controller": "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP",
       "publicKeyBase58": "BeqWbk3sPvujQgBySrwUbinjtXc1oAfg3iD87ShtVrKb"
     }
   ],
   "authentication": [
-    "did:solid:BeqWbk3sPvujQgBySrwUbinjtXc1oAfg3iD87ShtVrKb#key1"
+    "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP#key1"
   ],
   "capabilityInvocation": [
-    "did:solid:BeqWbk3sPvujQgBySrwUbinjtXc1oAfg3iD87ShtVrKb#key1"
+    "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP#key1"
   ]
 }
 ```
 
-If the content property is not missing, it should be JSON that matches the DID spec. Again, I think validating this JSON on-chain is not necessary, but we should probably either
-a) check that the "owner" key is present in the "capabilityInvocation" section
-or
-b) merge the owner key (i.e. the above sparse DID) with the content property.
+If the content property is not missing, it should be JSON that matches the DID spec.
 
-@solana Which would you say is easier to implement?
+If there is a capabilityInvocation` section, there should be at least one key, this is the 'owner' key.
+
+The `@context` section is optional, and defaults to the value in the exammple above if not present.
 
 Regarding validation:
 
@@ -118,10 +118,27 @@ Regarding validation:
 * on the client side, the JS library could accept any JSON and automatically validate while attempting to convert it to the program's binary format before sending it off
 * This is limiting at first, but then we're sure of every field provided.  We can expand to more / optional fields in a later version.
 
-To answer your question, it's probably better to check the owner in the capabilityInvocation, in the program, rather than silently tweak the data provided.
-
 ## DID Editing & Revocation
 
-The program should accept an edit to a DID document signed by any private key if he public key for this private key exists in or is referenced in the [capabilityInvocation](https://www.w3.org/TR/did-core/#capability-invocation) or [authentication](https://www.w3.org/TR/did-core/#authentication) blocks.
+The program should accept an edit to a DID document signed by any private key if the public key for this private key
+exists in or is referenced in the [capabilityInvocation](https://www.w3.org/TR/did-core/#capability-invocation) block.
 
-TODO: Do we want more fine-grained RBAC here?
+## Cost
+
+### Registering a DID Document 
+
+Registering a DID Document on Solana costs [rent](https://docs.solana.com/implemented-proposals/rent).
+
+Details of rent calculation can be found [here](https://docs.solana.com/developing/programming-model/accounts#calculation-of-rent).  
+
+The size of a DID document in bytes depends on the space reserved for
+its [account](https://docs.solana.com/developing/programming-model/accounts#creating).
+
+The current DID Document program reserves space for five public keys, five serviceEndpoints and five references
+to keys in each validationMethod, resulting in a document size of 4-5kb in uncompressed JSON form, and ~3kb
+(TODO verify after initial version is released) on-chain.
+
+As a rule of thumb, rent costs ~3.5 SOL per mebibyte/year, so 3kb amounts to ~0.01 SOL per year.
+
+To permanently store a DID on Solana, it can be made rent-exempt, by storing a minimum balance of 2 years of rent
+against the account. 
