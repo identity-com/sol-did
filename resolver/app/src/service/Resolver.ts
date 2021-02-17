@@ -1,5 +1,13 @@
 //import { DID } from '@solana/did'
-const DID = { get: (id: string) => ({ todo: id }) };
+import { DIDDocument } from 'did-resolver';
 
-export const resolve = async (did: string): Promise<object | undefined> =>
+const DID = {
+  get: async (id: string): Promise<DIDDocument> => ({
+    '@context': 'https://w3id.org/did/v1',
+    id,
+    publicKey: [],
+  }),
+};
+
+export const resolve = async (did: string): Promise<DIDDocument | undefined> =>
   DID.get(did);
