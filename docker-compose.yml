@@ -1,0 +1,15 @@
+version: '3.4'
+services:
+  solid-registrar:
+    build: registrar/app
+    ports:
+      - 8080:8080
+#    env_file:
+#      - .env
+
+  solid-resolver:
+    build: resolver/app
+    ports:
+      - 8081:8080
+#    env_file:
+#      - .env

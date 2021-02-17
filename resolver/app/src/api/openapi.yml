@@ -3,12 +3,12 @@ info:
   title: Solid Resolver Driver
   description: Solid Resolver Driver
   contact:
-    email: markus@danubetech.com
+    email: daniel@identity.com
   version: 1.0.0
 servers:
+- url: /1.0/
 - url: https://virtserver.swaggerhub.com/identity.com/solid-resolver-driver/1.0.0
   description: SwaggerHub API Auto Mocking
-- url: /1.0/
 paths:
   /identifiers/{identifier}:
     get:

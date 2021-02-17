@@ -1,0 +1,226 @@
+openapi: 3.0.0
+info:
+  title: Solid Registrar Driver
+  description: Solid Registrar Driver
+  contact:
+    email: daniel@identity.com
+  version: 1.0.0
+servers:
+  - url: /1.0/
+  - url: https://virtserver.swaggerhub.com/identity.com/solid-registrar-driver/1.0.0
+    description: SwaggerHub API Auto Mocking
+paths:
+  /register:
+    post:
+      summary: Registers a DID.
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        "200":
+          description: successfully registered!
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterState'
+        "400":
+          description: invalid input!
+        "500":
+          description: error!
+      x-swagger-router-controller: Default
+  /update:
+    post:
+      summary: Updates a DID.
+      operationId: update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRequest'
+      responses:
+        "200":
+          description: successfully updated!
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateState'
+        "400":
+          description: invalid input!
+        "500":
+          description: error!
+      x-swagger-router-controller: Default
+  /deactivate:
+    post:
+      summary: Deactivates a DID.
+      operationId: deactivate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeactivateRequest'
+      responses:
+        "200":
+          description: successfully deactivated!
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeactivateState'
+        "400":
+          description: invalid input!
+        "500":
+          description: error!
+      x-swagger-router-controller: Default
+components:
+  schemas:
+    RegisterRequest:
+      type: object
+      properties:
+        jobId:
+          type: string
+          example: 6d85bcd0-2ea3-4288-ab00-15afadd8a156
+        options:
+          type: object
+        secret:
+          type: object
+          example:
+            privateKey: 2Bxv8RJByuQXsaz3cVb7vkkeh4eBe9Go3oSygNzicKMeeR3kMSYyAEgkPQGLo1Qat6ercPpXqVVd5yVdeXRSgTZ1
+        didDocument:
+          type: object
+      additionalProperties: false
+      description: Request parameters for the register operation.
+    UpdateRequest:
+      required:
+        - identifier
+      type: object
+      properties:
+        jobId:
+          type: string
+          example: 6d85bcd0-2ea3-4288-ab00-15afadd8a156
+        identifier:
+          type: string
+          example: did:sov:WRfXPg8dantKVubE3HX8pw
+        options:
+          type: object
+        secret:
+          type: object
+        didDocument:
+          type: object
+      additionalProperties: false
+      description: Request parameters for the update operation.
+    DeactivateRequest:
+      required:
+        - identifier
+      type: object
+      properties:
+        jobId:
+          type: string
+          example: 6d85bcd0-2ea3-4288-ab00-15afadd8a156
+        identifier:
+          type: string
+          example: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+        options:
+          type: object
+        secret:
+          type: object
+      additionalProperties: false
+      description: Request parameters for the deactivate operation.
+    RegisterState:
+      required:
+        - didState
+      type: object
+      properties:
+        jobId:
+          type: string
+          example: 6d85bcd0-2ea3-4288-ab00-15afadd8a156
+        didState:
+          $ref: '#/components/schemas/RegisterState_didState'
+        registrarMetadata:
+          type: object
+        methodMetadata:
+          type: object
+      additionalProperties: false
+      description: The state after a register operation.
+      example:
+        jobId: 6d85bcd0-2ea3-4288-ab00-15afadd8a156
+        didState:
+          identifier: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+          state: finished
+        methodMetadata: {}
+        registrarMetadata: {}
+    UpdateState:
+      required:
+        - didState
+      type: object
+      properties:
+        jobId:
+          type: string
+          example: 6d85bcd0-2ea3-4288-ab00-15afadd8a156
+        didState:
+          $ref: '#/components/schemas/UpdateState_didState'
+        registrarMetadata:
+          type: object
+        methodMetadata:
+          type: object
+      additionalProperties: false
+      description: The state after an update operation.
+      example:
+        jobId: 6d85bcd0-2ea3-4288-ab00-15afadd8a156
+        didState:
+          state: state
+          secret: {}
+        methodMetadata: {}
+        registrarMetadata: {}
+    DeactivateState:
+      required:
+        - didState
+      type: object
+      properties:
+        jobId:
+          type: string
+          example: 6d85bcd0-2ea3-4288-ab00-15afadd8a156
+        didState:
+          $ref: '#/components/schemas/DeactivateState_didState'
+        registrarMetadata:
+          type: object
+        methodMetadata:
+          type: object
+      additionalProperties: false
+      description: The state after a deactivate operation.
+      example:
+        jobId: 6d85bcd0-2ea3-4288-ab00-15afadd8a156
+        didState:
+          state: state
+        methodMetadata: {}
+        registrarMetadata: {}
+    RegisterState_didState:
+      type: object
+      properties:
+        state:
+          type: string
+          example: finished
+        identifier:
+          type: string
+          example: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+      example:
+        identifier: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+        state: finished
+    UpdateState_didState:
+      type: object
+      properties:
+        state:
+          type: string
+        secret:
+          type: object
+      example:
+        state: state
+        secret: {}
+    DeactivateState_didState:
+      type: object
+      properties:
+        state:
+          type: string
+      example:
+        state: state

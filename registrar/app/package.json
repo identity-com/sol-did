@@ -9,7 +9,7 @@
     "solid"
   ],
   "bin": {
-    "solid": "solid"
+    "solid-register": "solid-register"
   },
   "engines": {
     "node": ">=15"
@@ -21,7 +21,7 @@
     "test": "tsdx test",
     "lint": "tsdx lint --maxWarnings 0",
     "prepare": "yarn build",
-    "dev": "ts-node-dev src/app.ts",
+    "dev": "ts-node-dev src/index.ts",
     "app": "node dist/index.js"
   },
   "prettier": {
@@ -30,9 +30,9 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "solid-resolver",
+  "name": "solid-regitstrar",
   "author": "dankelleher",
-  "module": "dist/resolver.esm.js",
+  "module": "dist/registrar.esm.js",
   "devDependencies": {
     "ts-node-dev": "^1.1.1",
     "tsdx": "^0.14.1",
