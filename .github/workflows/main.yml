@@ -1,0 +1,36 @@
+name: CI
+on: [push]
+jobs:
+  build-resolver-app:
+    name: Build, lint, and test the resolver app on Node ${{ matrix.node }} and ${{ matrix.os }}
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node: ['15.x']
+        os: [ubuntu-latest, macOS-latest]
+
+    defaults:
+      run:
+        working-directory: ./resolver/app
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install
+        run: yarn install
+
+      - name: Lint
+        run: yarn lint
+
+#      - name: Test
+#        run: yarn test --ci --coverage --maxWorkers=2
+
+      - name: Build
+        run: yarn build
