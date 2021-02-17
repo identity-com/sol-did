@@ -1,0 +1,45 @@
+{
+  "version": "0.0.1",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "solid"
+  ],
+  "bin": {
+    "solid": "solid"
+  },
+  "engines": {
+    "node": ">=15"
+  },
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "postbuild": "mkdir dist/api && cp src/api/openapi.yml dist/api/",
+    "test": "tsdx test",
+    "lint": "tsdx lint",
+    "prepare": "yarn build",
+    "dev": "ts-node-dev src/index.ts",
+    "app": "node dist/index.js"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "name": "solid-resolver",
+  "author": "dankelleher",
+  "module": "dist/resolver.esm.js",
+  "devDependencies": {
+    "ts-node-dev": "^1.1.1",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.1.0",
+    "typescript": "^4.1.5"
+  },
+  "dependencies": {
+    "oas3-tools": "^2.2.3"
+  }
+}

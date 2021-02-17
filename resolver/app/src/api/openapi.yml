@@ -1,0 +1,145 @@
+openapi: 3.0.0
+info:
+  title: Solid Resolver Driver
+  description: Solid Resolver Driver
+  contact:
+    email: markus@danubetech.com
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/identity.com/solid-resolver-driver/1.0.0
+  description: SwaggerHub API Auto Mocking
+- url: /1.0/
+paths:
+  /identifiers/{identifier}:
+    get:
+      summary: Resolve a DID or other identifier.
+      operationId: resolve
+      parameters:
+      - name: identifier
+        in: path
+        description: A DID or other identifier to be resolved.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+      - name: Accept
+        in: header
+        description: The requested MIME type of the DID document or DID resolution
+          result.
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        examples:
+          application/did+json:
+            description: MIME type of a DID document (JSON representation)
+            value: application/json
+          application/did+ld+json:
+            description: MIME type of a DID document (JSON-LD representation)
+            value: application/did+ld+json
+          application/ld+json;profile=\"https://w3c-ccg.github.io/did-resolution/\":
+            description: MIME type of a DID resolution result
+            value: application/ld+json;profile=\"https://w3c-ccg.github.io/did-resolution/\"
+      responses:
+        "200":
+          description: successfully resolved!
+          content:
+            application/did+json:
+              schema:
+                type: object
+                description: The DID document (JSON representation).
+                example:
+                  id: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+                  publicKey:
+                  - id: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key-1
+                    type: Ed25519VerificationKey2018
+                    publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
+                x-content-type: application/did+json
+            application/did+ld+json:
+              schema:
+                type: object
+                description: The DID document (JSON-LD representation).
+                example:
+                  "@context": https://w3id.org/did/v1
+                  id: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+                  publicKey:
+                    - publicKeyBase58: jAwzBRYFBsY8PhTyjcMFxD9qRhwcPLxPP4fuxk15HjcH
+                      id: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1
+                      usage: signing
+                      type: Secp256k1VerificationKey2018
+                      controller: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+                    - publicKeyBase58: DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+                      id: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2
+                      usage: encryption
+                      type: X25519KeyAgreementKey2019
+                      controller: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+                  authentication:
+                    - did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1
+                    - did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2
+                  capabilityInvocation:
+                    - did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2
+                  keyAgreement:
+                    - did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2
+                  assertion:
+                    - did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1
+                  service:
+                    - id: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#agent
+                      type: AgentService
+                      serviceEndpoint: https://hub.civic.com/did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH/agent
+                    - id: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#messages
+                      type: MessagingService
+                      serviceEndpoint: https://hub.civic.com/did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH/messages
+            application/ld+json;profile=\"https://w3c-ccg.github.io/did-resolution/\":
+              schema:
+                $ref: '#/components/schemas/ResolutionResult'
+        "400":
+          description: invalid input!
+        "500":
+          description: error!
+      x-swagger-router-controller: Default
+components:
+  schemas:
+    ResolutionResult:
+      type: object
+      properties:
+        didDocument:
+          type: object
+          example:
+            "@context": https://w3id.org/did/v1
+            id: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+            publicKey:
+              - publicKeyBase58: jAwzBRYFBsY8PhTyjcMFxD9qRhwcPLxPP4fuxk15HjcH
+                id: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1
+                usage: signing
+                type: Secp256k1VerificationKey2018
+                controller: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+              - publicKeyBase58: DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+                id: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2
+                usage: encryption
+                type: X25519KeyAgreementKey2019
+                controller: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+            authentication:
+              - did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1
+              - did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2
+            capabilityInvocation:
+              - did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2
+            keyAgreement:
+              - did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2
+            assertion:
+              - did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1
+            service:
+              - id: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#agent
+                type: AgentService
+                serviceEndpoint: https://hub.civic.com/did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH/agent
+              - id: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#messages
+                type: MessagingService
+                serviceEndpoint: https://hub.civic.com/did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH/messages
+        resolverMetadata:
+          type: object
+        methodMetadata:
+          type: object
+      additionalProperties: false
+      description: The DID resolution result.
