@@ -13,7 +13,10 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
-    "test": "tsdx test",
+    "start-validator": "solana-test-validator --bpf-program ide3Y2TubNMLLhiG1kDL6to4a8SjxD18YWCYC5BZqNV ../program/target/deploy/solid_did.so --reset --quiet",
+    "test": "tsdx test --testPathIgnorePatterns=e2e",
+    "test-e2e": "start-server-and-test start-validator http://localhost:8899/health test-e2e-pattern",
+    "test-e2e-pattern": "tsdx test --forceExit --testPathPattern=e2e",
     "lint": "tsdx lint --maxWarnings 0",
     "prepare": "tsdx build",
     "size": "size-limit",
@@ -46,13 +49,18 @@
   ],
   "devDependencies": {
     "@size-limit/preset-small-lib": "^4.9.2",
+    "@types/bn.js": "^5.1.0",
     "husky": "^5.0.9",
     "size-limit": "^4.9.2",
+    "start-server-and-test": "^1.12.0",
     "tsdx": "^0.14.1",
     "tslib": "^2.1.0",
     "typescript": "^4.1.5"
   },
   "dependencies": {
+    "@solana/web3.js": "^0.93.0",
+    "bn.js": "^4.12.0",
+    "borsh": "^0.3.1",
     "did-resolver": "^2.1.2"
   }
 }
