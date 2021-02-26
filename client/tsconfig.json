@@ -13,6 +13,10 @@
     "rootDir": "./src",
     // stricter type-checking for stronger correctness. Recommended by TS
     "strict": true,
+    // implicit any helps for generic Borsh structures
+    "noImplicitAny": false,
+    // needed for enums which are not all initialized
+    "strictPropertyInitialization": false,
     // linter checks for common issues
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
