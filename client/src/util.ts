@@ -1,4 +1,5 @@
 import { DIDDocument, PublicKey } from 'did-resolver';
+import { PublicKey as SolanaPublicKey } from '@solana/web3.js';
 
 // a 64-byte private key on the X25519 curve.
 // In string form it is base58-encoded
@@ -24,3 +25,19 @@ export const calculateIdentifier = async (
 
 export const matches = (owner: PublicKeyBase58) => (key: PublicKey) =>
   key.publicKeyBase58 === owner;
+
+const DID_REGEX = /^did:solid:(.+)$/;
+
+export const extractMethodIdentifierFromDID = (did: string): string => {
+  const matches = DID_REGEX.exec(did);
+
+  if (!matches) throw new Error('Invalid DID');
+
+  return matches[1];
+};
+
+export const identifierToPubkey = (did: string) => {
+  const identifier = extractMethodIdentifierFromDID(did);
+
+  return new SolanaPublicKey(identifier);
+};

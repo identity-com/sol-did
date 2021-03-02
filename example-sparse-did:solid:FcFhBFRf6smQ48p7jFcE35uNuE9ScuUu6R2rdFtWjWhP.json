@@ -1,0 +1,21 @@
+{
+  "@context": [
+    "https://w3id.org/did/v1.0",
+    "https://w3id.org/solid/v1"
+  ],
+  "id": "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP",
+  "publicKeys": [
+    {
+      "id": "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP#key1",
+      "type": "Ed25519VerificationKey2018",
+      "controller": "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP",
+      "publicKeyBase58": "BeqWbk3sPvujQgBySrwUbinjtXc1oAfg3iD87ShtVrKb"
+    }
+  ],
+  "authentication": [
+    "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP#key1"
+  ],
+  "capabilityInvocation": [
+    "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP#key1"
+  ]
+}

@@ -1,6 +1,13 @@
 import { register } from './Registrar';
 import { ResponseContent } from '../utils/writer';
 import { DIDDocument } from 'did-resolver';
+import { resolve } from './Resolver';
+
+type ResolutionResult = {
+  didDocument: DIDDocument;
+  didResolutionMetadata: object;
+  didDocumentMetadata: object;
+};
 
 export type DeactivateRequest = { identifier: string };
 export type UpdateRequest = {
@@ -72,4 +79,29 @@ export const registerDID = async (
   };
 
   return new ResponseContent(200, state);
+};
+
+/**
+ * Resolve a DID or other identifier.
+ *
+ * identifier String A DID or other identifier to be resolved.
+ * accept String The requested MIME type of the DID document or DID resolution result. (optional)
+ * returns Object
+ **/
+export const resolveDID = async (
+  identifier: string,
+  _accept: string
+): Promise<ResponseContent<ResolutionResult>> => {
+  const didDocument = await resolve(identifier);
+
+  if (didDocument) {
+    const result: ResolutionResult = {
+      didDocument,
+      didResolutionMetadata: {},
+      didDocumentMetadata: {},
+    };
+    return new ResponseContent(200, result);
+  }
+
+  return new ResponseContent(404);
 };

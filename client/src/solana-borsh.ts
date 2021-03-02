@@ -2,8 +2,8 @@ import { serialize, BinaryReader, Schema, BorshError } from 'borsh';
 
 // Class wrapping a plain object
 export abstract class Assignable {
-  constructor(properties: { [key: string]: any}) {
-    Object.keys(properties).map((key: string) => {
+  constructor(properties: { [key: string]: any }) {
+    Object.keys(properties).forEach((key: string) => {
       this[key] = properties[key];
     });
   }
@@ -27,7 +27,7 @@ export abstract class Enum extends Assignable {
       throw new Error('Enum can only take single value');
     }
     this.enum = '';
-    Object.keys(properties).map((key) => {
+    Object.keys(properties).forEach(key => {
       this.enum = key;
     });
   }
@@ -42,7 +42,12 @@ function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-function deserializeField(schema: Schema, fieldName: string, fieldType: any, reader: BinaryReader): any {
+function deserializeField(
+  schema: Schema,
+  fieldName: string,
+  fieldType: any,
+  reader: BinaryReader
+): any {
   try {
     if (typeof fieldType === 'string') {
       return reader[`read${capitalizeFirstLetter(fieldType)}`]();
@@ -53,7 +58,9 @@ function deserializeField(schema: Schema, fieldName: string, fieldType: any, rea
         return reader.readFixedArray(fieldType[0]);
       }
 
-      return reader.readArray(() => deserializeField(schema, fieldName, fieldType[0], reader));
+      return reader.readArray(() =>
+        deserializeField(schema, fieldName, fieldType[0], reader)
+      );
     }
 
     return deserializeStruct(schema, fieldType, reader);
@@ -65,7 +72,11 @@ function deserializeField(schema: Schema, fieldName: string, fieldType: any, rea
   }
 }
 
-function deserializeStruct(schema: Schema, classType: any, reader: BinaryReader) {
+function deserializeStruct(
+  schema: Schema,
+  classType: any,
+  reader: BinaryReader
+) {
   const structSchema = schema.get(classType);
   if (!structSchema) {
     throw new BorshError(`Class ${classType.name} is missing in schema`);
@@ -74,7 +85,12 @@ function deserializeStruct(schema: Schema, classType: any, reader: BinaryReader)
   if (structSchema.kind === 'struct') {
     const result = {};
     for (const [fieldName, fieldType] of schema.get(classType).fields) {
-      result[fieldName] = deserializeField(schema, fieldName, fieldType, reader);
+      result[fieldName] = deserializeField(
+        schema,
+        fieldName,
+        fieldType,
+        reader
+      );
     }
     return new classType(result);
   }
@@ -89,11 +105,17 @@ function deserializeStruct(schema: Schema, classType: any, reader: BinaryReader)
     return new classType({ [fieldName]: fieldValue });
   }
 
-  throw new BorshError(`Unexpected schema kind: ${structSchema.kind} for ${classType.constructor.name}`);
+  throw new BorshError(
+    `Unexpected schema kind: ${structSchema.kind} for ${classType.constructor.name}`
+  );
 }
 
 /// Deserializes object from bytes using schema.
-export function deserializeExtraBytes(schema: Schema, classType: any, buffer: Buffer): any {
+export function deserializeExtraBytes(
+  schema: Schema,
+  classType: any,
+  buffer: Buffer
+): any {
   const reader = new BinaryReader(buffer);
   return deserializeStruct(schema, classType, reader);
 }

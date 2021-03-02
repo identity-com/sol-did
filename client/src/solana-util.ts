@@ -1,4 +1,10 @@
-import { Account, Connection, Transaction, TransactionSignature, sendAndConfirmTransaction } from '@solana/web3.js';
+import {
+  Account,
+  Connection,
+  Transaction,
+  TransactionSignature,
+  sendAndConfirmTransaction,
+} from '@solana/web3.js';
 
 export class SolanaUtil {
   static sendAndConfirmTransaction(
@@ -15,7 +21,7 @@ export class SolanaUtil {
 
   static async newAccountWithLamports(
     connection: Connection,
-    lamports: number = 1000000,
+    lamports: number = 1000000
   ): Promise<Account> {
     const account = new Account();
 
@@ -23,7 +29,7 @@ export class SolanaUtil {
     await connection.requestAirdrop(account.publicKey, lamports);
     for (;;) {
       await this.sleep(500);
-      if (lamports == (await connection.getBalance(account.publicKey))) {
+      if (lamports === (await connection.getBalance(account.publicKey))) {
         return account;
       }
       if (--retries <= 0) {

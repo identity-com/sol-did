@@ -4,9 +4,9 @@ export class ResponseContent<T> {
   constructor(readonly code: number = 200, readonly payload?: T) {}
 }
 
-export const writeJson = (
+export const writeJson = <T>(
   response: ServerResponse,
-  responseContents: ResponseContent<any>
+  responseContents: ResponseContent<T>
 ) => {
   const payloadString = JSON.stringify(responseContents.payload, null, 2);
   response.writeHead(responseContents.code, {

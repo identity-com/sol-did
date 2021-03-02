@@ -16,7 +16,7 @@ export class SolidData extends Assignable {
   }
 
   static defaultContext(): string[] {
-    return ["https://w3id.org/did/v1.0", "https://w3id.org/solid/v1"];
+    return ['https://w3id.org/did/v1.0', 'https://w3id.org/solid/v1'];
   }
 
   static newSparse(account: PublicKey, authority: PublicKey): SolidData {
@@ -28,7 +28,15 @@ export class SolidData extends Assignable {
     const capabilityInvocation = [publicKey.id];
     const keyAgreement = [publicKey.id];
     const assertion = [publicKey.id];
-    return new SolidData({context, did, publicKey: [publicKey], authentication, capabilityInvocation, keyAgreement, assertion});
+    return new SolidData({
+      context,
+      did,
+      publicKey: [publicKey],
+      authentication,
+      capabilityInvocation,
+      keyAgreement,
+      assertion,
+    });
   }
 }
 
@@ -39,14 +47,17 @@ export class VerificationMethod extends Assignable {
   pubkey: SolidPublicKey;
 
   static defaultVerificationType(): string {
-    return "Ed25519VerificationKey2018";
+    return 'Ed25519VerificationKey2018';
   }
 
-  static newPublicKey(controller: string, authority: PublicKey): VerificationMethod {
+  static newPublicKey(
+    controller: string,
+    authority: PublicKey
+  ): VerificationMethod {
     const id = `${controller}#key1`;
     const verificationType = VerificationMethod.defaultVerificationType();
     const pubkey = SolidPublicKey.fromPublicKey(authority);
-    return new VerificationMethod({id, verificationType, controller, pubkey});
+    return new VerificationMethod({ id, verificationType, controller, pubkey });
   }
 }
 
@@ -63,7 +74,7 @@ export class SolidPublicKey extends Assignable {
   }
 
   static fromPublicKey(publicKey: PublicKey): SolidPublicKey {
-    return new SolidPublicKey({bytes: Uint8Array.from(publicKey.toBuffer())});
+    return new SolidPublicKey({ bytes: Uint8Array.from(publicKey.toBuffer()) });
   }
 }
 
@@ -76,14 +87,19 @@ SCHEMA.set(SolidData, {
     ['authentication', ['string']],
     ['capabilityInvocation', ['string']],
     ['keyAgreement', ['string']],
-    ['assertion', ['string']]
-  ]
+    ['assertion', ['string']],
+  ],
 });
 SCHEMA.set(VerificationMethod, {
   kind: 'struct',
-  fields: [['id', 'string'], ['verificationType', 'string'], ['controller', 'string'], ['pubkey', SolidPublicKey]],
+  fields: [
+    ['id', 'string'],
+    ['verificationType', 'string'],
+    ['controller', 'string'],
+    ['pubkey', SolidPublicKey],
+  ],
 });
 SCHEMA.set(SolidPublicKey, {
   kind: 'struct',
-  fields: [['bytes', [32]]]
+  fields: [['bytes', [32]]],
 });

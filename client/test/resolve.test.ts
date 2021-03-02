@@ -1,8 +1,10 @@
 import { resolve } from '../src';
 
 describe('resolve', () => {
-  it('works', () => {
-    //TODO
-    return expect(resolve('todo')).resolves.toMatchObject({ id: 'todo' });
+  // Skip until we add a real DID on chain to point to
+  it.skip('works', () => {
+    return expect(resolve('did:solid:todo')).resolves.toMatchObject({
+      id: 'todo',
+    });
   });
 });
