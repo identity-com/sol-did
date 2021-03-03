@@ -2,7 +2,12 @@ import path from 'path';
 import http from 'http';
 import * as oas3Tools from 'oas3-tools';
 import { Oas3AppOptions } from 'oas3-tools/dist/middleware/oas3.options';
-import { deactivateDID, registerDID, updateDID } from './controllers/Default';
+import {
+  registerDID,
+  resolveDID,
+  updateDID,
+  deactivateDID,
+} from './controllers/Default';
 
 const serverPort = process.env.PORT || 8080;
 
@@ -11,6 +16,7 @@ const serverPort = process.env.PORT || 8080;
 const options: Oas3AppOptions = {
   routing: {
     controllers: {
+      Default_resolve: resolveDID,
       Default_register: registerDID,
       Default_update: updateDID,
       Default_deactivate: deactivateDID,
@@ -29,6 +35,7 @@ const expressAppConfig = oas3Tools.expressAppConfig(
   path.join(__dirname, 'api/openapi.yml'),
   options
 );
+
 const app = expressAppConfig.getApp();
 
 // Initialize the Swagger middleware

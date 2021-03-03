@@ -1,4 +1,0 @@
-#!/usr/bin/env node
-const { resolve } = require('./dist/index')
-
-resolve(process.argv[1]).then(document => console.log(JSON.stringify(document, null, 1)));

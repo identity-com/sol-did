@@ -8,7 +8,10 @@ describe('(de)serialize operations', () => {
   it('works for SolidData', () => {
     const authority = new Account();
     const solidAccount = new Account();
-    const solid = SolidData.newSparse(solidAccount.publicKey, authority.publicKey);
+    const solid = SolidData.newSparse(
+      solidAccount.publicKey,
+      authority.publicKey
+    );
     testSerialization(SolidData, solid);
   });
 

@@ -1,4 +1,3 @@
-//import { DID } from '@solana/did'
 import { DIDDocument } from 'did-resolver';
 
 const DID = {

@@ -1,15 +1,9 @@
 version: '3.4'
 services:
-  solid-registrar:
-    build: registrar/app
+  solid-driver:
+    image: identitydotcom/driver-did-solid
+    build: driver
     ports:
       - 8080:8080
-#    env_file:
-#      - .env
-
-  solid-resolver:
-    build: resolver/app
-    ports:
-      - 8081:8080
 #    env_file:
 #      - .env

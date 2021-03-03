@@ -1,4 +1,4 @@
-FROM node:15 as builder
+FROM node:15-alpine as builder
 
 WORKDIR /usr/src/app
 
@@ -11,7 +11,7 @@ RUN yarn install
 RUN rm -rf node_modules
 RUN yarn install --production
 
-FROM node:15
+FROM node:15-alpine
 WORKDIR /usr/src/app
 
 EXPOSE 8080

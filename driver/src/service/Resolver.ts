@@ -1,4 +1,4 @@
-//import { DID } from '@solana/did'
+import {} from '@identity.com/solid-did-client';
 import { DIDDocument } from 'did-resolver';
 
 const DID = {

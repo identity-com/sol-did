@@ -1,14 +1,18 @@
 {
-  "version": "0.1.0",
+  "version": "0.0.1",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
     "dist",
-    "src"
+    "src",
+    "solid"
   ],
+  "bin": {
+    "solid": "solid"
+  },
   "engines": {
-    "node": ">=10"
+    "node": ">=15"
   },
   "scripts": {
     "start": "tsdx watch",
@@ -34,7 +38,7 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "client",
+  "name": "@identity.com/solid-did-client",
   "author": "dankelleher",
   "module": "dist/client.esm.js",
   "size-limit": [
