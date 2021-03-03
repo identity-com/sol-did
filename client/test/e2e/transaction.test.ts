@@ -3,7 +3,7 @@ import { SolidTransaction } from '../../src/transaction';
 import { SolidData } from '../../src/solid-data';
 import { SolanaUtil } from '../../src/solana-util';
 import { strict as assert } from 'assert';
-import {VALIDATOR_URL} from "./constants";
+import { VALIDATOR_URL } from './constants';
 
 describe('transaction', () => {
   it('create works', async () => {

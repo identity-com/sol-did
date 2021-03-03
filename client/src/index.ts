@@ -1,14 +1,16 @@
 import { DIDDocument } from 'did-resolver';
 import {
   calculateIdentifier,
-  getPublicKey, identifierToCluster,
+  getPublicKey,
+  identifierToCluster,
   identifierToPubkey,
   matches,
-  RegisterRequest, solanaUrlForCluster,
+  RegisterRequest,
+  solanaUrlForCluster,
 } from './util';
 import { SolidTransaction } from './transaction';
 import { Connection } from '@solana/web3.js';
-import {ExtendedCluster} from "./constants";
+import { ExtendedCluster } from './constants';
 
 /**
  * Resolves a SOLID DID to a document,
