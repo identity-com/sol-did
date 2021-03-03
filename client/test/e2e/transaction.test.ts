@@ -3,8 +3,7 @@ import { SolidTransaction } from '../../src/transaction';
 import { SolidData } from '../../src/solid-data';
 import { SolanaUtil } from '../../src/solana-util';
 import { strict as assert } from 'assert';
-
-const VALIDATOR_URL = 'http://127.0.0.1:8899';
+import { VALIDATOR_URL } from './constants';
 
 describe('transaction', () => {
   it('create works', async () => {
