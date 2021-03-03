@@ -1,13 +1,14 @@
 import { DIDDocument } from 'did-resolver';
 import {
   calculateIdentifier,
-  getPublicKey,
+  getPublicKey, identifierToCluster,
   identifierToPubkey,
   matches,
-  RegisterRequest,
+  RegisterRequest, solanaUrlForCluster,
 } from './util';
 import { SolidTransaction } from './transaction';
-import { Cluster, clusterApiUrl, Connection } from '@solana/web3.js';
+import { Connection } from '@solana/web3.js';
+import {ExtendedCluster} from "./constants";
 
 /**
  * Resolves a SOLID DID to a document,
@@ -16,8 +17,8 @@ import { Cluster, clusterApiUrl, Connection } from '@solana/web3.js';
  * @throws Error if the document is not found
  */
 export const resolve = async (identifier: string): Promise<DIDDocument> => {
-  const cluster: Cluster = 'mainnet-beta'; // TODO Support extract cluster fro identifier
-  const connection = new Connection(clusterApiUrl(cluster), 'recent');
+  const cluster: ExtendedCluster = identifierToCluster(identifier);
+  const connection = new Connection(solanaUrlForCluster(cluster), 'recent');
   const solidData = await SolidTransaction.getSolid(
     connection,
     identifierToPubkey(identifier)
