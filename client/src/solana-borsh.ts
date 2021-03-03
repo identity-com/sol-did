@@ -27,7 +27,7 @@ export abstract class Enum extends Assignable {
       throw new Error('Enum can only take single value');
     }
     this.enum = '';
-    Object.keys(properties).forEach(key => {
+    Object.keys(properties).forEach((key) => {
       this.enum = key;
     });
   }

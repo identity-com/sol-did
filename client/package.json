@@ -25,7 +25,8 @@
     "lint": "tsdx lint --maxWarnings 0",
     "prepare": "tsdx build",
     "size": "size-limit",
-    "analyze": "size-limit --why"
+    "analyze": "size-limit --why",
+    "prettier": "prettier --write '{,{src,test}/**/}*.{j,t}s'"
   },
   "peerDependencies": {},
   "husky": {
