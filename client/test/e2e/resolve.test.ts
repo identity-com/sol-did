@@ -31,5 +31,5 @@ describe('resolve', () => {
     return expect(document).toMatchObject({
       id: did,
     });
-  }, 30000);
+  });
 });
