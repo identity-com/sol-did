@@ -4,30 +4,41 @@ use {
     crate::{
         borsh as program_borsh,
         error::SolidError,
-        instruction::SolidInstruction,
-        state::{DistributedId, VerificationMethod, SolidData},
+        id,
+        instruction::{get_solid_address_with_seed, SolidInstruction},
+        state::{DistributedId, SolidData, VerificationMethod},
     },
     borsh::{BorshDeserialize, BorshSerialize},
     solana_program::{
         account_info::{next_account_info, AccountInfo},
         entrypoint::ProgramResult,
         msg,
+        program::invoke_signed,
         program_error::ProgramError,
         program_pack::IsInitialized,
         pubkey::Pubkey,
+        rent::Rent,
+        system_instruction,
+        sysvar::Sysvar,
     },
 };
 
-fn check_authority(authority_info: &AccountInfo, verification_methods: &Vec<VerificationMethod>) -> ProgramResult {
+fn check_authority(
+    authority_info: &AccountInfo,
+    verification_methods: &[VerificationMethod],
+) -> ProgramResult {
     if !authority_info.is_signer {
         msg!("Solid authority signature missing");
         return Err(ProgramError::MissingRequiredSignature);
     }
-    if verification_methods.iter().any(|v| &v.pubkey == authority_info.key) {
+    if verification_methods
+        .iter()
+        .any(|v| &v.pubkey == authority_info.key)
+    {
         Ok(())
     } else {
         msg!("Incorrect Solid authority provided");
-        return Err(SolidError::IncorrectAuthority.into());
+        Err(SolidError::IncorrectAuthority.into())
     }
 }
 
@@ -41,19 +52,52 @@ pub fn process_instruction(
     let account_info_iter = &mut accounts.iter();
 
     match instruction {
-        SolidInstruction::Initialize => {
+        SolidInstruction::Initialize { cluster_type } => {
             msg!("SolidInstruction::Initialize");
 
+            let funder_info = next_account_info(account_info_iter)?;
             let data_info = next_account_info(account_info_iter)?;
             let authority_info = next_account_info(account_info_iter)?;
+            let rent_info = next_account_info(account_info_iter)?;
+            let system_program_info = next_account_info(account_info_iter)?;
+            let rent = &Rent::from_account_info(rent_info)?;
 
-            let account_data = program_borsh::try_from_slice_incomplete::<SolidData>(*data_info.data.borrow())?;
-            if account_data.is_initialized() {
+            let (solid_address, solid_bump_seed) = get_solid_address_with_seed(authority_info.key);
+            if solid_address != *data_info.key {
+                msg!("Error: solid address derivation mismatch");
+                return Err(ProgramError::InvalidArgument);
+            }
+
+            let data_len = data_info.data.borrow().len();
+            if data_len > 0 {
                 msg!("Solid account already initialized");
                 return Err(ProgramError::AccountAlreadyInitialized);
             }
 
-            let did = DistributedId::from(*data_info.key);
+            let solid_signer_seeds: &[&[_]] = &[
+                &authority_info.key.to_bytes(),
+                br"solid",
+                &[solid_bump_seed],
+            ];
+
+            msg!("Creating data account");
+            invoke_signed(
+                &system_instruction::create_account(
+                    funder_info.key,
+                    data_info.key,
+                    1.max(rent.minimum_balance(SolidData::LEN)),
+                    SolidData::LEN as u64,
+                    &id(),
+                ),
+                &[
+                    funder_info.clone(),
+                    data_info.clone(),
+                    system_program_info.clone(),
+                ],
+                &[&solid_signer_seeds],
+            )?;
+
+            let did = DistributedId::new(cluster_type, *data_info.key);
             let solid = SolidData::new(did, *authority_info.key);
             solid
                 .serialize(&mut *data_info.data.borrow_mut())
@@ -64,7 +108,8 @@ pub fn process_instruction(
             msg!("SolidInstruction::Write");
             let data_info = next_account_info(account_info_iter)?;
             let authority_info = next_account_info(account_info_iter)?;
-            let account_data = program_borsh::try_from_slice_incomplete::<SolidData>(*data_info.data.borrow())?;
+            let account_data =
+                program_borsh::try_from_slice_incomplete::<SolidData>(*data_info.data.borrow())?;
             if !account_data.is_initialized() {
                 msg!("Solid account not initialized");
                 return Err(ProgramError::UninitializedAccount);
@@ -80,30 +125,13 @@ pub fn process_instruction(
             }
         }
 
-        SolidInstruction::SetAuthority => {
-            msg!("SolidInstruction::SetAuthority");
-            let data_info = next_account_info(account_info_iter)?;
-            let authority_info = next_account_info(account_info_iter)?;
-            let new_authority_info = next_account_info(account_info_iter)?;
-            let mut account_data = program_borsh::try_from_slice_incomplete::<SolidData>(*data_info.data.borrow())?;
-            if !account_data.is_initialized() {
-                msg!("Solid account not initialized");
-                return Err(ProgramError::UninitializedAccount);
-            }
-            check_authority(authority_info, &account_data.public_key)?;
-            let did = DistributedId::from(*data_info.key);
-            account_data.public_key = vec![VerificationMethod::new(did, *new_authority_info.key)];
-            account_data
-                .serialize(&mut *data_info.data.borrow_mut())
-                .map_err(|e| e.into())
-        }
-
         SolidInstruction::CloseAccount => {
             msg!("SolidInstruction::CloseAccount");
             let data_info = next_account_info(account_info_iter)?;
             let authority_info = next_account_info(account_info_iter)?;
             let destination_info = next_account_info(account_info_iter)?;
-            let account_data = program_borsh::try_from_slice_incomplete::<SolidData>(*data_info.data.borrow())?;
+            let account_data =
+                program_borsh::try_from_slice_incomplete::<SolidData>(*data_info.data.borrow())?;
             if !account_data.is_initialized() {
                 msg!("Solid not initialized");
                 return Err(ProgramError::UninitializedAccount);

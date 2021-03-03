@@ -1,8 +1,6 @@
 //! Borsh helpers
 
-use {
-    borsh::{maybestd::io::Error, BorshDeserialize},
-};
+use borsh::{maybestd::io::Error, BorshDeserialize};
 
 /// Deserializes something and allows for incomplete reading
 pub fn try_from_slice_incomplete<T: BorshDeserialize>(data: &[u8]) -> Result<T, Error> {

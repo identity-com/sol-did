@@ -20,7 +20,7 @@ use {
         error::SolidError,
         id, instruction,
         processor::process_instruction,
-        state::{DistributedId, SolidData, VerificationMethod},
+        state::{ClusterType, DistributedId, SolidData, VerificationMethod},
     },
 };
 
@@ -30,29 +30,23 @@ fn program_test() -> ProgramTest {
 
 async fn initialize_did_account(
     context: &mut ProgramTestContext,
-    authority: &Keypair,
-    account: &Keypair,
+    authority: &Pubkey,
 ) -> transport::Result<()> {
     let transaction = Transaction::new_signed_with_payer(
-        &[
-            system_instruction::create_account(
-                &context.payer.pubkey(),
-                &account.pubkey(),
-                1.max(Rent::default().minimum_balance(SolidData::LEN)),
-                SolidData::LEN as u64,
-                &id(),
-            ),
-            instruction::initialize(&account.pubkey(), &authority.pubkey()),
-        ],
+        &[instruction::initialize(
+            &context.payer.pubkey(),
+            authority,
+            ClusterType::Development,
+        )],
         Some(&context.payer.pubkey()),
-        &[&context.payer, account],
+        &[&context.payer],
         context.last_blockhash,
     );
     context.banks_client.process_transaction(transaction).await
 }
 
 fn check_solid(data: SolidData, solid_key: Pubkey, authority: Pubkey) {
-    let did = DistributedId::from(solid_key);
+    let did = DistributedId::new(ClusterType::Development, solid_key);
     let public_key = VerificationMethod::new(did.clone(), authority);
     assert_eq!(data.context, SolidData::default_context());
     assert_eq!(data.did, did);
@@ -67,19 +61,20 @@ fn check_solid(data: SolidData, solid_key: Pubkey, authority: Pubkey) {
 async fn initialize_success() {
     let mut context = program_test().start_with_context().await;
 
-    let authority = Keypair::new();
-    let account = Keypair::new();
-    initialize_did_account(&mut context, &authority, &account)
+    let authority = Pubkey::new_unique();
+    let (solid, _) = instruction::get_solid_address_with_seed(&authority);
+    initialize_did_account(&mut context, &authority)
         .await
         .unwrap();
     let account_info = context
         .banks_client
-        .get_account(account.pubkey())
+        .get_account(solid)
         .await
         .unwrap()
         .unwrap();
-    let account_data = program_borsh::try_from_slice_incomplete::<SolidData>(&account_info.data).unwrap();
-    check_solid(account_data, account.pubkey(), authority.pubkey());
+    let account_data =
+        program_borsh::try_from_slice_incomplete::<SolidData>(&account_info.data).unwrap();
+    check_solid(account_data, solid, authority);
 }
 
 /*
