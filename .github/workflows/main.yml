@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         node: ['15.x']
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest]
 
     defaults:
       run:
@@ -41,7 +41,7 @@ jobs:
     strategy:
       matrix:
         node: ['15.x']
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest]
 
     defaults:
       run:
