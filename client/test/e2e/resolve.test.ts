@@ -22,7 +22,7 @@ describe('resolve', () => {
     solidDIDAccount = await SolidTransaction.createSolid(
       connection,
       payer,
-      authority
+      authority.publicKey
     );
   }, 60000);
 

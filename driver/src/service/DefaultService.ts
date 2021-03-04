@@ -1,7 +1,7 @@
 import { register } from './Registrar';
 import { ResponseContent } from '../utils/writer';
 import { DIDDocument } from 'did-resolver';
-import { resolve } from './Resolver';
+import * as DID from '@identity.com/solid-did-client';
 
 type ResolutionResult = {
   didDocument: DIDDocument;
@@ -92,7 +92,7 @@ export const resolveDID = async (
   identifier: string,
   _accept: string
 ): Promise<ResponseContent<ResolutionResult>> => {
-  const didDocument = await resolve(identifier);
+  const didDocument = await DID.resolve(identifier);
 
   if (didDocument) {
     const result: ResolutionResult = {

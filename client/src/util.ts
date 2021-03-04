@@ -5,28 +5,65 @@ import {
   PublicKey as SolanaPublicKey,
 } from '@solana/web3.js';
 import { DID_METHOD, ExtendedCluster } from './constants';
+import { decode } from 'bs58';
 
 // a 64-byte private key on the X25519 curve.
 // In string form it is base58-encoded
-export type PrivateKey = number[] | string | Buffer;
+export type PrivateKey = number[] | string | Buffer | Uint8Array;
 export type PublicKeyBase58 = string;
 
 export type RegisterRequest = {
   payer: PrivateKey;
   document?: Partial<DIDDocument>;
   owner?: PublicKeyBase58;
+  cluster?: ExtendedCluster;
 };
 
-export const getPublicKey = (_privateKey: PrivateKey): PublicKeyBase58 => {
-  return 'TODO'; // TODO
+export const privateKeyIsArray = (
+  privateKey: PrivateKey
+): privateKey is number[] => Array.isArray(privateKey);
+export const privateKeyIsString = (
+  privateKey: PrivateKey
+): privateKey is string => typeof privateKey === 'string';
+export const privateKeyIsBuffer = (
+  privateKey: PrivateKey
+): privateKey is Buffer => Buffer.isBuffer(privateKey);
+export const privateKeyIsUint8Array = (
+  privateKey: PrivateKey
+): privateKey is Uint8Array => privateKey instanceof Uint8Array;
+
+/**
+ * Create a Solana account object from an x25519 private key
+ * @param privateKey
+ */
+export const makeAccount = (privateKey: PrivateKey): Account => {
+  if (
+    privateKeyIsArray(privateKey) ||
+    privateKeyIsBuffer(privateKey) ||
+    privateKeyIsUint8Array(privateKey)
+  )
+    return new Account(privateKey);
+  if (privateKeyIsString(privateKey)) {
+    const privateKeyHex = decode(privateKey);
+    return new Account(privateKeyHex);
+  }
+
+  throw new Error('Incompatible private key format');
 };
 
-// calculate the DID identifier from the owner key (by generating a program address)
-export const calculateIdentifier = async (
-  _owner: PublicKeyBase58
-): Promise<string> => {
-  return 'did:solid:todo'; // TODO
-};
+/**
+ * Given a private key on the x25519 curve, get its public key
+ * @param privateKey
+ */
+export const getPublicKey = (privateKey: PrivateKey): SolanaPublicKey =>
+  makeAccount(privateKey).publicKey;
+
+/**
+ * Converts a Curve25519 key in Base58 encoding to a solana PublicKey object
+ * @param publicKeyString
+ */
+export const stringToPublicKey = (publicKeyString: string): SolanaPublicKey =>
+  new SolanaPublicKey(publicKeyString);
 
 export const matches = (owner: PublicKeyBase58) => (key: PublicKey) =>
   key.publicKeyBase58 === owner;
@@ -59,15 +96,20 @@ export const identifierToCluster = (did: string): ExtendedCluster => {
   return (clusterString as ExtendedCluster) || 'mainnet-beta';
 };
 
-export const accountAndClusterToDID = (
-  account: Account,
+export const publicKeyAndClusterToDID = (
+  publicKey: SolanaPublicKey,
   cluster: ExtendedCluster = 'mainnet-beta'
 ) => {
   // no prefix for mainnet
   const identifierPrefix = cluster === 'mainnet-beta' ? '' : cluster + ':';
-  const identifier = account.publicKey.toBase58();
+  const identifier = publicKey.toBase58();
   return `did:${DID_METHOD}:${identifierPrefix}${identifier}`;
 };
+
+export const accountAndClusterToDID = (
+  account: Account,
+  cluster: ExtendedCluster = 'mainnet-beta'
+) => publicKeyAndClusterToDID(account.publicKey, cluster);
 
 export const solanaUrlForCluster = (cluster: ExtendedCluster) =>
   cluster === 'localnet' ? 'http://localhost:8899' : clusterApiUrl(cluster);

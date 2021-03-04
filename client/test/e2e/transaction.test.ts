@@ -16,7 +16,7 @@ describe('transaction', () => {
     const solidKey = await SolidTransaction.createSolid(
       connection,
       payer,
-      authority
+      authority.publicKey
     );
     const solid = await SolidTransaction.getSolid(
       connection,

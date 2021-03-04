@@ -13,7 +13,7 @@ export class SolidTransaction {
   static async createSolid(
     connection: Connection,
     payer: Account,
-    authority: Account
+    authority: PublicKey
   ): Promise<Account> {
     const solidKey = new Account();
 
@@ -33,7 +33,7 @@ export class SolidTransaction {
       })
     );
 
-    transaction.add(initialize(solidKey.publicKey, authority.publicKey));
+    transaction.add(initialize(solidKey.publicKey, authority));
 
     // Send the instructions
     await SolanaUtil.sendAndConfirmTransaction(
