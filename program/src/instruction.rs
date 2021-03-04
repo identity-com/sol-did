@@ -1,11 +1,12 @@
 //! Program instructions
 
 use {
-    crate::id,
+    crate::{id, state::ClusterType},
     borsh::{BorshDeserialize, BorshSerialize},
     solana_program::{
         instruction::{AccountMeta, Instruction},
         pubkey::Pubkey,
+        system_program, sysvar,
     },
 };
 
@@ -16,9 +17,16 @@ pub enum SolidInstruction {
     ///
     /// Accounts expected by this instruction:
     ///
-    /// 0. `[writable]` Solid account, must be uninitialized
-    /// 1. `[]` Solid authority
-    Initialize,
+    /// 0. `[writable, signer]` Funding account, must be a system account
+    /// 1. `[writable]` Unallocated Solid account, must be a program address
+    /// 2. `[]` Solid authority
+    /// 3. `[]` Rent sysvar
+    /// 4. `[]` System program
+    Initialize {
+        /// Identifier for the cluster, added to the DID if present.  For example,
+        /// if we set this to "devnet", the DID becomes: "did:solid:devnet:<pubkey>"
+        cluster_type: ClusterType,
+    },
 
     /// Write to the provided solid account
     ///
@@ -33,15 +41,6 @@ pub enum SolidInstruction {
         data: Vec<u8>,
     },
 
-    /// Update the authority of the provided solid account
-    ///
-    /// Accounts expected by this instruction:
-    ///
-    /// 0. `[writable]` Solid account, must be previously initialized
-    /// 1. `[signer]` Current solid authority
-    /// 2. `[]` New solid authority
-    SetAuthority,
-
     /// Close the provided solid account, draining lamports to recipient account
     ///
     /// Accounts expected by this instruction:
@@ -52,43 +51,44 @@ pub enum SolidInstruction {
     CloseAccount,
 }
 
+/// Get program-derived solid address for the authority
+pub fn get_solid_address_with_seed(authority: &Pubkey) -> (Pubkey, u8) {
+    Pubkey::find_program_address(&[&authority.to_bytes(), br"solid"], &id())
+}
+
 /// Create a `SolidInstruction::Initialize` instruction
-pub fn initialize(solid_account: &Pubkey, authority: &Pubkey) -> Instruction {
+pub fn initialize(
+    funder_account: &Pubkey,
+    authority: &Pubkey,
+    cluster_type: ClusterType,
+) -> Instruction {
+    let (solid_account, _) = get_solid_address_with_seed(authority);
     Instruction::new_with_borsh(
         id(),
-        &SolidInstruction::Initialize,
+        &SolidInstruction::Initialize { cluster_type },
         vec![
-            AccountMeta::new(*solid_account, false),
+            AccountMeta::new(*funder_account, true),
+            AccountMeta::new(solid_account, false),
             AccountMeta::new_readonly(*authority, false),
+            AccountMeta::new_readonly(sysvar::rent::id(), false),
+            AccountMeta::new_readonly(system_program::id(), false),
         ],
     )
 }
 
 /// Create a `SolidInstruction::Write` instruction
-pub fn write(solid_account: &Pubkey, authority: &Pubkey, offset: u64, data: Vec<u8>) -> Instruction {
+pub fn write(
+    solid_account: &Pubkey,
+    authority: &Pubkey,
+    offset: u64,
+    data: Vec<u8>,
+) -> Instruction {
     Instruction::new_with_borsh(
         id(),
         &SolidInstruction::Write { offset, data },
         vec![
             AccountMeta::new(*solid_account, false),
             AccountMeta::new_readonly(*authority, true),
-        ],
-    )
-}
-
-/// Create a `SolidInstruction::SetAuthority` instruction
-pub fn set_authority(
-    solid_account: &Pubkey,
-    authority: &Pubkey,
-    new_authority: &Pubkey,
-) -> Instruction {
-    Instruction::new_with_borsh(
-        id(),
-        &SolidInstruction::SetAuthority,
-        vec![
-            AccountMeta::new(*solid_account, false),
-            AccountMeta::new_readonly(*authority, true),
-            AccountMeta::new_readonly(*new_authority, false),
         ],
     )
 }
@@ -114,8 +114,9 @@ mod tests {
 
     #[test]
     fn serialize_initialize() {
-        let instruction = SolidInstruction::Initialize;
-        let expected = vec![0];
+        let cluster_type = ClusterType::Development;
+        let instruction = SolidInstruction::Initialize { cluster_type };
+        let expected = vec![0, 3];
         assert_eq!(instruction.try_to_vec().unwrap(), expected);
         assert_eq!(
             SolidInstruction::try_from_slice(&expected).unwrap(),
@@ -142,20 +143,9 @@ mod tests {
     }
 
     #[test]
-    fn serialize_set_authority() {
-        let instruction = SolidInstruction::SetAuthority;
-        let expected = vec![2];
-        assert_eq!(instruction.try_to_vec().unwrap(), expected);
-        assert_eq!(
-            SolidInstruction::try_from_slice(&expected).unwrap(),
-            instruction
-        );
-    }
-
-    #[test]
     fn serialize_close_account() {
         let instruction = SolidInstruction::CloseAccount;
-        let expected = vec![3];
+        let expected = vec![2];
         assert_eq!(instruction.try_to_vec().unwrap(), expected);
         assert_eq!(
             SolidInstruction::try_from_slice(&expected).unwrap(),

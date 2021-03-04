@@ -1,8 +1,12 @@
 //! Error types
 
-use num_derive::FromPrimitive;
-use solana_program::{decode_error::DecodeError, program_error::ProgramError};
-use thiserror::Error;
+use {
+    num_derive::FromPrimitive,
+    solana_program::{
+        decode_error::DecodeError, program_error::ProgramError, pubkey::ParsePubkeyError,
+    },
+    thiserror::Error,
+};
 
 /// Errors that may be returned by the program.
 #[derive(Clone, Debug, Eq, Error, FromPrimitive, PartialEq)]
@@ -14,10 +18,19 @@ pub enum SolidError {
     /// Calculation overflow
     #[error("Calculation overflow")]
     Overflow,
+
+    /// Invalid string error, from parsing
+    #[error("Invalid string")]
+    InvalidString,
 }
 impl From<SolidError> for ProgramError {
     fn from(e: SolidError) -> Self {
         ProgramError::Custom(e as u32)
+    }
+}
+impl From<ParsePubkeyError> for SolidError {
+    fn from(_e: ParsePubkeyError) -> Self {
+        SolidError::InvalidString
     }
 }
 impl<T> DecodeError<T> for SolidError {

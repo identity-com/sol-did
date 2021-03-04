@@ -16,6 +16,7 @@ borsh = "0.8.1"
 borsh-derive = "0.8.1"
 num-derive = "0.3"
 num-traits = "0.2"
+regex = "1"
 solana-program = "1.5.10"
 thiserror = "1.0"
 
