@@ -1,5 +1,5 @@
 import { Account } from '@solana/web3.js';
-import { SolidPublicKey, SolidData } from '../src/solid-data';
+import { ClusterType, SolidPublicKey, SolidData } from '../src/solid-data';
 import { SolidInstruction } from '../src/instruction';
 import { BN } from 'bn.js';
 import { strict as assert } from 'assert';
@@ -8,9 +8,10 @@ describe('(de)serialize operations', () => {
   it('works for SolidData', () => {
     const authority = new Account();
     const solidAccount = new Account();
-    const solid = SolidData.newSparse(
+    const solid = SolidData.sparse(
       solidAccount.publicKey,
-      authority.publicKey
+      authority.publicKey,
+      ClusterType.development()
     );
     testSerialization(SolidData, solid);
   });
@@ -26,12 +27,7 @@ describe('(de)serialize operations', () => {
   });
 
   it('works for SolidInstruction.initialize', () => {
-    const instruction = SolidInstruction.initialize();
-    testSerialization(SolidInstruction, instruction);
-  });
-
-  it('works for SolidInstruction.setAuthority', () => {
-    const instruction = SolidInstruction.setAuthority();
+    const instruction = SolidInstruction.initialize(ClusterType.mainnetBeta());
     testSerialization(SolidInstruction, instruction);
   });
 

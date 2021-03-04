@@ -1,15 +1,16 @@
 import { PublicKey } from '@solana/web3.js';
-import { Assignable, SCHEMA } from './solana-borsh';
+import { Assignable, Enum, SCHEMA } from './solana-borsh';
 import { encode } from 'bs58';
+import { ExtendedCluster } from './constants';
 
 export class SolidData extends Assignable {
   context: string[];
-  did: string;
+  did: DistributedId;
   publicKey: VerificationMethod[];
-  authentication: string[];
-  capabilityInvocation: string[];
-  keyAgreement: string[];
-  assertion: string[];
+  authentication: DistributedId[];
+  capabilityInvocation: DistributedId[];
+  keyAgreement: DistributedId[];
+  assertion: DistributedId[];
 
   static size(): number {
     return 1000;
@@ -19,10 +20,18 @@ export class SolidData extends Assignable {
     return ['https://w3id.org/did/v1.0', 'https://w3id.org/solid/v1'];
   }
 
-  static newSparse(account: PublicKey, authority: PublicKey): SolidData {
+  static sparse(
+    account: PublicKey,
+    authority: PublicKey,
+    clusterType: ClusterType
+  ): SolidData {
     const context = SolidData.defaultContext();
-    const accountBase58 = account.toString();
-    const did = `did:solid:${accountBase58}`;
+    const pubkey = SolidPublicKey.fromPublicKey(account);
+    const did = new DistributedId({
+      clusterType,
+      pubkey,
+      identifier: '',
+    });
     const publicKey = VerificationMethod.newPublicKey(did, authority);
     const authentication = [publicKey.id];
     const capabilityInvocation = [publicKey.id];
@@ -41,9 +50,9 @@ export class SolidData extends Assignable {
 }
 
 export class VerificationMethod extends Assignable {
-  id: string;
+  id: DistributedId;
   verificationType: string;
-  controller: string;
+  controller: DistributedId;
   pubkey: SolidPublicKey;
 
   static defaultVerificationType(): string {
@@ -51,13 +60,28 @@ export class VerificationMethod extends Assignable {
   }
 
   static newPublicKey(
-    controller: string,
+    controller: DistributedId,
     authority: PublicKey
   ): VerificationMethod {
-    const id = `${controller}#key1`;
+    const id = controller.clone();
+    id.identifier = 'key1';
     const verificationType = VerificationMethod.defaultVerificationType();
     const pubkey = SolidPublicKey.fromPublicKey(authority);
     return new VerificationMethod({ id, verificationType, controller, pubkey });
+  }
+}
+
+export class DistributedId extends Assignable {
+  clusterType: ClusterType;
+  pubkey: SolidPublicKey;
+  identifier: string;
+
+  clone(): DistributedId {
+    return new DistributedId({
+      clusterType: this.clusterType,
+      pubkey: this.pubkey,
+      identifier: this.identifier,
+    });
   }
 }
 
@@ -78,28 +102,91 @@ export class SolidPublicKey extends Assignable {
   }
 }
 
+export class ClusterType extends Enum {
+  testnet: Testnet;
+  mainnetBeta: MainnetBeta;
+  devnet: Devnet;
+  development: Development;
+
+  static testnet(): ClusterType {
+    return new ClusterType({ testnet: new Testnet({}) });
+  }
+
+  static mainnetBeta(): ClusterType {
+    return new ClusterType({ mainnetBeta: new MainnetBeta({}) });
+  }
+
+  static devnet(): ClusterType {
+    return new ClusterType({ devnet: new Devnet({}) });
+  }
+
+  static development(): ClusterType {
+    return new ClusterType({ development: new Development({}) });
+  }
+}
+
+export const getClusterType = (cluster: ExtendedCluster): ClusterType => {
+  switch (cluster) {
+    case 'devnet':
+      return ClusterType.devnet();
+    case 'testnet':
+      return ClusterType.testnet();
+    case 'mainnet-beta':
+      return ClusterType.mainnetBeta();
+    case 'localnet':
+      return ClusterType.development();
+  }
+};
+
+export class Testnet extends Assignable {}
+export class MainnetBeta extends Assignable {}
+export class Devnet extends Assignable {}
+export class Development extends Assignable {}
+
 SCHEMA.set(SolidData, {
   kind: 'struct',
   fields: [
     ['context', ['string']],
-    ['did', 'string'],
+    ['did', DistributedId],
     ['publicKey', [VerificationMethod]],
-    ['authentication', ['string']],
-    ['capabilityInvocation', ['string']],
-    ['keyAgreement', ['string']],
-    ['assertion', ['string']],
+    ['authentication', [DistributedId]],
+    ['capabilityInvocation', [DistributedId]],
+    ['keyAgreement', [DistributedId]],
+    ['assertion', [DistributedId]],
   ],
 });
 SCHEMA.set(VerificationMethod, {
   kind: 'struct',
   fields: [
-    ['id', 'string'],
+    ['id', DistributedId],
     ['verificationType', 'string'],
-    ['controller', 'string'],
+    ['controller', DistributedId],
     ['pubkey', SolidPublicKey],
+  ],
+});
+SCHEMA.set(DistributedId, {
+  kind: 'struct',
+  fields: [
+    ['clusterType', ClusterType],
+    ['pubkey', SolidPublicKey],
+    ['identifier', 'string'],
   ],
 });
 SCHEMA.set(SolidPublicKey, {
   kind: 'struct',
   fields: [['bytes', [32]]],
 });
+SCHEMA.set(ClusterType, {
+  kind: 'enum',
+  field: 'enum',
+  values: [
+    ['testnet', Testnet],
+    ['mainnetBeta', MainnetBeta],
+    ['devnet', Devnet],
+    ['development', Development],
+  ],
+});
+SCHEMA.set(Testnet, { kind: 'struct', fields: [] });
+SCHEMA.set(MainnetBeta, { kind: 'struct', fields: [] });
+SCHEMA.set(Devnet, { kind: 'struct', fields: [] });
+SCHEMA.set(Development, { kind: 'struct', fields: [] });

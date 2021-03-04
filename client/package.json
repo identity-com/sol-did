@@ -12,7 +12,7 @@
     "solid": "solid"
   },
   "engines": {
-    "node": ">=15"
+    "node": ">=14"
   },
   "scripts": {
     "start": "tsdx watch",

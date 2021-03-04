@@ -9,7 +9,7 @@ const write = (res: ServerResponse) => <S>(response: ResponseContent<S>) =>
 const writeError = (res: ServerResponse) => (error: Error) => {
   console.error(error);
   return writeJson(res, new ResponseContent(500, error.message));
-}
+};
 
 const execute = <S>(
   fn: () => Promise<ResponseContent<S>>,

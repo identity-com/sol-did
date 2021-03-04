@@ -1,47 +1,26 @@
-import { SolidData } from './solid-data';
+import { ClusterType, SolidData } from './solid-data';
 import { SolanaUtil } from './solana-util';
-import { PROGRAM_ID, initialize } from './instruction';
-import {
-  Account,
-  Connection,
-  PublicKey,
-  SystemProgram,
-  Transaction,
-} from '@solana/web3.js';
+import { initialize, getKeyFromAuthority } from './instruction';
+import { Account, Connection, PublicKey, Transaction } from '@solana/web3.js';
 
 export class SolidTransaction {
+  static SOLID_SEED: string = 'solid';
+
   static async createSolid(
     connection: Connection,
     payer: Account,
-    authority: PublicKey
-  ): Promise<Account> {
-    const solidKey = new Account();
+    authority: PublicKey,
+    clusterType: ClusterType
+  ): Promise<PublicKey> {
+    const solidKey = await getKeyFromAuthority(authority);
 
     // Allocate memory for the account
-    const solidSize = SolidData.size();
-    const balanceNeeded = await connection.getMinimumBalanceForRentExemption(
-      solidSize
+    const transaction = new Transaction().add(
+      initialize(payer.publicKey, solidKey, authority, clusterType)
     );
-    const transaction = new Transaction();
-    transaction.add(
-      SystemProgram.createAccount({
-        fromPubkey: payer.publicKey,
-        newAccountPubkey: solidKey.publicKey,
-        lamports: balanceNeeded,
-        space: solidSize,
-        programId: PROGRAM_ID,
-      })
-    );
-
-    transaction.add(initialize(solidKey.publicKey, authority));
 
     // Send the instructions
-    await SolanaUtil.sendAndConfirmTransaction(
-      connection,
-      transaction,
-      payer,
-      solidKey
-    );
+    await SolanaUtil.sendAndConfirmTransaction(connection, transaction, payer);
     return solidKey;
   }
 
@@ -51,5 +30,13 @@ export class SolidTransaction {
   ): Promise<SolidData | null> {
     const data = await connection.getAccountInfo(recordKey);
     return data ? SolidData.decode(data.data) : null;
+  }
+
+  static async getSolidFromAuthority(
+    connection: Connection,
+    authority: PublicKey
+  ): Promise<SolidData | null> {
+    const recordKey = await getKeyFromAuthority(authority);
+    return SolidTransaction.getSolid(connection, recordKey);
   }
 }
