@@ -1,9 +1,7 @@
-import { ExtendedCluster } from '../../src/constants';
-import { solanaUrlForCluster } from '../../src/util';
+import { ClusterType } from '../../src/solid-data';
 
-export const CLUSTER: ExtendedCluster =
-  (process.env.CLUSTER as ExtendedCluster) || 'localnet';
-export const VALIDATOR_URL = solanaUrlForCluster(CLUSTER);
+export const CLUSTER = ClusterType.parse(process.env.CLUSTER || 'localnet');
+export const VALIDATOR_URL = CLUSTER.solanaUrl();
 
 export const TEST_DID_ACCOUNT_SECRET_KEY = [
   187,

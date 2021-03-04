@@ -6,11 +6,9 @@ import {
   identifierToPubkey,
   matches,
   RegisterRequest,
-  solanaUrlForCluster,
 } from './util';
 import { SolidTransaction } from './transaction';
 import { Connection } from '@solana/web3.js';
-import { ExtendedCluster } from './constants';
 
 /**
  * Resolves a SOLID DID to a document,
@@ -19,8 +17,8 @@ import { ExtendedCluster } from './constants';
  * @throws Error if the document is not found
  */
 export const resolve = async (identifier: string): Promise<DIDDocument> => {
-  const cluster: ExtendedCluster = identifierToCluster(identifier);
-  const connection = new Connection(solanaUrlForCluster(cluster), 'recent');
+  const cluster = identifierToCluster(identifier);
+  const connection = new Connection(cluster.solanaUrl(), 'recent');
   const solidData = await SolidTransaction.getSolid(
     connection,
     identifierToPubkey(identifier)
