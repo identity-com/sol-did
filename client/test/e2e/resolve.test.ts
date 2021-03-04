@@ -29,8 +29,7 @@ describe('resolve', () => {
   }, 60000);
 
   it('looks up a DID from the blockchain', async () => {
-    const did =
-      'did:solid:' + CLUSTER + ':' + solidDIDKey.toBase58();
+    const did = 'did:solid:' + CLUSTER + ':' + solidDIDKey.toBase58();
     const document = await resolve(did);
 
     console.log(document);
