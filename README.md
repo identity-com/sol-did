@@ -18,7 +18,7 @@ In a DID like `did:solid:abcde`, the DID method identifier is the `abcde`.
 
 An example Solid DID: `did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP`
 
-TODO: Add a real resolvable example once one exists.
+TODO: Add a real resolvable example once one exists on mainnet.
 
 The method identifier in SOLID is a Solana [Program Address](https://docs.solana.com/developing/programming-model/calling-between-programs#program-derived-addresses)
 which is derived by hashing the owner address, program ID and a "bump seed" which ensures the resultant
