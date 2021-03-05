@@ -65,6 +65,14 @@ impl SolidData {
             service: vec![],
         }
     }
+    /// Get the list of pubkeys that can update the document
+    pub fn write_authorized_pubkeys(&self) -> Vec<Pubkey> {
+        self.verification_method
+            .iter()
+            .filter(|v| self.capability_invocation.contains(&v.id))
+            .map(|v| v.pubkey)
+            .collect()
+    }
 }
 
 /// Enum representing the different clusters
