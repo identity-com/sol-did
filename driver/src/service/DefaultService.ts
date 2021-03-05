@@ -1,7 +1,7 @@
 import { register } from './Registrar';
 import { ResponseContent } from '../utils/writer';
-import { DIDDocument } from 'did-resolver';
-import { resolve } from './Resolver';
+import { DIDDocument, PublicKey } from 'did-resolver';
+import * as DID from '@identity.com/solid-did-client';
 
 type ResolutionResult = {
   didDocument: DIDDocument;
@@ -9,18 +9,28 @@ type ResolutionResult = {
   didDocumentMetadata: object;
 };
 
-export type DeactivateRequest = { identifier: string };
+export type RegisterOptions = {
+  cluster?: string;
+  owner?: string;
+};
+export type RegisterSecrets = {
+  payer: string;
+};
+export type DeactivateRequest = {
+  identifier: string;
+  secret?: RegisterSecrets;
+};
 export type UpdateRequest = {
   identifier: string;
   jobId?: string;
-  options?: Record<string, any>;
-  secret?: Record<string, any>;
+  options?: RegisterOptions;
+  secret?: RegisterSecrets;
   didDocument: DIDDocument;
 };
 export type RegisterRequest = {
   jobId?: string;
-  options?: Record<string, any>;
-  secret?: Record<string, any>;
+  options?: RegisterOptions;
+  secret?: RegisterSecrets;
   didDocument: DIDDocument;
 };
 
@@ -33,8 +43,13 @@ type DeactivateState = CommonState & { didState: { state: string } };
 type UpdateState = CommonState & {
   didState: { state: string; secret?: Record<string, any> };
 };
-type RegisterState = CommonState & {
-  didState: { state: string; identifier: string };
+
+type RegisterStateKey = PublicKey | { privateKeyBase58: string };
+type RegisterStateSecret = {
+  keys: RegisterStateKey[];
+};
+export type RegisterState = CommonState & {
+  didState: { state: string; identifier: string; secret: RegisterStateSecret };
 };
 
 /**
@@ -66,17 +81,7 @@ export const updateDID = async (
 export const registerDID = async (
   body: RegisterRequest
 ): Promise<ResponseContent<RegisterState>> => {
-  const fullDocument: DIDDocument = {
-    ...body.didDocument,
-  };
-  const result = await register(fullDocument);
-
-  const state = {
-    didState: {
-      state: 'finished',
-      identifier: result.id,
-    },
-  };
+  const state = await register(body);
 
   return new ResponseContent(200, state);
 };
@@ -92,7 +97,7 @@ export const resolveDID = async (
   identifier: string,
   _accept: string
 ): Promise<ResponseContent<ResolutionResult>> => {
-  const didDocument = await resolve(identifier);
+  const didDocument = await DID.resolve(identifier);
 
   if (didDocument) {
     const result: ResolutionResult = {

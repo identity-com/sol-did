@@ -1,5 +1,5 @@
 {
-  "version": "0.0.2",
+  "version": "0.0.4",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -17,7 +17,7 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
-    "build-program": "cd ../program && cargo build-bpf && cp ../../target/bpfel-unknown-unknown/release/spl_token_swap.so /tmp/",
+    "build-program": "cd ../program && cargo build-bpf",
     "start-validator": "solana-test-validator --bpf-program ide3Y2TubNMLLhiG1kDL6to4a8SjxD18YWCYC5BZqNV ../program/target/deploy/solid_did.so --reset --quiet",
     "test": "tsdx test --testPathIgnorePatterns=e2e",
     "test-e2e": "start-server-and-test start-validator http://localhost:8899/health test-e2e-pattern",
@@ -41,20 +41,21 @@
   },
   "name": "@identity.com/solid-did-client",
   "author": "dankelleher",
-  "module": "dist/client.esm.js",
+  "module": "dist/solid-did-client.esm.js",
   "size-limit": [
     {
-      "path": "dist/client.cjs.production.min.js",
+      "path": "dist/solid-did-client.cjs.production.min.js",
       "limit": "10 KB"
     },
     {
-      "path": "dist/client.esm.js",
+      "path": "dist/solid-did-client.esm.js",
       "limit": "10 KB"
     }
   ],
   "devDependencies": {
     "@size-limit/preset-small-lib": "^4.9.2",
     "@types/bn.js": "^5.1.0",
+    "@types/bs58": "^4.0.1",
     "husky": "^5.0.9",
     "size-limit": "^4.9.2",
     "start-server-and-test": "^1.12.0",
@@ -67,6 +68,7 @@
     "@solana/web3.js": "^0.93.0",
     "bn.js": "^4.12.0",
     "borsh": "^0.3.1",
+    "bs58": "^4.0.1",
     "did-resolver": "^2.1.2"
   }
 }

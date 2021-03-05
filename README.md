@@ -18,7 +18,7 @@ In a DID like `did:solid:abcde`, the DID method identifier is the `abcde`.
 
 An example Solid DID: `did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP`
 
-TODO: Add a real resolvable example once one exists.
+TODO: Add a real resolvable example once one exists on mainnet.
 
 The method identifier in SOLID is a Solana
 [Program Address](https://docs.solana.com/developing/programming-model/calling-between-programs#program-derived-addresses)
@@ -55,10 +55,6 @@ did:solid:devnet:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP // devnet
 ```
 
 ## DID Creation
-
-Here's my proposal for an initial creation API:
-
-Anyone can create a DID for anyone else. This may have change later on for security reasons i.e. if you own the private key, you must have been the one to create the DID, but I think it is safe for now.
 
 DID creation has the following inputs:
 
