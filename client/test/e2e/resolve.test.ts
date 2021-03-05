@@ -1,6 +1,5 @@
 import { resolve } from '../../src';
 import { SolanaUtil } from '../../src/solana-util';
-import { ClusterType } from '../../src/solid-data';
 import { SolidTransaction } from '../../src/transaction';
 import { Account, Connection, PublicKey } from '@solana/web3.js';
 import {
@@ -24,7 +23,7 @@ describe('resolve', () => {
       connection,
       payer,
       authority.publicKey,
-      ClusterType.development()
+      CLUSTER
     );
   }, 60000);
 
