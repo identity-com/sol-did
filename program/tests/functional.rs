@@ -5,7 +5,8 @@ use {
     borsh::BorshSerialize,
     solana_program::{
         instruction::{AccountMeta, Instruction, InstructionError},
-        pubkey::Pubkey, rent::Rent,
+        pubkey::Pubkey,
+        rent::Rent,
     },
     solana_program_test::{processor, ProgramTest, ProgramTestContext},
     solana_sdk::{
@@ -50,7 +51,10 @@ fn check_solid(data: SolidData, solid_key: Pubkey, authority: Pubkey) {
     assert_eq!(data.did, did);
     assert_eq!(data.verification_method, vec![verification_method.clone()]);
     assert_eq!(data.authentication, vec![verification_method.id.clone()]);
-    assert_eq!(data.capability_invocation, vec![verification_method.id.clone()]);
+    assert_eq!(
+        data.capability_invocation,
+        vec![verification_method.id.clone()]
+    );
     assert_eq!(data.capability_delegation, vec![]);
     assert_eq!(data.key_agreement, vec![]);
     assert_eq!(data.assertion_method, vec![]);
@@ -171,7 +175,10 @@ async fn write_fail_wrong_authority() {
         .unwrap();
 
     let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
-    let new_data = SolidData::new_sparse(DistributedId::new(ClusterType::Development, authority.pubkey()), authority.pubkey());
+    let new_data = SolidData::new_sparse(
+        DistributedId::new(ClusterType::Development, authority.pubkey()),
+        authority.pubkey(),
+    );
     let wrong_authority = Keypair::new();
     let transaction = Transaction::new_signed_with_payer(
         &[instruction::write(
@@ -208,7 +215,10 @@ async fn write_fail_unsigned() {
         .await
         .unwrap();
 
-    let new_data = SolidData::new_sparse(DistributedId::new(ClusterType::Development, authority.pubkey()), authority.pubkey());
+    let new_data = SolidData::new_sparse(
+        DistributedId::new(ClusterType::Development, authority.pubkey()),
+        authority.pubkey(),
+    );
     let data = new_data.try_to_vec().unwrap();
     let transaction = Transaction::new_signed_with_payer(
         &[Instruction::new_with_borsh(
