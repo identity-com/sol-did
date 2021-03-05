@@ -1,6 +1,6 @@
 import { Account, Connection } from '@solana/web3.js';
 import { SolidTransaction } from '../../src/transaction';
-import { getClusterType, SolidData } from '../../src/solid-data';
+import { SolidData } from '../../src/solid-data';
 import { SolanaUtil } from '../../src/solana-util';
 import { strict as assert } from 'assert';
 import { CLUSTER, VALIDATOR_URL } from './constants';
@@ -17,15 +17,11 @@ describe('transaction', () => {
       connection,
       payer,
       authority.publicKey,
-      getClusterType(CLUSTER)
+      CLUSTER
     );
     const solid = await SolidTransaction.getSolid(connection, solidKey);
     assert.notEqual(solid, null);
-    const checkSolid = SolidData.sparse(
-      solidKey,
-      authority.publicKey,
-      getClusterType(CLUSTER)
-    );
+    const checkSolid = SolidData.sparse(solidKey, authority.publicKey, CLUSTER);
     assert.deepEqual(solid, checkSolid);
     const solidFromAuthority = await SolidTransaction.getSolidFromAuthority(
       connection,
