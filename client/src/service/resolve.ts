@@ -1,10 +1,5 @@
 import { DIDDocument } from 'did-resolver';
-import { ExtendedCluster } from '../constants';
-import {
-  identifierToCluster,
-  identifierToPubkey,
-  solanaUrlForCluster,
-} from '../util';
+import { identifierToCluster, identifierToPubkey } from '../util';
 import { Connection } from '@solana/web3.js';
 import { SolidTransaction } from '../transaction';
 
@@ -15,8 +10,8 @@ import { SolidTransaction } from '../transaction';
  * @throws Error if the document is not found
  */
 export const resolve = async (identifier: string): Promise<DIDDocument> => {
-  const cluster: ExtendedCluster = identifierToCluster(identifier);
-  const connection = new Connection(solanaUrlForCluster(cluster), 'recent');
+  const cluster = identifierToCluster(identifier);
+  const connection = new Connection(cluster.solanaUrl(), 'recent');
   const solidData = await SolidTransaction.getSolid(
     connection,
     identifierToPubkey(identifier)

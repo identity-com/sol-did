@@ -1,4 +1,4 @@
-export { ExtendedCluster as Cluster } from './constants';
+export { ClusterType } from './solid-data';
 
 export { resolve } from './service/resolve';
 export { register } from './service/register';

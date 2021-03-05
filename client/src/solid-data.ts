@@ -1,7 +1,6 @@
 import { clusterApiUrl, Cluster, PublicKey } from '@solana/web3.js';
 import { Assignable, Enum, SCHEMA } from './solana-borsh';
 import { encode } from 'bs58';
-import { ExtendedCluster } from './constants';
 
 export class SolidData extends Assignable {
   context: string[];
@@ -163,19 +162,6 @@ export class ClusterType extends Enum {
     }
   }
 }
-
-export const getClusterType = (cluster: ExtendedCluster): ClusterType => {
-  switch (cluster) {
-    case 'devnet':
-      return ClusterType.devnet();
-    case 'testnet':
-      return ClusterType.testnet();
-    case 'mainnet-beta':
-      return ClusterType.mainnetBeta();
-    case 'localnet':
-      return ClusterType.development();
-  }
-};
 
 export class Testnet extends Assignable {}
 export class MainnetBeta extends Assignable {}

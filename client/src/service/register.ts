@@ -3,13 +3,11 @@ import {
   makeAccount,
   publicKeyAndClusterToDID,
   RegisterRequest,
-  solanaUrlForCluster,
   stringToPublicKey,
 } from '../util';
 import { SolidTransaction } from '../transaction';
 import { Connection } from '@solana/web3.js';
-import { ExtendedCluster } from '../constants';
-import { getClusterType } from '../solid-data';
+import { ClusterType } from '../solid-data';
 
 /**
  * Registers a SOLID DID on Solana.
@@ -20,13 +18,13 @@ export const register = async (request: RegisterRequest): Promise<string> => {
   const owner = request.owner
     ? stringToPublicKey(request.owner)
     : getPublicKey(request.payer);
-  const cluster: ExtendedCluster = request.cluster || 'mainnet-beta';
-  const connection = new Connection(solanaUrlForCluster(cluster), 'recent');
+  const cluster = request.cluster || ClusterType.mainnetBeta();
+  const connection = new Connection(cluster.solanaUrl(), 'recent');
   const solidKey = await SolidTransaction.createSolid(
     connection,
     payer,
     owner,
-    getClusterType(cluster)
+    cluster
   );
   return publicKeyAndClusterToDID(solidKey, cluster);
 };

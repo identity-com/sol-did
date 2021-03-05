@@ -1,5 +1,6 @@
 import * as DID from '@identity.com/solid-did-client';
 import { RegisterRequest, RegisterState } from './DefaultService';
+import { ClusterType } from '@identity.com/solid-did-client';
 
 export const register = async (
   request: RegisterRequest
@@ -18,7 +19,7 @@ export const register = async (
   }
 
   const identifier = await DID.register({
-    cluster: request.options?.cluster || 'mainnet-beta',
+    cluster: ClusterType.parse(request.options?.cluster || 'mainnet-beta'),
     document: request.didDocument,
     payer,
     owner: ownerPublicKey,

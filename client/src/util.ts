@@ -2,7 +2,7 @@ import { DIDDocument, PublicKey } from 'did-resolver';
 import { Account, PublicKey as SolanaPublicKey } from '@solana/web3.js';
 import { DID_METHOD } from './constants';
 import { ClusterType } from './solid-data';
-import { decode } from 'bs58';
+import { decode, encode } from 'bs58';
 
 // a 64-byte private key on the X25519 curve.
 // In string form it is base58-encoded
@@ -13,7 +13,7 @@ export type RegisterRequest = {
   payer: PrivateKey;
   document?: Partial<DIDDocument>;
   owner?: PublicKeyBase58;
-  cluster?: ???;
+  cluster?: ClusterType;
 };
 
 export const privateKeyIsArray = (
@@ -97,23 +97,12 @@ export const identifierToCluster = (did: string): ClusterType => {
   return ClusterType.parse(clusterString);
 };
 
-export const accountAndClusterToDID = (
-  account: Account,
-  cluster: ClusterType = ClusterType.mainnetBeta()
-) => {
-  // no prefix for mainnet
-  const identifierPrefix = cluster.mainnetBeta ? '' : cluster.toString() + ':';
-  const identifier = account.publicKey.toBase58();
-  return `did:${DID_METHOD}:${identifierPrefix}${identifier}`;
-};
-
-
 export const publicKeyAndClusterToDID = (
   publicKey: SolanaPublicKey,
   cluster: ClusterType = ClusterType.mainnetBeta()
 ) => {
   // no prefix for mainnet
-  const identifierPrefix = cluster === 'mainnet-beta' ? '' : cluster + ':';
+  const identifierPrefix = cluster.mainnetBeta ? '' : cluster.toString() + ':';
   const identifier = publicKey.toBase58();
   return `did:${DID_METHOD}:${identifierPrefix}${identifier}`;
 };
@@ -122,9 +111,6 @@ export const accountAndClusterToDID = (
   account: Account,
   cluster: ClusterType = ClusterType.mainnetBeta()
 ) => publicKeyAndClusterToDID(account.publicKey, cluster);
-
-export const solanaUrlForCluster = (cluster: ExtendedCluster) =>
-  cluster === 'localnet' ? 'http://localhost:8899' : clusterApiUrl(cluster);
 
 type EncodedKeyPair = {
   secretKey: string;

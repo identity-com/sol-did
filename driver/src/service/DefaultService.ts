@@ -2,7 +2,6 @@ import { register } from './Registrar';
 import { ResponseContent } from '../utils/writer';
 import { DIDDocument, PublicKey } from 'did-resolver';
 import * as DID from '@identity.com/solid-did-client';
-import { Cluster } from '@identity.com/solid-did-client';
 
 type ResolutionResult = {
   didDocument: DIDDocument;
@@ -11,7 +10,7 @@ type ResolutionResult = {
 };
 
 export type RegisterOptions = {
-  cluster?: Cluster;
+  cluster?: string;
   owner?: string;
 };
 export type RegisterSecrets = {
