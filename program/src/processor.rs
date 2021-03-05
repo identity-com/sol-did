@@ -118,11 +118,16 @@ pub fn process_instruction(
             let start = offset as usize;
             let end = start + data.len();
             if end > data_info.data.borrow().len() {
-                Err(ProgramError::AccountDataTooSmall)
+                return Err(ProgramError::AccountDataTooSmall);
             } else {
                 data_info.data.borrow_mut()[start..end].copy_from_slice(&data);
-                Ok(())
             }
+
+            // make sure the written bytes are valid by trying to deserialize
+            // the update account buffer
+            let _account_data =
+                program_borsh::try_from_slice_incomplete::<SolidData>(*data_info.data.borrow())?;
+            Ok(())
         }
 
         SolidInstruction::CloseAccount => {
