@@ -2,7 +2,7 @@ import { register } from '../../src';
 import { SolanaUtil } from '../../src/solana-util';
 import { Account, Connection } from '@solana/web3.js';
 import { CLUSTER, VALIDATOR_URL } from './constants';
-import { RegisterRequest } from '../../src/util';
+import { isDID, RegisterRequest } from '../../src/util';
 
 describe('register', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');
@@ -17,8 +17,10 @@ describe('register', () => {
       payer: payer.secretKey,
       cluster: CLUSTER,
     };
-    const res = await register(registerRequest);
+    const identifier = await register(registerRequest);
 
-    console.log(res);
+    expect(isDID(identifier)).toBeTruthy();
+
+    console.log(identifier);
   }, 30000);
 });

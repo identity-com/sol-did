@@ -5,7 +5,7 @@ import {
   PublicKey as SolanaPublicKey,
 } from '@solana/web3.js';
 import { DID_METHOD, ExtendedCluster } from './constants';
-import { decode } from 'bs58';
+import { decode, encode } from 'bs58';
 
 // a 64-byte private key on the X25519 curve.
 // In string form it is base58-encoded
@@ -77,6 +77,15 @@ const matchDID = (did: string): RegExpExecArray => {
   return matches;
 };
 
+export const isDID = (did: string): boolean => {
+  try {
+    matchDID(did);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const extractMethodIdentifierFromDID = (did: string): string =>
   matchDID(did)[2];
 
@@ -113,3 +122,15 @@ export const accountAndClusterToDID = (
 
 export const solanaUrlForCluster = (cluster: ExtendedCluster) =>
   cluster === 'localnet' ? 'http://localhost:8899' : clusterApiUrl(cluster);
+
+type EncodedKeyPair = {
+  secretKey: string;
+  publicKey: string;
+};
+export const generateKeypair = (): EncodedKeyPair => {
+  const account = new Account();
+  return {
+    secretKey: encode(account.secretKey),
+    publicKey: account.publicKey.toBase58(),
+  };
+};

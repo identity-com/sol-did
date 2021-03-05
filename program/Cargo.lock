@@ -2623,6 +2623,7 @@ dependencies = [
  "borsh-derive",
  "num-derive",
  "num-traits",
+ "regex",
  "solana-program",
  "solana-program-test",
  "solana-sdk",

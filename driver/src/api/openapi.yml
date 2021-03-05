@@ -173,10 +173,26 @@ components:
           example: 6d85bcd0-2ea3-4288-ab00-15afadd8a156
         options:
           type: object
+          properties:
+            cluster:
+              type: string
+              enum:
+                - localnet
+                - devnet
+                - testnet
+                - mainnet-beta
+              default: mainnet-beta
+            owner:
+              type: string
+              example: DDtm5fECmvUBA74hAtqLduEPnL4nnatjtWkAcdzBit1N
         secret:
+          required:
+            - payer
           type: object
-          example:
-            privateKey: 2Bxv8RJByuQXsaz3cVb7vkkeh4eBe9Go3oSygNzicKMeeR3kMSYyAEgkPQGLo1Qat6ercPpXqVVd5yVdeXRSgTZ1
+          properties:
+            payer:
+              type: string
+              example: 5UpZQ4Jfrh6QZBedtNgVTYm5dbUzWhQKDjcj9FKYwnzNU42nGaGcf4YuqscxT7iiVPNyZthnpat3d3pfpMSJ2etd
         didDocument:
           type: object
       additionalProperties: false
@@ -238,6 +254,13 @@ components:
         didState:
           identifier: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
           state: finished
+          secret:
+            keys:
+              - id: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1
+                type: Ed25519VerificationKey2018
+                controller: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+                publicKeyBase58: DDtm5fECmvUBA74hAtqLduEPnL4nnatjtWkAcdzBit1N
+                privateKeyBase58: 5YKbjHVPPszfNmRz2ULcXY6LAR2UxWVAi3pJ255WsqAo5415r4tyaGrmRUsQdrVTdmtMzXwsxyF8octa8qDsLKWx
         methodMetadata: {}
         registrarMetadata: {}
     UpdateState:

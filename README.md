@@ -52,10 +52,6 @@ did:solid:devnet:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP // devnet
 
 ## DID Creation
 
-Here's my proposal for an initial creation API:
-
-Anyone can create a DID for anyone else. This may have change later on for security reasons i.e. if you own the private key, you must have been the one to create the DID, but I think it is safe for now.
-
 DID creation has the following inputs:
 
 ```
