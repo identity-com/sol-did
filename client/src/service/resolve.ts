@@ -16,12 +16,15 @@ export const resolve = async (identifier: string): Promise<DIDDocument> => {
     connection,
     identifierToPubkey(identifier)
   );
-  // TODO map solidData to DIDDocument
-  return {
-    '@context': 'https://w3id.org/did/v1',
-    id: identifier,
-    // @ts-ignore
-    temp: solidData,
-    publicKey: [],
-  };
+  if (solidData !== null) {
+    return solidData.toDID();
+  } else {
+    return {
+      '@context': 'https://w3id.org/did/v1',
+      id: identifier,
+      // @ts-ignore
+      temp: solidData,
+      publicKey: [],
+    };
+  }
 };

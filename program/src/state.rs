@@ -18,15 +18,19 @@ pub struct SolidData {
     pub did: DistributedId,
 
     /// All of the public keys related to the DistributedId
-    pub public_key: Vec<VerificationMethod>,
+    pub verification_method: Vec<VerificationMethod>,
     /// TODO
     pub authentication: Vec<DistributedId>,
-    /// TODO
+    /// Currenty the most important part, decides which ID gets to do things
     pub capability_invocation: Vec<DistributedId>,
+    /// TODO
+    pub capability_delegation: Vec<DistributedId>,
     /// TODO
     pub key_agreement: Vec<DistributedId>,
     /// TODO
-    pub assertion: Vec<DistributedId>,
+    pub assertion_method: Vec<DistributedId>,
+    /// Services that can be used with this DID
+    pub service: Vec<ServiceEndpoint>,
 }
 
 impl SolidData {
@@ -46,17 +50,19 @@ impl SolidData {
         ]
     }
     /// Create a new SOLID for testing write capabilities
-    pub fn new(did: DistributedId, authority: Pubkey) -> Self {
+    pub fn new_sparse(did: DistributedId, authority: Pubkey) -> Self {
         let verification_method = VerificationMethod::new(did.clone(), authority);
         let verification_id = verification_method.id.clone();
         Self {
             context: Self::default_context(),
             did,
-            public_key: vec![verification_method],
+            verification_method: vec![verification_method],
             authentication: vec![verification_id.clone()],
             capability_invocation: vec![verification_id.clone()],
-            key_agreement: vec![verification_id.clone()],
-            assertion: vec![verification_id],
+            capability_delegation: vec![],
+            key_agreement: vec![],
+            assertion_method: vec![],
+            service: vec![],
         }
     }
 }
@@ -180,6 +186,17 @@ impl DistributedId {
     }
 }
 
+/// Struct for the service endpoint related to a DID
+#[derive(Clone, Debug, Default, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
+pub struct ServiceEndpoint {
+    /// Id related to the endpoint
+    pub id: DistributedId,
+    /// Endpoint type
+    pub endpoint_type: String,
+    /// The actual URL of the endpoint
+    pub endpoint: String,
+}
+
 /// Struct for the verification method
 #[derive(Clone, Debug, Default, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
 pub struct VerificationMethod {
@@ -257,11 +274,13 @@ pub mod tests {
         SolidData {
             context: SolidData::default_context(),
             did: test_did(),
-            public_key: vec![test_verification_method()],
+            verification_method: vec![test_verification_method()],
             authentication: vec![test_key_id()],
             capability_invocation: vec![test_key_id()],
-            key_agreement: vec![test_key_id()],
-            assertion: vec![test_key_id()],
+            capability_delegation: vec![],
+            key_agreement: vec![],
+            assertion_method: vec![],
+            service: vec![],
         }
     }
 
@@ -286,11 +305,13 @@ pub mod tests {
                 identifier: "".to_string()
             }
         );
-        assert_eq!(deserialized.public_key, vec![]);
+        assert_eq!(deserialized.verification_method, vec![]);
         assert_eq!(deserialized.authentication, vec![]);
         assert_eq!(deserialized.capability_invocation, vec![]);
+        assert_eq!(deserialized.capability_delegation, vec![]);
         assert_eq!(deserialized.key_agreement, vec![]);
-        assert_eq!(deserialized.assertion, vec![]);
+        assert_eq!(deserialized.assertion_method, vec![]);
+        assert_eq!(deserialized.service, vec![]);
     }
 
     #[test]

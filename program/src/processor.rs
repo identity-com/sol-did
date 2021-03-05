@@ -98,7 +98,7 @@ pub fn process_instruction(
             )?;
 
             let did = DistributedId::new(cluster_type, *data_info.key);
-            let solid = SolidData::new(did, *authority_info.key);
+            let solid = SolidData::new_sparse(did, *authority_info.key);
             solid
                 .serialize(&mut *data_info.data.borrow_mut())
                 .map_err(|e| e.into())
@@ -114,7 +114,7 @@ pub fn process_instruction(
                 msg!("Solid account not initialized");
                 return Err(ProgramError::UninitializedAccount);
             }
-            check_authority(authority_info, &account_data.public_key)?;
+            check_authority(authority_info, &account_data.verification_method)?;
             let start = offset as usize;
             let end = start + data.len();
             if end > data_info.data.borrow().len() {
@@ -136,7 +136,7 @@ pub fn process_instruction(
                 msg!("Solid not initialized");
                 return Err(ProgramError::UninitializedAccount);
             }
-            check_authority(authority_info, &account_data.public_key)?;
+            check_authority(authority_info, &account_data.verification_method)?;
             let destination_starting_lamports = destination_info.lamports();
             let data_lamports = data_info.lamports();
             **data_info.lamports.borrow_mut() = 0;

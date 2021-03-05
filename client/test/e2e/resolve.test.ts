@@ -1,4 +1,5 @@
 import { resolve } from '../../src';
+import { SolidData } from '../../src/solid-data';
 import { SolanaUtil } from '../../src/solana-util';
 import { SolidTransaction } from '../../src/transaction';
 import { Account, Connection, PublicKey } from '@solana/web3.js';
@@ -32,8 +33,11 @@ describe('resolve', () => {
     const document = await resolve(did);
 
     console.log(document);
-    return expect(document).toMatchObject({
-      id: did,
-    });
+    const expectedDocument = SolidData.sparse(
+      solidDIDKey,
+      authority.publicKey,
+      CLUSTER
+    ).toDID();
+    return expect(document).toMatchObject(expectedDocument);
   });
 });

@@ -1,15 +1,23 @@
 import { clusterApiUrl, Cluster, PublicKey } from '@solana/web3.js';
 import { Assignable, Enum, SCHEMA } from './solana-borsh';
+import { DID_METHOD, DID_HEADER } from './constants';
 import { encode } from 'bs58';
+import {
+  DIDDocument,
+  VerificationMethod as DIDVerificationMethod,
+  ServiceEndpoint as DIDServiceEndpoint,
+} from 'did-resolver';
 
 export class SolidData extends Assignable {
   context: string[];
   did: DistributedId;
-  publicKey: VerificationMethod[];
+  verificationMethod: VerificationMethod[];
   authentication: DistributedId[];
   capabilityInvocation: DistributedId[];
+  capabilityDelegation: DistributedId[];
   keyAgreement: DistributedId[];
-  assertion: DistributedId[];
+  assertionMethod: DistributedId[];
+  service: ServiceEndpoint[];
 
   static size(): number {
     return 1000;
@@ -31,20 +39,40 @@ export class SolidData extends Assignable {
       pubkey,
       identifier: '',
     });
-    const publicKey = VerificationMethod.newPublicKey(did, authority);
-    const authentication = [publicKey.id];
-    const capabilityInvocation = [publicKey.id];
-    const keyAgreement = [publicKey.id];
-    const assertion = [publicKey.id];
+    const verificationMethod = VerificationMethod.newPublicKey(did, authority);
+    const authentication = [verificationMethod.id];
+    const capabilityInvocation = [verificationMethod.id];
+    const capabilityDelegation = [];
+    const keyAgreement = [];
+    const assertionMethod = [];
+    const service = [];
     return new SolidData({
       context,
       did,
-      publicKey: [publicKey],
+      verificationMethod: [verificationMethod],
       authentication,
       capabilityInvocation,
+      capabilityDelegation,
       keyAgreement,
-      assertion,
+      assertionMethod,
+      service,
     });
+  }
+
+  toDID(): DIDDocument {
+    return {
+      '@context': this.context,
+      id: this.did.toString(),
+      verificationMethod: this.verificationMethod.map(v => v.toDID()),
+      authentication: this.authentication.map(v => v.toString()),
+      assertionMethod: this.assertionMethod.map(v => v.toString()),
+      keyAgreement: this.keyAgreement.map(v => v.toString()),
+      capabilityInvocation: this.capabilityInvocation.map(v => v.toString()),
+      capabilityDelegation: this.capabilityDelegation.map(v => v.toString()),
+      service: this.service.map(v => v.toDID()),
+      // @ts-ignore
+      publicKey: this.verificationMethod.map(v => v.toDID()),
+    };
   }
 }
 
@@ -68,6 +96,29 @@ export class VerificationMethod extends Assignable {
     const pubkey = SolidPublicKey.fromPublicKey(authority);
     return new VerificationMethod({ id, verificationType, controller, pubkey });
   }
+
+  toDID(): DIDVerificationMethod {
+    return {
+      id: this.id.toString(),
+      type: this.verificationType,
+      controller: this.controller.toString(),
+      publicKeyBase58: this.pubkey.toString(),
+    };
+  }
+}
+
+export class ServiceEndpoint extends Assignable {
+  id: DistributedId;
+  endpointType: string;
+  endpoint: string;
+
+  toDID(): DIDServiceEndpoint {
+    return {
+      id: this.id.toString(),
+      type: this.endpointType,
+      serviceEndpoint: this.endpoint,
+    };
+  }
 }
 
 export class DistributedId extends Assignable {
@@ -81,6 +132,14 @@ export class DistributedId extends Assignable {
       pubkey: this.pubkey,
       identifier: this.identifier,
     });
+  }
+
+  toString(): string {
+    const cluster = this.clusterType.mainnetBeta
+      ? ''
+      : `${this.clusterType.toString()}:`;
+    const identifier = this.identifier === '' ? '' : `#${this.identifier}`;
+    return `${DID_HEADER}:${DID_METHOD}:${cluster}${this.pubkey.toString()}${identifier}`;
   }
 }
 
@@ -173,11 +232,13 @@ SCHEMA.set(SolidData, {
   fields: [
     ['context', ['string']],
     ['did', DistributedId],
-    ['publicKey', [VerificationMethod]],
+    ['verificationMethod', [VerificationMethod]],
     ['authentication', [DistributedId]],
     ['capabilityInvocation', [DistributedId]],
+    ['capabilityDelegation', [DistributedId]],
     ['keyAgreement', [DistributedId]],
-    ['assertion', [DistributedId]],
+    ['assertionMethod', [DistributedId]],
+    ['service', [ServiceEndpoint]],
   ],
 });
 SCHEMA.set(VerificationMethod, {
@@ -195,6 +256,14 @@ SCHEMA.set(DistributedId, {
     ['clusterType', ClusterType],
     ['pubkey', SolidPublicKey],
     ['identifier', 'string'],
+  ],
+});
+SCHEMA.set(ServiceEndpoint, {
+  kind: 'struct',
+  fields: [
+    ['id', DistributedId],
+    ['endpointType', 'string'],
+    ['endpoint', 'string'],
   ],
 });
 SCHEMA.set(SolidPublicKey, {
