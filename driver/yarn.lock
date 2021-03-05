@@ -878,10 +878,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@identity.com/solid-did-client@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@identity.com/solid-did-client/-/solid-did-client-0.0.3.tgz#f99647471b5c4243d8fd06bb25ccff621f56ba57"
-  integrity sha512-jV9VjkXkZxPzaJSKhGn3PVVRV3GiHDwb7uhWNO5LLzYWkcEJMdIn4FI+xKIOFlD4BdYiEQjc5FY0mccBMDsOHQ==
+"@identity.com/solid-did-client@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@identity.com/solid-did-client/-/solid-did-client-0.0.4.tgz#2d98adbf94bca858732ec7eb27865c45854797e3"
+  integrity sha512-NtMOCrvEC2oSubtp1u5o7xVS6G4WF5SJe0URKadXh1CfxdCPEJ7S9wZwDhHy5qAlW2vzHHva0JLAysjollMirQ==
   dependencies:
     "@solana/web3.js" "^0.93.0"
     bn.js "^4.12.0"
