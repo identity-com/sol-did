@@ -19,12 +19,6 @@ export const resolve = async (identifier: string): Promise<DIDDocument> => {
   if (solidData !== null) {
     return solidData.toDID();
   } else {
-    return {
-      '@context': 'https://w3id.org/did/v1',
-      id: identifier,
-      // @ts-ignore
-      temp: solidData,
-      publicKey: [],
-    };
+    throw new Error(`No DID found at identifier ${identifier}`);
   }
 };
