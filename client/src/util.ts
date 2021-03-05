@@ -1,11 +1,8 @@
 import { DIDDocument, PublicKey } from 'did-resolver';
-import {
-  Account,
-  clusterApiUrl,
-  PublicKey as SolanaPublicKey,
-} from '@solana/web3.js';
-import { DID_METHOD, ExtendedCluster } from './constants';
-import { decode, encode } from 'bs58';
+import { Account, PublicKey as SolanaPublicKey } from '@solana/web3.js';
+import { DID_METHOD } from './constants';
+import { ClusterType } from './solid-data';
+import { decode } from 'bs58';
 
 // a 64-byte private key on the X25519 curve.
 // In string form it is base58-encoded
@@ -16,7 +13,7 @@ export type RegisterRequest = {
   payer: PrivateKey;
   document?: Partial<DIDDocument>;
   owner?: PublicKeyBase58;
-  cluster?: ExtendedCluster;
+  cluster?: ???;
 };
 
 export const privateKeyIsArray = (
@@ -95,19 +92,25 @@ export const identifierToPubkey = (did: string): SolanaPublicKey => {
   return new SolanaPublicKey(identifier);
 };
 
-export const identifierToCluster = (did: string): ExtendedCluster => {
+export const identifierToCluster = (did: string): ClusterType => {
   const clusterString = matchDID(did)[1];
-
-  // TODO throw an error here if the cluster is not recognised - requires adding a cluster enum rather than using
-  // the Cluster and ExtendedCluster string literal types
-
-  // Default to mainnet if no cluster is specified as per the spec
-  return (clusterString as ExtendedCluster) || 'mainnet-beta';
+  return ClusterType.parse(clusterString);
 };
+
+export const accountAndClusterToDID = (
+  account: Account,
+  cluster: ClusterType = ClusterType.mainnetBeta()
+) => {
+  // no prefix for mainnet
+  const identifierPrefix = cluster.mainnetBeta ? '' : cluster.toString() + ':';
+  const identifier = account.publicKey.toBase58();
+  return `did:${DID_METHOD}:${identifierPrefix}${identifier}`;
+};
+
 
 export const publicKeyAndClusterToDID = (
   publicKey: SolanaPublicKey,
-  cluster: ExtendedCluster = 'mainnet-beta'
+  cluster: ClusterType = ClusterType.mainnetBeta()
 ) => {
   // no prefix for mainnet
   const identifierPrefix = cluster === 'mainnet-beta' ? '' : cluster + ':';
@@ -117,7 +120,7 @@ export const publicKeyAndClusterToDID = (
 
 export const accountAndClusterToDID = (
   account: Account,
-  cluster: ExtendedCluster = 'mainnet-beta'
+  cluster: ClusterType = ClusterType.mainnetBeta()
 ) => publicKeyAndClusterToDID(account.publicKey, cluster);
 
 export const solanaUrlForCluster = (cluster: ExtendedCluster) =>

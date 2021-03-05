@@ -1,4 +1,4 @@
-import { PublicKey } from '@solana/web3.js';
+import { clusterApiUrl, Cluster, PublicKey } from '@solana/web3.js';
 import { Assignable, Enum, SCHEMA } from './solana-borsh';
 import { encode } from 'bs58';
 import { ExtendedCluster } from './constants';
@@ -108,6 +108,28 @@ export class ClusterType extends Enum {
   devnet: Devnet;
   development: Development;
 
+  solanaUrl(): string {
+    return this.development !== undefined
+      ? 'http://localhost:8899'
+      : clusterApiUrl(this.toCluster());
+  }
+
+  toString(): string {
+    return this.development ? 'localnet' : this.toCluster();
+  }
+
+  toCluster(): Cluster {
+    if (this.mainnetBeta) {
+      return 'mainnet-beta';
+    } else if (this.testnet) {
+      return 'testnet';
+    } else if (this.devnet) {
+      return 'devnet';
+    } else {
+      throw new Error('Unknown cluster type');
+    }
+  }
+
   static testnet(): ClusterType {
     return new ClusterType({ testnet: new Testnet({}) });
   }
@@ -122,6 +144,23 @@ export class ClusterType extends Enum {
 
   static development(): ClusterType {
     return new ClusterType({ development: new Development({}) });
+  }
+
+  static parse(clusterString: string): ClusterType {
+    switch (clusterString) {
+      case 'testnet':
+        return ClusterType.testnet();
+      case 'devnet':
+        return ClusterType.devnet();
+      case 'localnet':
+        return ClusterType.development();
+      case 'mainnet-beta':
+        return ClusterType.mainnetBeta();
+      case '':
+        return ClusterType.mainnetBeta();
+      default:
+        throw new Error(`Cluster string '${clusterString}' not recognized`);
+    }
   }
 }
 
