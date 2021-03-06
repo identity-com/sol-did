@@ -1,5 +1,5 @@
-import { DIDDocument, PublicKey } from 'did-resolver';
-import { Account, PublicKey as SolanaPublicKey } from '@solana/web3.js';
+import { DIDDocument, VerificationMethod } from 'did-resolver';
+import { Account, PublicKey } from '@solana/web3.js';
 import { DID_METHOD } from './constants';
 import { ClusterType } from './solid-data';
 import { decode, encode } from 'bs58';
@@ -52,17 +52,17 @@ export const makeAccount = (privateKey: PrivateKey): Account => {
  * Given a private key on the x25519 curve, get its public key
  * @param privateKey
  */
-export const getPublicKey = (privateKey: PrivateKey): SolanaPublicKey =>
+export const getPublicKey = (privateKey: PrivateKey): PublicKey =>
   makeAccount(privateKey).publicKey;
 
 /**
  * Converts a Curve25519 key in Base58 encoding to a solana PublicKey object
  * @param publicKeyString
  */
-export const stringToPublicKey = (publicKeyString: string): SolanaPublicKey =>
-  new SolanaPublicKey(publicKeyString);
+export const stringToPublicKey = (publicKeyString: string): PublicKey =>
+  new PublicKey(publicKeyString);
 
-export const matches = (owner: PublicKeyBase58) => (key: PublicKey) =>
+export const matches = (owner: PublicKeyBase58) => (key: VerificationMethod) =>
   key.publicKeyBase58 === owner;
 
 const DID_REGEX = new RegExp('^did:' + DID_METHOD + ':?(.*):(.+)$');
@@ -86,10 +86,10 @@ export const isDID = (did: string): boolean => {
 export const extractMethodIdentifierFromDID = (did: string): string =>
   matchDID(did)[2];
 
-export const identifierToPubkey = (did: string): SolanaPublicKey => {
+export const identifierToPubkey = (did: string): PublicKey => {
   const identifier = extractMethodIdentifierFromDID(did);
 
-  return new SolanaPublicKey(identifier);
+  return new PublicKey(identifier);
 };
 
 export const identifierToCluster = (did: string): ClusterType => {
@@ -98,7 +98,7 @@ export const identifierToCluster = (did: string): ClusterType => {
 };
 
 export const publicKeyAndClusterToDID = (
-  publicKey: SolanaPublicKey,
+  publicKey: PublicKey,
   cluster: ClusterType = ClusterType.mainnetBeta()
 ) => {
   // no prefix for mainnet

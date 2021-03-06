@@ -47,14 +47,16 @@ async fn initialize_did_account(
 
 fn check_solid(data: SolidData, solid_key: Pubkey, authority: Pubkey) {
     let did = DistributedId::new(ClusterType::Development, solid_key);
-    let public_key = VerificationMethod::new(did.clone(), authority);
+    let verification_method = VerificationMethod::new(did.clone(), authority);
     assert_eq!(data.context, SolidData::default_context());
     assert_eq!(data.did, did);
-    assert_eq!(data.public_key, vec![public_key.clone()]);
-    assert_eq!(data.authentication, vec![public_key.id.clone()]);
-    assert_eq!(data.capability_invocation, vec![public_key.id.clone()]);
-    assert_eq!(data.key_agreement, vec![public_key.id.clone()]);
-    assert_eq!(data.assertion, vec![public_key.id.clone()]);
+    assert_eq!(data.verification_method, vec![verification_method.clone()]);
+    assert_eq!(data.authentication, vec![verification_method.id.clone()]);
+    assert_eq!(data.capability_invocation, vec![verification_method.id.clone()]);
+    assert_eq!(data.capability_delegation, vec![]);
+    assert_eq!(data.key_agreement, vec![]);
+    assert_eq!(data.assertion_method, vec![]);
+    assert_eq!(data.service, vec![]);
 }
 
 #[tokio::test]
