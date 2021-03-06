@@ -58,7 +58,7 @@ impl SolidData {
             did,
             verification_method: vec![verification_method],
             authentication: vec![verification_id.clone()],
-            capability_invocation: vec![verification_id.clone()],
+            capability_invocation: vec![verification_id],
             capability_delegation: vec![],
             key_agreement: vec![],
             assertion_method: vec![],
@@ -140,7 +140,7 @@ impl FromStr for DistributedId {
                     identifier,
                 })
             }
-            None => Err(SolidError::InvalidString)
+            None => Err(SolidError::InvalidString),
         }
     }
 }
