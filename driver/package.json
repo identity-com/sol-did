@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@identity.com/solid-did-client": "^0.0.4",
-    "did-resolver": "^2.1.2",
+    "did-resolver": "^3.0.1",
     "oas3-tools": "^2.2.3"
   }
 }
