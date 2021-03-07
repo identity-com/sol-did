@@ -58,12 +58,20 @@ impl SolidData {
             did,
             verification_method: vec![verification_method],
             authentication: vec![verification_id.clone()],
-            capability_invocation: vec![verification_id.clone()],
+            capability_invocation: vec![verification_id],
             capability_delegation: vec![],
             key_agreement: vec![],
             assertion_method: vec![],
             service: vec![],
         }
+    }
+    /// Get the list of pubkeys that can update the document
+    pub fn write_authorized_pubkeys(&self) -> Vec<Pubkey> {
+        self.verification_method
+            .iter()
+            .filter(|v| self.capability_invocation.contains(&v.id))
+            .map(|v| v.pubkey)
+            .collect()
     }
 }
 
@@ -140,7 +148,7 @@ impl FromStr for DistributedId {
                     identifier,
                 })
             }
-            None => Err(SolidError::InvalidString)
+            None => Err(SolidError::InvalidString),
         }
     }
 }

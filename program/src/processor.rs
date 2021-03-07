@@ -6,7 +6,7 @@ use {
         error::SolidError,
         id,
         instruction::{get_solid_address_with_seed, SolidInstruction},
-        state::{DistributedId, SolidData, VerificationMethod},
+        state::{DistributedId, SolidData},
     },
     borsh::{BorshDeserialize, BorshSerialize},
     solana_program::{
@@ -23,17 +23,15 @@ use {
     },
 };
 
-fn check_authority(
-    authority_info: &AccountInfo,
-    verification_methods: &[VerificationMethod],
-) -> ProgramResult {
+fn check_authority(authority_info: &AccountInfo, solid: &SolidData) -> ProgramResult {
     if !authority_info.is_signer {
         msg!("Solid authority signature missing");
         return Err(ProgramError::MissingRequiredSignature);
     }
-    if verification_methods
+    if solid
+        .write_authorized_pubkeys()
         .iter()
-        .any(|v| &v.pubkey == authority_info.key)
+        .any(|v| v == authority_info.key)
     {
         Ok(())
     } else {
@@ -114,15 +112,20 @@ pub fn process_instruction(
                 msg!("Solid account not initialized");
                 return Err(ProgramError::UninitializedAccount);
             }
-            check_authority(authority_info, &account_data.verification_method)?;
+            check_authority(authority_info, &account_data)?;
             let start = offset as usize;
             let end = start + data.len();
             if end > data_info.data.borrow().len() {
-                Err(ProgramError::AccountDataTooSmall)
+                return Err(ProgramError::AccountDataTooSmall);
             } else {
                 data_info.data.borrow_mut()[start..end].copy_from_slice(&data);
-                Ok(())
             }
+
+            // make sure the written bytes are valid by trying to deserialize
+            // the update account buffer
+            let _account_data =
+                program_borsh::try_from_slice_incomplete::<SolidData>(*data_info.data.borrow())?;
+            Ok(())
         }
 
         SolidInstruction::CloseAccount => {
@@ -136,7 +139,7 @@ pub fn process_instruction(
                 msg!("Solid not initialized");
                 return Err(ProgramError::UninitializedAccount);
             }
-            check_authority(authority_info, &account_data.verification_method)?;
+            check_authority(authority_info, &account_data)?;
             let destination_starting_lamports = destination_info.lamports();
             let data_lamports = data_info.lamports();
             **data_info.lamports.borrow_mut() = 0;
