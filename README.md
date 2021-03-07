@@ -20,18 +20,22 @@ An example Solid DID: `did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP`
 
 TODO: Add a real resolvable example once one exists on mainnet.
 
-The method identifier in SOLID is a Solana [Program Address](https://docs.solana.com/developing/programming-model/calling-between-programs#program-derived-addresses)
-which is derived by hashing the owner address, program ID and a "bump seed" which ensures the resultant
-address cannot clash with the account address space (which lie on the Curve25519 elliptic curve).
+The method identifier in SOLID is a Solana
+[Program Address](https://docs.solana.com/developing/programming-model/calling-between-programs#program-derived-addresses)
+which is derived by hashing the owner address, the DID method ("solid"), a
+"bump seed", and the program ID. The "bump seed" ensures the resultant address
+does not clash with the account address space, which lie on the Curve25519
+elliptic curve.
 
-The program ID is published for each chain. The bump seed is deterministically derivable off-chain as follows:
+The program ID is `ide3Y2TubNMLLhiG1kDL6to4a8SjxD18YWCYC5BZqNV` on all networks.
+The bump seed is deterministically derivable off-chain as follows:
 
 ```pseudocode
-Initialize the seed to 256 (2^8-1)
+Initialize the seed to 256 (2^8)
 Do:
   Decrement the seed by 1
-  Hash the owner address, program ID, and seed 
-While the resultant point is not on the Curve25519 curve
+  Hash the owner address, DID method, seed, and program ID
+While the resultant point is on the Curve25519 curve
 ```
 
 See [here](https://docs.solana.com/developing/programming-model/calling-between-programs#hash-based-generated-program-addresses)

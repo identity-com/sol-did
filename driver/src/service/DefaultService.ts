@@ -1,6 +1,6 @@
 import { register } from './Registrar';
 import { ResponseContent } from '../utils/writer';
-import { DIDDocument, PublicKey } from 'did-resolver';
+import { DIDDocument, VerificationMethod } from 'did-resolver';
 import * as DID from '@identity.com/solid-did-client';
 
 type ResolutionResult = {
@@ -44,7 +44,12 @@ type UpdateState = CommonState & {
   didState: { state: string; secret?: Record<string, any> };
 };
 
-type RegisterStateKey = PublicKey | { privateKeyBase58: string };
+type RegisterStatePrivateKey = { privateKeyBase58?: string };
+// a returned key may have a private key, if the owner was not passed as a parameter
+// to the register call. In this case, a new key is generated and returned to the caller
+export type RegisterStateKey =
+  | (VerificationMethod & RegisterStatePrivateKey)
+  | RegisterStatePrivateKey;
 type RegisterStateSecret = {
   keys: RegisterStateKey[];
 };
