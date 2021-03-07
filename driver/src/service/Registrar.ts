@@ -1,5 +1,9 @@
 import * as DID from '@identity.com/solid-did-client';
-import { RegisterRequest, RegisterState } from './DefaultService';
+import {
+  RegisterRequest,
+  RegisterState,
+  RegisterStateKey,
+} from './DefaultService';
 import { ClusterType } from '@identity.com/solid-did-client';
 
 export const register = async (
@@ -28,17 +32,18 @@ export const register = async (
   const document = await DID.resolve(identifier);
   console.log(document);
 
+  // DIDs are created with at least one verificationMethod
+  const key: RegisterStateKey = document.verificationMethod?.length
+    ? document.verificationMethod[0]
+    : {};
+  if (ownerPrivateKey) key.privateKeyBase58 = ownerPrivateKey;
+
   return {
     didState: {
       state: 'finished',
       identifier: identifier,
       secret: {
-        keys: [
-          {
-            ...document.publicKey[0],
-            privateKeyBase58: ownerPrivateKey,
-          },
-        ],
+        keys: [key],
       },
     },
   };
