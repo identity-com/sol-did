@@ -1,7 +1,7 @@
 import { DIDDocument } from 'did-resolver';
-import { identifierToCluster, identifierToPubkey } from '../util';
+import { identifierToCluster, identifierToPubkey } from '../lib/util';
 import { Connection } from '@solana/web3.js';
-import { SolidTransaction } from '../transaction';
+import { SolidTransaction } from '../lib/solana/transaction';
 
 /**
  * Resolves a SOLID DID to a document,

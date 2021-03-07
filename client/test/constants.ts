@@ -1,4 +1,4 @@
-import { ClusterType } from '../../src/solid-data';
+import { ClusterType } from '../src/lib/solana/solid-data';
 
 export const CLUSTER = ClusterType.parse(process.env.CLUSTER || 'localnet');
 export const VALIDATOR_URL = CLUSTER.solanaUrl();

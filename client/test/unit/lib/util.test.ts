@@ -1,13 +1,14 @@
 import {
   accountAndClusterToDID,
   extractMethodIdentifierFromDID,
-} from '../src/util';
-import { ClusterType } from '../src/solid-data';
-import { Account } from '@solana/web3.js';
+  keyToIdentifier,
+} from '../../../src/lib/util';
+import { ClusterType } from '../../../src';
+import { Account, PublicKey } from '@solana/web3.js';
 import {
   TEST_DID_ACCOUNT_PUBLIC_KEY,
   TEST_DID_ACCOUNT_SECRET_KEY,
-} from './e2e/constants';
+} from '../../constants';
 
 describe('util', () => {
   describe('extractMethodIdentifierFromDID', () => {
@@ -35,6 +36,16 @@ describe('util', () => {
       expect(
         accountAndClusterToDID(account, ClusterType.mainnetBeta())
       ).toEqual(`did:solid:${TEST_DID_ACCOUNT_PUBLIC_KEY}`);
+    });
+  });
+
+  describe('keyToIdentifier', () => {
+    it('should generate a consistent DID identifier for a known owner public key', async () => {
+      const expected = 'did:solid:Bm8bvjnBCJj6nKExmZk17khkRRNXAvcv2npKbhaqNWGC';
+      const identifier = await keyToIdentifier(
+        new PublicKey(TEST_DID_ACCOUNT_PUBLIC_KEY)
+      );
+      expect(identifier).toEqual(expected);
     });
   });
 });

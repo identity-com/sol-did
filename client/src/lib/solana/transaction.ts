@@ -4,8 +4,6 @@ import { initialize, getKeyFromAuthority } from './instruction';
 import { Account, Connection, PublicKey, Transaction } from '@solana/web3.js';
 
 export class SolidTransaction {
-  static SOLID_SEED: string = 'solid';
-
   static async createSolid(
     connection: Connection,
     payer: Account,
