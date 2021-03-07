@@ -878,16 +878,16 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@identity.com/solid-did-client@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@identity.com/solid-did-client/-/solid-did-client-0.0.4.tgz#2d98adbf94bca858732ec7eb27865c45854797e3"
-  integrity sha512-NtMOCrvEC2oSubtp1u5o7xVS6G4WF5SJe0URKadXh1CfxdCPEJ7S9wZwDhHy5qAlW2vzHHva0JLAysjollMirQ==
+"@identity.com/solid-did-client@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@identity.com/solid-did-client/-/solid-did-client-0.0.5.tgz#8416724f4084cda6049a1545898cc82e8c068094"
+  integrity sha512-MJcpTF1UO7zDxypXml+n2mZgY/4QUx8y259Yqt079ko1CRPYBgnWIWKPyHCQieiYKJ5ta/IxOu1Kr899w0Ktvg==
   dependencies:
     "@solana/web3.js" "^0.93.0"
     bn.js "^4.12.0"
     borsh "^0.3.1"
     bs58 "^4.0.1"
-    did-resolver "^2.1.2"
+    did-resolver "^3.0.1"
 
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
@@ -2589,11 +2589,6 @@ dicer@0.2.5:
   dependencies:
     readable-stream "1.1.x"
     streamsearch "0.1.2"
-
-did-resolver@^2.1.2:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/did-resolver/-/did-resolver-2.1.2.tgz#f1194fdbc087161809ce545e13c11a596f4a3928"
-  integrity sha512-n4YGS1CzbX48U/ChLRY3SdgiV5N3B/+yh0ToS5t+Sx4QjhVZN6ZyijUSSYbFGvz+I4qImeSZOdo6RX8JaieN7A==
 
 did-resolver@^3.0.1:
   version "3.0.1"
