@@ -1,6 +1,6 @@
 import { Enum, Assignable, SCHEMA } from './solana-borsh';
 import { ClusterType } from './solid-data';
-import { DID_METHOD, PROGRAM_ID } from './constants';
+import { DID_METHOD, PROGRAM_ID } from '../constants';
 import {
   AccountMeta,
   PublicKey,

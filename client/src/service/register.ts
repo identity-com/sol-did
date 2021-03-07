@@ -4,10 +4,10 @@ import {
   publicKeyAndClusterToDID,
   RegisterRequest,
   stringToPublicKey,
-} from '../util';
-import { SolidTransaction } from '../transaction';
+} from '../lib/util';
+import { SolidTransaction } from '../lib/solana/transaction';
 import { Connection } from '@solana/web3.js';
-import { ClusterType } from '../solid-data';
+import { ClusterType } from '../lib/solana/solid-data';
 
 /**
  * Registers a SOLID DID on Solana.
@@ -26,5 +26,6 @@ export const register = async (request: RegisterRequest): Promise<string> => {
     owner,
     cluster
   );
+
   return publicKeyAndClusterToDID(solidKey, cluster);
 };

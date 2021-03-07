@@ -1,6 +1,10 @@
 import { Account } from '@solana/web3.js';
-import { ClusterType, SolidPublicKey, SolidData } from '../src/solid-data';
-import { SolidInstruction } from '../src/instruction';
+import {
+  ClusterType,
+  SolidPublicKey,
+  SolidData,
+} from '../../../../src/lib/solana/solid-data';
+import { SolidInstruction } from '../../../../src/lib/solana/instruction';
 import { BN } from 'bn.js';
 import { strict as assert } from 'assert';
 

@@ -1,8 +1,9 @@
 import { DIDDocument, VerificationMethod } from 'did-resolver';
 import { Account, PublicKey } from '@solana/web3.js';
 import { DID_METHOD } from './constants';
-import { ClusterType } from './solid-data';
+import { ClusterType } from './solana/solid-data';
 import { decode, encode } from 'bs58';
+import { getKeyFromAuthority } from './solana/instruction';
 
 // a 64-byte private key on the X25519 curve.
 // In string form it is base58-encoded
@@ -122,4 +123,12 @@ export const generateKeypair = (): EncodedKeyPair => {
     secretKey: encode(account.secretKey),
     publicKey: account.publicKey.toBase58(),
   };
+};
+
+export const keyToIdentifier = async (
+  key: PublicKey,
+  cluster: ClusterType = ClusterType.mainnetBeta()
+) => {
+  const didKey = await getKeyFromAuthority(key);
+  return publicKeyAndClusterToDID(didKey, cluster);
 };

@@ -1,8 +1,8 @@
 import { register, resolve } from '../../src';
-import { SolanaUtil } from '../../src/solana-util';
+import { SolanaUtil } from '../../src/lib/solana/solana-util';
 import { Account, Connection } from '@solana/web3.js';
-import { CLUSTER, VALIDATOR_URL } from './constants';
-import { isDID, RegisterRequest } from '../../src/util';
+import { CLUSTER, VALIDATOR_URL } from '../constants';
+import { isDID, RegisterRequest } from '../../src/lib/util';
 
 describe('register', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');
@@ -42,10 +42,6 @@ describe('register', () => {
     const identifier = await register(registerRequest);
 
     const doc = await resolve(identifier);
-
-    console.log(doc);
-
-    // Fails
     expect(doc.service).toBeDefined();
   }, 30000);
 });

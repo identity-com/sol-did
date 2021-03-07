@@ -1,6 +1,6 @@
 import { clusterApiUrl, Cluster, PublicKey } from '@solana/web3.js';
 import { Assignable, Enum, SCHEMA } from './solana-borsh';
-import { DID_METHOD, DID_HEADER } from './constants';
+import { DID_METHOD, DID_HEADER } from '../constants';
 import { encode } from 'bs58';
 import {
   DIDDocument,

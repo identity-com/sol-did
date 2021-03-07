@@ -1,9 +1,9 @@
 import { Account, Connection } from '@solana/web3.js';
-import { SolidTransaction } from '../../src/transaction';
-import { SolidData } from '../../src/solid-data';
-import { SolanaUtil } from '../../src/solana-util';
+import { SolidTransaction } from '../../src/lib/solana/transaction';
+import { SolidData } from '../../src/lib/solana/solid-data';
+import { SolanaUtil } from '../../src/lib/solana/solana-util';
 import { strict as assert } from 'assert';
-import { CLUSTER, VALIDATOR_URL } from './constants';
+import { CLUSTER, VALIDATOR_URL } from '../constants';
 
 describe('transaction', () => {
   it('create works', async () => {
