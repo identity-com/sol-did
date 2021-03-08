@@ -36,6 +36,7 @@ async fn initialize_did_account(
             &context.payer.pubkey(),
             authority,
             ClusterType::Development,
+            SolidData::default(),
         )],
         Some(&context.payer.pubkey()),
         &[&context.payer],
@@ -82,6 +83,52 @@ async fn initialize_success() {
 }
 
 #[tokio::test]
+async fn initialize_with_service_success() {
+    let mut context = program_test().start_with_context().await;
+
+    let authority = Pubkey::new_unique();
+    let (solid, _) = instruction::get_solid_address_with_seed(&authority);
+    let mut init_data = SolidData::default();
+    let cluster_type = ClusterType::Development;
+    let id = DistributedId::new(cluster_type.clone(), authority.clone());
+    let endpoint = "http://localhost".to_string();
+    let endpoint_type = "local".to_string();
+    let description = "A localhost service".to_string();
+    let service_endpoint = ServiceEndpoint {
+        id,
+        endpoint_type,
+        endpoint,
+        description,
+    };
+    init_data.service = vec![service_endpoint.clone()];
+    let transaction = Transaction::new_signed_with_payer(
+        &[instruction::initialize(
+            &context.payer.pubkey(),
+            &authority,
+            cluster_type,
+            init_data,
+        )],
+        Some(&context.payer.pubkey()),
+        &[&context.payer],
+        context.last_blockhash,
+    );
+    context
+        .banks_client
+        .process_transaction(transaction)
+        .await
+        .unwrap();
+    let account_info = context
+        .banks_client
+        .get_account(solid)
+        .await
+        .unwrap()
+        .unwrap();
+    let account_data =
+        program_borsh::try_from_slice_incomplete::<SolidData>(&account_info.data).unwrap();
+    assert_eq!(account_data.service, vec![service_endpoint]);
+}
+
+#[tokio::test]
 async fn initialize_twice_fail() {
     let mut context = program_test().start_with_context().await;
 
@@ -97,6 +144,7 @@ async fn initialize_twice_fail() {
             &context.payer.pubkey(),
             &authority,
             ClusterType::Development,
+            SolidData::default(),
         )],
         Some(&context.payer.pubkey()),
         &[&context.payer],
@@ -135,6 +183,7 @@ async fn write_success() {
         id: solid_data.did.clone(),
         endpoint_type: "example".to_string(),
         endpoint: "example.com".to_string(),
+        description: "".to_string(),
     };
     solid_data.service.push(test_endpoint.clone());
     let transaction = Transaction::new_signed_with_payer(
