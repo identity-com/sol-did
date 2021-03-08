@@ -59,6 +59,20 @@ export class SolidData extends Assignable {
     });
   }
 
+  static empty(): SolidData {
+    return new SolidData({
+      context: [],
+      did: DistributedId.empty(),
+      verificationMethod: [],
+      authentication: [],
+      capabilityInvocation: [],
+      capabilityDelegation: [],
+      keyAgreement: [],
+      assertionMethod: [],
+      service: [],
+    });
+  }
+
   toDID(): DIDDocument {
     return {
       '@context': this.context,
@@ -73,6 +87,36 @@ export class SolidData extends Assignable {
       // @ts-ignore
       publicKey: this.verificationMethod.map(v => v.toDID()),
     };
+  }
+
+  static parse(document: Partial<DIDDocument> | undefined): SolidData {
+    if (document) {
+      return new SolidData({
+        context: document['@context'] || [],
+        did: document.id
+          ? DistributedId.parse(document.id)
+          : DistributedId.empty(),
+        verificationMethod: document.verificationMethod
+          ? document.verificationMethod.map(v => VerificationMethod.parse(v))
+          : [],
+        authentication: DistributedId.parseMaybeArray(document.authentication),
+        capabilityInvocation: DistributedId.parseMaybeArray(
+          document.capabilityInvocation
+        ),
+        capabilityDelegation: DistributedId.parseMaybeArray(
+          document.capabilityDelegation
+        ),
+        keyAgreement: DistributedId.parseMaybeArray(document.keyAgreement),
+        assertionMethod: DistributedId.parseMaybeArray(
+          document.assertionMethod
+        ),
+        service: document.service
+          ? document.service.map(v => ServiceEndpoint.parse(v))
+          : [],
+      });
+    } else {
+      return SolidData.empty();
+    }
   }
 }
 
@@ -105,19 +149,43 @@ export class VerificationMethod extends Assignable {
       publicKeyBase58: this.pubkey.toString(),
     };
   }
+
+  static parse(
+    didVerificationMethod: DIDVerificationMethod
+  ): VerificationMethod {
+    return new VerificationMethod({
+      id: DistributedId.parse(didVerificationMethod.id),
+      verificationType: didVerificationMethod.type,
+      controller: DistributedId.parse(didVerificationMethod.controller),
+      pubkey: didVerificationMethod.publicKeyBase58
+        ? SolidPublicKey.parse(didVerificationMethod.publicKeyBase58)
+        : undefined,
+    });
+  }
 }
 
 export class ServiceEndpoint extends Assignable {
   id: DistributedId;
   endpointType: string;
   endpoint: string;
+  description: string;
 
   toDID(): DIDServiceEndpoint {
     return {
       id: this.id.toString(),
       type: this.endpointType,
       serviceEndpoint: this.endpoint,
+      description: this.description,
     };
+  }
+
+  static parse(service: DIDServiceEndpoint): ServiceEndpoint {
+    return new ServiceEndpoint({
+      id: DistributedId.parse(service.id),
+      endpointType: service.type,
+      endpoint: service.serviceEndpoint,
+      description: service.description,
+    });
   }
 }
 
@@ -141,6 +209,58 @@ export class DistributedId extends Assignable {
     const identifier = this.identifier === '' ? '' : `#${this.identifier}`;
     return `${DID_HEADER}:${DID_METHOD}:${cluster}${this.pubkey.toString()}${identifier}`;
   }
+
+  static REGEX = new RegExp('^did:' + DID_METHOD + ':?(\\w*):(\\w+)#?(\\w*)$');
+
+  static parse(did: string | DIDVerificationMethod): DistributedId {
+    if (typeof did === 'string') {
+      const matches = DistributedId.REGEX.exec(did);
+
+      if (!matches) throw new Error('Invalid DID');
+      return new DistributedId({
+        clusterType: ClusterType.parse(matches[1]),
+        pubkey: SolidPublicKey.parse(matches[2]),
+        identifier: matches[3],
+      });
+    } else {
+      throw new Error('Provided DID is not a string');
+    }
+  }
+
+  static valid(did: string): boolean {
+    try {
+      DistributedId.parse(did);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  static empty(): DistributedId {
+    return new DistributedId({
+      clusterType: ClusterType.mainnetBeta(),
+      pubkey: SolidPublicKey.empty(),
+      identifier: '',
+    });
+  }
+
+  static parseMaybeArray(
+    dids: (string | DIDVerificationMethod)[] | undefined
+  ): DistributedId[] {
+    return dids ? dids.map(v => DistributedId.parse(v)) : [];
+  }
+
+  static create(
+    pubkey: PublicKey,
+    clusterType: ClusterType,
+    identifier: string = ''
+  ): DistributedId {
+    return new DistributedId({
+      pubkey: SolidPublicKey.fromPublicKey(pubkey),
+      clusterType,
+      identifier,
+    });
+  }
 }
 
 export class SolidPublicKey extends Assignable {
@@ -155,8 +275,18 @@ export class SolidPublicKey extends Assignable {
     return encode(this.bytes);
   }
 
+  static parse(pubkey: string): SolidPublicKey {
+    return SolidPublicKey.fromPublicKey(new PublicKey(pubkey));
+  }
+
   static fromPublicKey(publicKey: PublicKey): SolidPublicKey {
     return new SolidPublicKey({ bytes: Uint8Array.from(publicKey.toBuffer()) });
+  }
+
+  static empty(): SolidPublicKey {
+    const bytes = new Array(32);
+    bytes.fill(0);
+    return new SolidPublicKey({ bytes });
   }
 }
 
@@ -264,6 +394,7 @@ SCHEMA.set(ServiceEndpoint, {
     ['id', DistributedId],
     ['endpointType', 'string'],
     ['endpoint', 'string'],
+    ['description', 'string'],
   ],
 });
 SCHEMA.set(SolidPublicKey, {

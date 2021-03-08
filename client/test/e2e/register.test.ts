@@ -3,7 +3,8 @@ import { SolanaUtil } from '../../src/lib/solana/solana-util';
 import { Account, Connection } from '@solana/web3.js';
 import { ServiceEndpoint } from 'did-resolver';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
-import { isDID, keyToIdentifier, RegisterRequest } from '../../src/lib/util';
+import { RegisterRequest } from '../../src/lib/util';
+import { DistributedId, SolidPublicKey } from '../../src/lib/solana/solid-data';
 
 describe('register', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');
@@ -11,7 +12,11 @@ describe('register', () => {
   let owner: Account;
 
   const makeService = async (owner: Account): Promise<ServiceEndpoint> => {
-    const identifier = await keyToIdentifier(owner.publicKey, CLUSTER);
+    const identifier = new DistributedId({
+      clusterType: CLUSTER,
+      pubkey: SolidPublicKey.fromPublicKey(owner.publicKey),
+      identifier: '',
+    }).toString();
 
     return {
       description: 'Messaging Service',
@@ -37,7 +42,7 @@ describe('register', () => {
     };
     const identifier = await register(registerRequest);
 
-    expect(isDID(identifier)).toBeTruthy();
+    expect(DistributedId.valid(identifier)).toBeTruthy();
 
     console.log(identifier);
   }, 30000);
