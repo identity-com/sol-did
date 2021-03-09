@@ -1,7 +1,7 @@
 name: CI
 on: [push, pull_request]
 jobs:
-  build-driver:
+  driver-build:
     name: Build, lint, and test the driver on Node ${{ matrix.node }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
@@ -34,7 +34,8 @@ jobs:
 
       - name: Build
         run: yarn build
-  build-client:
+
+  client-build:
     name: Build, lint, and test the solid client on Node ${{ matrix.node }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
@@ -67,6 +68,7 @@ jobs:
 
       - name: Build
         run: yarn build
+
   program-lint:
     name: Run rustfmt and clippy on the solid on-chain program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
 
@@ -109,6 +111,41 @@ jobs:
           command: clippy
           args: --manifest-path program/Cargo.toml -Zunstable-options --workspace --all-targets -- --deny=warnings
 
+  program-unit-test:
+    name: Run program unit tests on Rust ${{ matrix.rust }} and ${{ matrix.os }}
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        rust: ['1.50']
+        os: [ubuntu-latest]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use Rust ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+          profile: minimal
+
+      - name: Cache build dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ./program/target
+          key: cargo-test-${{ hashFiles('program/Cargo.lock') }}
+
+      - name: Run unit tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --manifest-path program/Cargo.toml
+
   program-build:
     name: Build and test the solid on-chain program on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
 
@@ -150,12 +187,6 @@ jobs:
         run: |
           sh -c "$(curl -sSfL https://release.solana.com/${{ matrix.solana }}/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-
-      - name: Run unit tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --manifest-path program/Cargo.toml
 
       - name: Build program and run integration tests
         uses: actions-rs/cargo@v1
