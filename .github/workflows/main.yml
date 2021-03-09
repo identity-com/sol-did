@@ -76,6 +76,9 @@ jobs:
         rust: ['nightly-2021-02-18']
         os: [ubuntu-latest]
 
+    env:
+      working-directory: ./program
+
     defaults:
       run:
         working-directory: ./program
@@ -94,12 +97,14 @@ jobs:
 
       - name: Run fmt
         uses: actions-rs/cargo@v1
+        working-directory: ${{ env.working-directory }}
         with:
           command: fmt
           args: --all -- --check
 
       - name: Cache dependencies
         uses: actions/cache@v2
+        working-directory: ${{ env.working-directory }}
         with:
           path: |
             ~/.cargo/registry
@@ -109,6 +114,7 @@ jobs:
 
       - name: Run Clippy
         uses: actions-rs/cargo@v1
+        working-directory: ${{ env.working-directory }}
         with:
           command: clippy
           args: -Zunstable-options --workspace --all-targets -- --deny=warnings
