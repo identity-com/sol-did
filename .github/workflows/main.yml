@@ -99,6 +99,7 @@ jobs:
           args: --all -- --check
 
       - name: Cache dependencies
+        uses: actions/cache@v2
         with:
           path: |
             ~/.cargo/registry
