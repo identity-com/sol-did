@@ -70,7 +70,7 @@ jobs:
         run: yarn build
 
   program-lint:
-    name: Run rustfmt and clippy on the solid on-chain program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
+    name: Format and lint the solid on-chain program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -112,7 +112,7 @@ jobs:
           args: --manifest-path program/Cargo.toml -Zunstable-options --workspace --all-targets -- --deny=warnings
 
   program-unit-test:
-    name: Run program unit tests on Rust ${{ matrix.rust }} and ${{ matrix.os }}
+    name: Unit test program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
