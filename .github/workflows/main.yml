@@ -76,10 +76,6 @@ jobs:
         rust: ['nightly-2021-02-18']
         os: [ubuntu-latest]
 
-    defaults:
-      run:
-        working-directory: ./program
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -112,3 +108,57 @@ jobs:
         with:
           command: clippy
           args: --manifest-path program/Cargo.toml -Zunstable-options --workspace --all-targets -- --deny=warnings
+
+  program-build:
+    name: Build and test the solid on-chain program on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        rust: ['1.50']
+        solana: ['1.5.14']
+        os: [ubuntu-latest]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use Rust ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+          profile: minimal
+
+      - name: Cache build dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ./program/target
+          key: cargo-build-${{ hashFiles('program/Cargo.lock') }}
+
+      - name: Cache Solana version
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache
+          key: solana-${{ matrix.solana }}
+
+      - name: Install Solana
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/$solana_version/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Run unit tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --manifest-path program/Cargo.toml
+
+      - name: Build program and run integration tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test-bpf
+          args: --manifest-path program/Cargo.toml
