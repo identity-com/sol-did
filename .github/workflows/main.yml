@@ -67,3 +67,47 @@ jobs:
 
       - name: Build
         run: yarn build
+  program-lint:
+    name: Run rustfmt and clippy on the solid on-chain program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        rust: ['nightly-2021-02-18']
+        os: [ubuntu-latest]
+
+    defaults:
+      run:
+        working-directory: ./program
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use Rust ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+          profile: minimal
+          components: rustfmt, clippy
+
+      - name: Run fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: Cache dependencies
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-clippy-${{ hashFiles('Cargo.lock') }}
+
+      - name: Run Clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -Zunstable-options --workspace --all-targets -- --deny=warnings
