@@ -142,7 +142,7 @@ jobs:
         working-directory: client
 
       - name: Test e2e
-        run: yarn test-e2e --ci --coverage --maxWorkers=2
+        run: yarn test-e2e --ci --coverage
         working-directory: client
 
   program-lint:
