@@ -24,7 +24,8 @@ describe('resolve', () => {
       connection,
       payer,
       authority.publicKey,
-      CLUSTER
+      CLUSTER,
+      SolidData.empty()
     );
   }, 60000);
 

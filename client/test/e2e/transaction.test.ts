@@ -17,7 +17,8 @@ describe('transaction', () => {
       connection,
       payer,
       authority.publicKey,
-      CLUSTER
+      CLUSTER,
+      SolidData.empty()
     );
     const solid = await SolidTransaction.getSolid(connection, solidKey);
     assert.notEqual(solid, null);

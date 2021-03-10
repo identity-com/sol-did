@@ -1,7 +1,7 @@
 import { DIDDocument } from 'did-resolver';
-import { identifierToCluster, identifierToPubkey } from '../lib/util';
 import { Connection } from '@solana/web3.js';
 import { SolidTransaction } from '../lib/solana/transaction';
+import { DistributedId } from '../lib/solana/solid-data';
 
 /**
  * Resolves a SOLID DID to a document,
@@ -10,11 +10,11 @@ import { SolidTransaction } from '../lib/solana/transaction';
  * @throws Error if the document is not found
  */
 export const resolve = async (identifier: string): Promise<DIDDocument> => {
-  const cluster = identifierToCluster(identifier);
-  const connection = new Connection(cluster.solanaUrl(), 'recent');
+  const id = DistributedId.parse(identifier);
+  const connection = new Connection(id.clusterType.solanaUrl(), 'recent');
   const solidData = await SolidTransaction.getSolid(
     connection,
-    identifierToPubkey(identifier)
+    id.pubkey.toPublicKey()
   );
   if (solidData !== null) {
     return solidData.toDID();
