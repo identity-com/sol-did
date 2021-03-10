@@ -50,7 +50,10 @@ pub fn process_instruction(
     let account_info_iter = &mut accounts.iter();
 
     match instruction {
-        SolidInstruction::Initialize { cluster_type } => {
+        SolidInstruction::Initialize {
+            cluster_type,
+            init_data,
+        } => {
             msg!("SolidInstruction::Initialize");
 
             let funder_info = next_account_info(account_info_iter)?;
@@ -96,7 +99,8 @@ pub fn process_instruction(
             )?;
 
             let did = DistributedId::new(cluster_type, *data_info.key);
-            let solid = SolidData::new_sparse(did, *authority_info.key);
+            let mut solid = SolidData::new_sparse(did, *authority_info.key);
+            solid.merge(init_data);
             solid
                 .serialize(&mut *data_info.data.borrow_mut())
                 .map_err(|e| e.into())

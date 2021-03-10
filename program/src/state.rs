@@ -7,8 +7,16 @@ use {
     std::str::FromStr,
 };
 
+fn merge_vecs<T: PartialEq>(lhs: &mut Vec<T>, rhs: Vec<T>) {
+    for v in rhs.into_iter() {
+        if !lhs.contains(&v) {
+            lhs.push(v);
+        }
+    }
+}
+
 /// Struct wrapping data and providing metadata
-#[derive(Clone, Debug, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
+#[derive(Clone, Debug, Default, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
 pub struct SolidData {
     /// DistributedId context, defaults to:
     /// ["https://w3id.org/did/v1.0", "https://w3id.org/solid/v1"]
@@ -72,6 +80,17 @@ impl SolidData {
             .filter(|v| self.capability_invocation.contains(&v.id))
             .map(|v| v.pubkey)
             .collect()
+    }
+    /// Merge one DID into another.  The ID does not change, exact copies
+    pub fn merge(&mut self, other: SolidData) {
+        merge_vecs(&mut self.context, other.context);
+        merge_vecs(&mut self.verification_method, other.verification_method);
+        merge_vecs(&mut self.authentication, other.authentication);
+        merge_vecs(&mut self.capability_invocation, other.capability_invocation);
+        merge_vecs(&mut self.capability_delegation, other.capability_delegation);
+        merge_vecs(&mut self.key_agreement, other.key_agreement);
+        merge_vecs(&mut self.assertion_method, other.assertion_method);
+        merge_vecs(&mut self.service, other.service);
     }
 }
 
@@ -203,6 +222,8 @@ pub struct ServiceEndpoint {
     pub endpoint_type: String,
     /// The actual URL of the endpoint
     pub endpoint: String,
+    /// More info about the endpoint
+    pub description: String,
 }
 
 /// Struct for the verification method

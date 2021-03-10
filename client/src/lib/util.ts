@@ -1,7 +1,6 @@
-import { DIDDocument, VerificationMethod } from 'did-resolver';
+import { DIDDocument } from 'did-resolver';
 import { Account, PublicKey } from '@solana/web3.js';
-import { DID_METHOD } from './constants';
-import { ClusterType } from './solana/solid-data';
+import { ClusterType, DistributedId } from './solana/solid-data';
 import { decode, encode } from 'bs58';
 import { getKeyFromAuthority } from './solana/instruction';
 
@@ -56,62 +55,10 @@ export const makeAccount = (privateKey: PrivateKey): Account => {
 export const getPublicKey = (privateKey: PrivateKey): PublicKey =>
   makeAccount(privateKey).publicKey;
 
-/**
- * Converts a Curve25519 key in Base58 encoding to a solana PublicKey object
- * @param publicKeyString
- */
-export const stringToPublicKey = (publicKeyString: string): PublicKey =>
-  new PublicKey(publicKeyString);
-
-export const matches = (owner: PublicKeyBase58) => (key: VerificationMethod) =>
-  key.publicKeyBase58 === owner;
-
-const DID_REGEX = new RegExp('^did:' + DID_METHOD + ':?(.*):(.+)$');
-
-const matchDID = (did: string): RegExpExecArray => {
-  const matches = DID_REGEX.exec(did);
-
-  if (!matches) throw new Error('Invalid DID');
-  return matches;
-};
-
-export const isDID = (did: string): boolean => {
-  try {
-    matchDID(did);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-export const extractMethodIdentifierFromDID = (did: string): string =>
-  matchDID(did)[2];
-
-export const identifierToPubkey = (did: string): PublicKey => {
-  const identifier = extractMethodIdentifierFromDID(did);
-
-  return new PublicKey(identifier);
-};
-
-export const identifierToCluster = (did: string): ClusterType => {
-  const clusterString = matchDID(did)[1];
-  return ClusterType.parse(clusterString);
-};
-
-export const publicKeyAndClusterToDID = (
-  publicKey: PublicKey,
-  cluster: ClusterType = ClusterType.mainnetBeta()
-) => {
-  // no prefix for mainnet
-  const identifierPrefix = cluster.mainnetBeta ? '' : cluster.toString() + ':';
-  const identifier = publicKey.toBase58();
-  return `did:${DID_METHOD}:${identifierPrefix}${identifier}`;
-};
-
 export const accountAndClusterToDID = (
   account: Account,
   cluster: ClusterType = ClusterType.mainnetBeta()
-) => publicKeyAndClusterToDID(account.publicKey, cluster);
+) => DistributedId.create(account.publicKey, cluster).toString();
 
 type EncodedKeyPair = {
   secretKey: string;
@@ -127,8 +74,8 @@ export const generateKeypair = (): EncodedKeyPair => {
 
 export const keyToIdentifier = async (
   key: PublicKey,
-  cluster: ClusterType = ClusterType.mainnetBeta()
+  clusterType: ClusterType = ClusterType.mainnetBeta()
 ) => {
   const didKey = await getKeyFromAuthority(key);
-  return publicKeyAndClusterToDID(didKey, cluster);
+  return DistributedId.create(didKey, clusterType).toString();
 };

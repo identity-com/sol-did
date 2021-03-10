@@ -8,13 +8,14 @@ export class SolidTransaction {
     connection: Connection,
     payer: Account,
     authority: PublicKey,
-    clusterType: ClusterType
+    clusterType: ClusterType,
+    initData: SolidData
   ): Promise<PublicKey> {
     const solidKey = await getKeyFromAuthority(authority);
 
     // Allocate memory for the account
     const transaction = new Transaction().add(
-      initialize(payer.publicKey, solidKey, authority, clusterType)
+      initialize(payer.publicKey, solidKey, authority, clusterType, initData)
     );
 
     // Send the instructions
