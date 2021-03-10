@@ -21,7 +21,7 @@
     "test": "tsdx test",
     "lint": "tsdx lint --maxWarnings 0",
     "prepare": "yarn build",
-    "dev": "ts-node-dev src/index.ts",
+    "dev": "ts-node-dev --inspect=127.0.0.1:9229 src/index.ts",
     "app": "node dist/index.js"
   },
   "prettier": {
@@ -34,6 +34,7 @@
   "author": "dankelleher",
   "module": "dist/solid-driver.esm.js",
   "devDependencies": {
+    "@types/cors": "^2.8.10",
     "ts-node-dev": "^1.1.1",
     "tsdx": "^0.14.1",
     "tslib": "^2.1.0",
@@ -41,6 +42,7 @@
   },
   "dependencies": {
     "@identity.com/solid-did-client": "^0.0.5",
+    "cors": "^2.8.5",
     "did-resolver": "^3.0.1",
     "oas3-tools": "^2.2.3"
   }
