@@ -31,7 +31,17 @@ describe('(de)serialize operations', () => {
   });
 
   it('works for SolidInstruction.initialize', () => {
-    const instruction = SolidInstruction.initialize(ClusterType.mainnetBeta());
+    const authority = new Account();
+    const solidAccount = new Account();
+    const solidData = SolidData.sparse(
+      solidAccount.publicKey,
+      authority.publicKey,
+      ClusterType.mainnetBeta()
+    );
+    const instruction = SolidInstruction.initialize(
+      ClusterType.mainnetBeta(),
+      solidData
+    );
     testSerialization(SolidInstruction, instruction);
   });
 
