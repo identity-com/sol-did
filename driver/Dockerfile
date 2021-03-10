@@ -1,7 +1,5 @@
 FROM node:15-alpine as builder
 
-# RUN apk add --no-cache sed
-
 WORKDIR /usr/src/app
 
 COPY . .
