@@ -16,6 +16,12 @@ export type RegisterRequest = {
   cluster?: ClusterType;
 };
 
+export type DeactivateRequest = {
+  identifier: string;
+  payer: PrivateKey;
+  cluster?: ClusterType;
+};
+
 export const privateKeyIsArray = (
   privateKey: PrivateKey
 ): privateKey is number[] => Array.isArray(privateKey);

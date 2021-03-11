@@ -2,6 +2,7 @@ import { register } from './Registrar';
 import { ResponseContent } from '../utils/writer';
 import { DIDDocument, VerificationMethod } from 'did-resolver';
 import * as DID from '@identity.com/solid-did-client';
+import { deactivate } from './Deactivator';
 
 type ResolutionResult = {
   didDocument: DIDDocument;
@@ -16,9 +17,15 @@ export type RegisterOptions = {
 export type RegisterSecrets = {
   payer: string;
 };
+
+export type DeactivateOptions = {
+  cluster?: string;
+};
+export type DeactivateSecrets = RegisterSecrets;
 export type DeactivateRequest = {
   identifier: string;
-  secret?: RegisterSecrets;
+  options?: DeactivateOptions;
+  secret?: DeactivateSecrets;
 };
 export type UpdateRequest = {
   identifier: string;
@@ -39,7 +46,7 @@ type CommonState = {
   registrarMetadata?: Record<string, any>;
   methodMetadata?: Record<string, any>;
 };
-type DeactivateState = CommonState & { didState: { state: string } };
+export type DeactivateState = CommonState & { didState: { state: string } };
 type UpdateState = CommonState & {
   didState: { state: string; secret?: Record<string, any> };
 };
@@ -64,8 +71,12 @@ export type RegisterState = CommonState & {
  * returns DeactivateState
  **/
 export const deactivateDID = async (
-  _body: DeactivateRequest
-): Promise<ResponseContent<DeactivateState>> => new ResponseContent(501);
+  body: DeactivateRequest
+): Promise<ResponseContent<DeactivateState>> => {
+  const state = await deactivate(body);
+
+  return new ResponseContent(200, state);
+};
 
 /**
  * Updates a DID.
