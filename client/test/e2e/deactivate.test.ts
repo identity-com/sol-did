@@ -12,7 +12,6 @@ describe('deactivate', () => {
 
   beforeAll(async () => {
     payer = await SolanaUtil.newAccountWithLamports(connection, 1000000000);
-    // authority = new Account(TEST_DID_ACCOUNT_SECRET_KEY);
     solidDIDKey = await SolidTransaction.createSolid(
       connection,
       payer,
@@ -26,7 +25,6 @@ describe('deactivate', () => {
     const did = 'did:solid:' + CLUSTER + ':' + solidDIDKey.toBase58();
     const deactivateRequest: DeactivateRequest = {
       payer: payer.secretKey,
-      cluster: CLUSTER,
       identifier: did,
     };
 

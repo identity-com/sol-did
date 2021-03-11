@@ -1,6 +1,5 @@
 import * as DID from '@identity.com/solid-did-client';
 import { DeactivateRequest, DeactivateState } from './DefaultService';
-import { ClusterType } from '@identity.com/solid-did-client';
 
 export const deactivate = async (
   request: DeactivateRequest
@@ -10,7 +9,6 @@ export const deactivate = async (
     throw new Error('Missing payer information- add a request secret');
 
   await DID.deactivate({
-    cluster: ClusterType.parse(request.options?.cluster || 'mainnet-beta'),
     payer,
     identifier: request.identifier,
   });
