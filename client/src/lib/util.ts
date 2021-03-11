@@ -19,7 +19,6 @@ export type RegisterRequest = {
 export type DeactivateRequest = {
   identifier: string;
   payer: PrivateKey;
-  cluster?: ClusterType;
 };
 
 export const privateKeyIsArray = (
