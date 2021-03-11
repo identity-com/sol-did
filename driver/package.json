@@ -35,6 +35,7 @@
   "author": "dankelleher",
   "module": "dist/solid-driver.esm.js",
   "devDependencies": {
+    "@types/cors": "^2.8.10",
     "ts-node-dev": "^1.1.1",
     "tsdx": "^0.14.1",
     "tslib": "^2.1.0",
@@ -42,6 +43,7 @@
   },
   "dependencies": {
     "@identity.com/solid-did-client": "^0.0.6",
+    "cors": "^2.8.5",
     "did-resolver": "^3.0.1",
     "oas3-tools": "^2.2.3"
   }
