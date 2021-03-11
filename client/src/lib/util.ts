@@ -21,6 +21,15 @@ export type DeactivateRequest = {
   payer: PrivateKey;
 };
 
+export type UpdateRequest = {
+  identifier: string;
+  payer: PrivateKey;
+  document: Partial<DIDDocument>;
+  mergeBehaviour?: MergeBehaviour;
+};
+
+export type MergeBehaviour = 'Overwrite' | 'Append';
+
 export const privateKeyIsArray = (
   privateKey: PrivateKey
 ): privateKey is number[] => Array.isArray(privateKey);

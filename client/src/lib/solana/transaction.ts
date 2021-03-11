@@ -1,7 +1,14 @@
 import { ClusterType, SolidData } from './solid-data';
 import { SolanaUtil } from './solana-util';
-import { closeAccount, getKeyFromAuthority, initialize } from './instruction';
+import {
+  closeAccount,
+  getKeyFromAuthority,
+  initialize,
+  write,
+} from './instruction';
 import { Account, Connection, PublicKey, Transaction } from '@solana/web3.js';
+import BN from 'bn.js';
+import { MergeBehaviour } from '../util';
 
 export class SolidTransaction {
   static async createSolid(
@@ -49,6 +56,31 @@ export class SolidTransaction {
     // The payer receives the lamports stored in the DID account
     const transaction = new Transaction().add(
       closeAccount(recordKey, payer.publicKey, payer.publicKey)
+    );
+
+    // Send the instructions
+    return SolanaUtil.sendAndConfirmTransaction(connection, transaction, payer);
+  }
+
+  static async updateSolid(
+    connection: Connection,
+    payer: Account,
+    recordKey: PublicKey,
+    dataToMerge: SolidData,
+    mergeBehaviour: MergeBehaviour
+  ): Promise<string> {
+    // Update the solid DID
+    const existingData = await this.getSolid(connection, recordKey);
+
+    if (!existingData) throw new Error('DID does not exist');
+
+    const mergedData = existingData.merge(
+      dataToMerge,
+      mergeBehaviour === 'Overwrite'
+    );
+
+    const transaction = new Transaction().add(
+      write(recordKey, payer.publicKey, new BN(0), mergedData.encode())
     );
 
     // Send the instructions

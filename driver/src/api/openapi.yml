@@ -207,11 +207,24 @@ components:
           example: 6d85bcd0-2ea3-4288-ab00-15afadd8a156
         identifier:
           type: string
-          example: did:sov:WRfXPg8dantKVubE3HX8pw
+          example: did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
         options:
           type: object
+          properties:
+            mergeBehaviour:
+              type: string
+              enum:
+                - append
+                - overwrite
+              default: append
         secret:
+          required:
+            - payer
           type: object
+          properties:
+            payer:
+              type: string
+              example: 5UpZQ4Jfrh6QZBedtNgVTYm5dbUzWhQKDjcj9FKYwnzNU42nGaGcf4YuqscxT7iiVPNyZthnpat3d3pfpMSJ2etd
         didDocument:
           type: object
       additionalProperties: false

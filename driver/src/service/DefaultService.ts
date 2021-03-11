@@ -18,20 +18,23 @@ export type RegisterSecrets = {
   payer: string;
 };
 
-export type DeactivateOptions = {
-  cluster?: string;
-};
+export type DeactivateOptions = {};
 export type DeactivateSecrets = RegisterSecrets;
 export type DeactivateRequest = {
   identifier: string;
   options?: DeactivateOptions;
   secret?: DeactivateSecrets;
 };
+
+export type UpdateOptions = {
+  mergeBehaviour?: DID.MergeBehaviour;
+};
+export type UpdateSecrets = RegisterSecrets;
 export type UpdateRequest = {
   identifier: string;
   jobId?: string;
-  options?: RegisterOptions;
-  secret?: RegisterSecrets;
+  options?: UpdateOptions;
+  secret?: UpdateSecrets;
   didDocument: DIDDocument;
 };
 export type RegisterRequest = {
@@ -47,7 +50,7 @@ type CommonState = {
   methodMetadata?: Record<string, any>;
 };
 export type DeactivateState = CommonState & { didState: { state: string } };
-type UpdateState = CommonState & {
+export type UpdateState = CommonState & {
   didState: { state: string; secret?: Record<string, any> };
 };
 

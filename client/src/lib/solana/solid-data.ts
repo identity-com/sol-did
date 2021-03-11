@@ -2,6 +2,7 @@ import { clusterApiUrl, Cluster, PublicKey } from '@solana/web3.js';
 import { Assignable, Enum, SCHEMA } from './solana-borsh';
 import { DID_METHOD, DID_HEADER } from '../constants';
 import { encode } from 'bs58';
+import { mergeWith } from 'ramda';
 import {
   DIDDocument,
   VerificationMethod as DIDVerificationMethod,
@@ -18,6 +19,17 @@ export class SolidData extends Assignable {
   keyAgreement: DistributedId[];
   assertionMethod: DistributedId[];
   service: ServiceEndpoint[];
+
+  merge(other: SolidData, overwriteArrays: boolean = false): SolidData {
+    const mergeBehaviour = (a: any, b: any): any => {
+      if (a && Array.isArray(a)) {
+        return overwriteArrays && b ? b : [...a, ...b];
+      }
+      return b;
+    };
+    const mergedData = mergeWith(mergeBehaviour, this, other);
+    return new SolidData(mergedData);
+  }
 
   static size(): number {
     return 1000;
