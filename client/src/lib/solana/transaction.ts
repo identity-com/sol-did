@@ -1,6 +1,6 @@
 import { ClusterType, SolidData } from './solid-data';
 import { SolanaUtil } from './solana-util';
-import { initialize, getKeyFromAuthority } from './instruction';
+import { closeAccount, getKeyFromAuthority, initialize } from './instruction';
 import { Account, Connection, PublicKey, Transaction } from '@solana/web3.js';
 
 export class SolidTransaction {
@@ -37,5 +37,21 @@ export class SolidTransaction {
   ): Promise<SolidData | null> {
     const recordKey = await getKeyFromAuthority(authority);
     return SolidTransaction.getSolid(connection, recordKey);
+  }
+
+  static async deactivateSolid(
+    connection: Connection,
+    payer: Account,
+    recordKey: PublicKey
+  ): Promise<string> {
+    // Create the transaction to close the Solid DID account
+    // The payer must have permissions to deactivate the DID
+    // The payer receives the lamports stored in the DID account
+    const transaction = new Transaction().add(
+      closeAccount(recordKey, payer.publicKey, payer.publicKey)
+    );
+
+    // Send the instructions
+    return SolanaUtil.sendAndConfirmTransaction(connection, transaction, payer);
   }
 }

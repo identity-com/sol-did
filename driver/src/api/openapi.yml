@@ -230,7 +230,13 @@ components:
         options:
           type: object
         secret:
+          required:
+            - payer
           type: object
+          properties:
+            payer:
+              type: string
+              example: 5UpZQ4Jfrh6QZBedtNgVTYm5dbUzWhQKDjcj9FKYwnzNU42nGaGcf4YuqscxT7iiVPNyZthnpat3d3pfpMSJ2etd
       additionalProperties: false
       description: Request parameters for the deactivate operation.
     RegisterState:

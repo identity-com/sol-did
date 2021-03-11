@@ -30,7 +30,6 @@ export const register = async (
   });
 
   const document = await DID.resolve(identifier);
-  console.log(document);
 
   // DIDs are created with at least one verificationMethod
   const key: RegisterStateKey = document.verificationMethod?.length

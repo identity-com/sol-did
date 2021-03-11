@@ -95,6 +95,27 @@ export function write(
   });
 }
 
+export function closeAccount(
+  solidAccount: PublicKey,
+  authority: PublicKey,
+  receiver: PublicKey
+): TransactionInstruction {
+  const keys: AccountMeta[] = [
+    // the DID account
+    { pubkey: solidAccount, isSigner: false, isWritable: true },
+    // a key with close permissions on the DID
+    { pubkey: authority, isSigner: true, isWritable: false },
+    // the account to receive the lamports
+    { pubkey: receiver, isSigner: false, isWritable: false },
+  ];
+  const data = SolidInstruction.closeAccount().encode();
+  return new TransactionInstruction({
+    keys,
+    programId: PROGRAM_ID,
+    data,
+  });
+}
+
 SCHEMA.set(SolidInstruction, {
   kind: 'enum',
   field: 'enum',
