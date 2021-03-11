@@ -16,8 +16,10 @@
   },
   "scripts": {
     "start": "tsdx watch",
+    "prebuild": "(cd ../client && yarn && yarn build && yarn link) && yarn link @identity.com/solid-did-client",
     "build": "tsdx build",
     "postbuild": "mkdir dist/api && cp src/api/openapi.yml dist/api/",
+    "pretest": "yarn prebuild",
     "test": "tsdx test",
     "lint": "tsdx lint --maxWarnings 0",
     "prepare": "yarn build",
