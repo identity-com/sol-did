@@ -3,6 +3,7 @@ import { ResponseContent } from '../utils/writer';
 import { DIDDocument, VerificationMethod } from 'did-resolver';
 import * as DID from '@identity.com/solid-did-client';
 import { deactivate } from './Deactivator';
+import { update } from './Updater';
 
 type ResolutionResult = {
   didDocument: DIDDocument;
@@ -88,8 +89,12 @@ export const deactivateDID = async (
  * returns UpdateState
  **/
 export const updateDID = async (
-  _body: UpdateRequest
-): Promise<ResponseContent<UpdateState>> => new ResponseContent(501);
+  body: UpdateRequest
+): Promise<ResponseContent<UpdateState>> => {
+  const state = await update(body);
+
+  return new ResponseContent(200, state);
+};
 
 /**
  * Registers a DID.
