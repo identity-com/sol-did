@@ -19,7 +19,9 @@ use {
         error::SolidError,
         id, instruction,
         processor::process_instruction,
-        state::{ClusterType, DecentralizedIdentifier, ServiceEndpoint, SolidData, VerificationMethod},
+        state::{
+            ClusterType, DecentralizedIdentifier, ServiceEndpoint, SolidData, VerificationMethod,
+        },
     },
 };
 
