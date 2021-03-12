@@ -2,6 +2,7 @@ import { DIDDocument } from 'did-resolver';
 import { Connection } from '@solana/web3.js';
 import { SolidTransaction } from '../lib/solana/transaction';
 import { DistributedId } from '../lib/solana/solid-data';
+import { SOLANA_COMMITMENT } from '../lib/constants';
 
 /**
  * Resolves a SOLID DID to a document,
@@ -11,7 +12,10 @@ import { DistributedId } from '../lib/solana/solid-data';
  */
 export const resolve = async (identifier: string): Promise<DIDDocument> => {
   const id = DistributedId.parse(identifier);
-  const connection = new Connection(id.clusterType.solanaUrl(), 'recent');
+  const connection = new Connection(
+    id.clusterType.solanaUrl(),
+    SOLANA_COMMITMENT
+  );
   const solidData = await SolidTransaction.getSolid(
     connection,
     id.pubkey.toPublicKey()
