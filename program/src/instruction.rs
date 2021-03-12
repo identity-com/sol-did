@@ -29,6 +29,8 @@ pub enum SolidInstruction {
         /// Identifier for the cluster, added to the DID if present.  For example,
         /// if we set this to "devnet", the DID becomes: "did:solid:devnet:<pubkey>"
         cluster_type: ClusterType,
+        /// Size of the DID document
+        size: u64,
         /// Additional data to write into the document
         init_data: SolidData,
     },
@@ -66,6 +68,7 @@ pub fn initialize(
     funder_account: &Pubkey,
     authority: &Pubkey,
     cluster_type: ClusterType,
+    size: u64,
     init_data: SolidData,
 ) -> Instruction {
     let (solid_account, _) = get_solid_address_with_seed(authority);
@@ -73,6 +76,7 @@ pub fn initialize(
         id(),
         &SolidInstruction::Initialize {
             cluster_type,
+            size,
             init_data,
         },
         vec![
@@ -124,11 +128,14 @@ mod tests {
     #[test]
     fn serialize_initialize() {
         let cluster_type = ClusterType::Development;
+        let size = 1_000u64;
         let init_data = test_solid_data();
         let mut expected = vec![0, 3];
+        expected.extend_from_slice(&size.to_le_bytes());
         expected.append(&mut init_data.try_to_vec().unwrap());
         let instruction = SolidInstruction::Initialize {
             cluster_type,
+            size,
             init_data,
         };
         assert_eq!(instruction.try_to_vec().unwrap(), expected);

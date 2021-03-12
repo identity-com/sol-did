@@ -5,6 +5,7 @@ import { SolidTransaction } from '../../src/lib/solana/transaction';
 import { Account, Connection, PublicKey } from '@solana/web3.js';
 import {
   CLUSTER,
+  DOCUMENT_SIZE,
   TEST_DID_ACCOUNT_SECRET_KEY,
   VALIDATOR_URL,
 } from '../constants';
@@ -25,6 +26,7 @@ describe('resolve', () => {
       payer,
       authority.publicKey,
       CLUSTER,
+      DOCUMENT_SIZE,
       SolidData.empty()
     );
   }, 60000);
