@@ -327,8 +327,8 @@ pub mod tests {
         let deserialized = program_borsh::try_from_slice_incomplete::<SolidData>(&data).unwrap();
         assert_eq!(deserialized.context, vec![] as Vec<String>);
         assert_eq!(
-          deserialized.did,
-          DecentralizedIdentifier {
+            deserialized.did,
+            DecentralizedIdentifier {
                 cluster_type: ClusterType::Testnet,
                 pubkey: Pubkey::new_from_array([0; 32]),
                 identifier: "".to_string()
@@ -378,22 +378,22 @@ pub mod tests {
         // no did:solid
         let invalid = "solid:devnet:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP";
         assert_eq!(
-          DecentralizedIdentifier::from_str(&invalid).unwrap_err(),
-          SolidError::InvalidString
+            DecentralizedIdentifier::from_str(&invalid).unwrap_err(),
+            SolidError::InvalidString
         );
 
         // unknown network
         let invalid = "did:solid:mynetwork:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP";
         assert_eq!(
-          DecentralizedIdentifier::from_str(&invalid).unwrap_err(),
-          SolidError::InvalidString
+            DecentralizedIdentifier::from_str(&invalid).unwrap_err(),
+            SolidError::InvalidString
         );
 
         // bad pubkey
         let invalid = "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP111111";
         assert_eq!(
-          DecentralizedIdentifier::from_str(&invalid).unwrap_err(),
-          SolidError::InvalidString
+            DecentralizedIdentifier::from_str(&invalid).unwrap_err(),
+            SolidError::InvalidString
         );
     }
 }
