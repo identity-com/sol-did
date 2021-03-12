@@ -3,6 +3,7 @@ import { ResponseContent } from '../utils/writer';
 import { DIDDocument, VerificationMethod } from 'did-resolver';
 import * as DID from '@identity.com/solid-did-client';
 import { deactivate } from './Deactivator';
+import { update } from './Updater';
 
 type ResolutionResult = {
   didDocument: DIDDocument;
@@ -18,20 +19,23 @@ export type RegisterSecrets = {
   payer: string;
 };
 
-export type DeactivateOptions = {
-  cluster?: string;
-};
+export type DeactivateOptions = {};
 export type DeactivateSecrets = RegisterSecrets;
 export type DeactivateRequest = {
   identifier: string;
   options?: DeactivateOptions;
   secret?: DeactivateSecrets;
 };
+
+export type UpdateOptions = {
+  mergeBehaviour?: DID.MergeBehaviour;
+};
+export type UpdateSecrets = RegisterSecrets;
 export type UpdateRequest = {
   identifier: string;
   jobId?: string;
-  options?: RegisterOptions;
-  secret?: RegisterSecrets;
+  options?: UpdateOptions;
+  secret?: UpdateSecrets;
   didDocument: DIDDocument;
 };
 export type RegisterRequest = {
@@ -47,7 +51,7 @@ type CommonState = {
   methodMetadata?: Record<string, any>;
 };
 export type DeactivateState = CommonState & { didState: { state: string } };
-type UpdateState = CommonState & {
+export type UpdateState = CommonState & {
   didState: { state: string; secret?: Record<string, any> };
 };
 
@@ -85,8 +89,12 @@ export const deactivateDID = async (
  * returns UpdateState
  **/
 export const updateDID = async (
-  _body: UpdateRequest
-): Promise<ResponseContent<UpdateState>> => new ResponseContent(501);
+  body: UpdateRequest
+): Promise<ResponseContent<UpdateState>> => {
+  const state = await update(body);
+
+  return new ResponseContent(200, state);
+};
 
 /**
  * Registers a DID.

@@ -19,8 +19,18 @@ export type RegisterRequest = {
 export type DeactivateRequest = {
   identifier: string;
   payer: PrivateKey;
-  authority?: PrivateKey; // optional different authority (DID owner) to the payer
+  owner?: PrivateKey; // optional different authority (DID owner) to the payer
 };
+
+export type UpdateRequest = {
+  identifier: string;
+  payer: PrivateKey;
+  owner?: PrivateKey; // optional different authority (DID owner) to the payer
+  document: Partial<DIDDocument>;
+  mergeBehaviour?: MergeBehaviour;
+};
+
+export type MergeBehaviour = 'Overwrite' | 'Append';
 
 export const privateKeyIsArray = (
   privateKey: PrivateKey
