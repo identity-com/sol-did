@@ -52,6 +52,7 @@ pub fn process_instruction(
     match instruction {
         SolidInstruction::Initialize {
             cluster_type,
+            size,
             init_data,
         } => {
             msg!("SolidInstruction::Initialize");
@@ -86,8 +87,8 @@ pub fn process_instruction(
                 &system_instruction::create_account(
                     funder_info.key,
                     data_info.key,
-                    1.max(rent.minimum_balance(SolidData::LEN)),
-                    SolidData::LEN as u64,
+                    1.max(rent.minimum_balance(size as usize)),
+                    size,
                     &id(),
                 ),
                 &[

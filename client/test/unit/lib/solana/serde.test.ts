@@ -5,7 +5,6 @@ import {
   SolidData,
 } from '../../../../src/lib/solana/solid-data';
 import { SolidInstruction } from '../../../../src/lib/solana/instruction';
-import { BN } from 'bn.js';
 import { strict as assert } from 'assert';
 
 describe('(de)serialize operations', () => {
@@ -40,13 +39,14 @@ describe('(de)serialize operations', () => {
     );
     const instruction = SolidInstruction.initialize(
       ClusterType.mainnetBeta(),
+      100,
       solidData
     );
     testSerialization(SolidInstruction, instruction);
   });
 
   it('works for SolidInstruction.write', () => {
-    const offset = new BN('ffffffffffffffff', 16);
+    const offset = 1_000_000;
     const data = new Uint8Array([2, 4, 1, 2, 4]);
     const instruction = SolidInstruction.write(offset, data);
     testSerialization(SolidInstruction, instruction);

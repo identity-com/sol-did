@@ -2,6 +2,7 @@ import { ClusterType } from '../src';
 
 export const CLUSTER = ClusterType.parse(process.env.CLUSTER || 'localnet');
 export const VALIDATOR_URL = CLUSTER.solanaUrl();
+export const DOCUMENT_SIZE = 1_000;
 
 export const TEST_DID_ACCOUNT_SECRET_KEY = [
   187,

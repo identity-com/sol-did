@@ -14,6 +14,7 @@ export type RegisterRequest = {
   document?: Partial<DIDDocument>;
   owner?: PublicKeyBase58;
   cluster?: ClusterType;
+  size?: number;
 };
 
 export type DeactivateRequest = {

@@ -8,15 +8,15 @@ import {
   SystemProgram,
   SYSVAR_RENT_PUBKEY,
 } from '@solana/web3.js';
-import BN from 'bn.js';
 
 export class Initialize extends Assignable {
   clusterType: ClusterType;
+  size: number;
   initData: SolidData;
 }
 
 export class Write extends Assignable {
-  offset: BN;
+  offset: number;
   data: Uint8Array;
 }
 
@@ -29,14 +29,15 @@ export class SolidInstruction extends Enum {
 
   static initialize(
     clusterType: ClusterType,
+    size: number,
     initData: SolidData
   ): SolidInstruction {
     return new SolidInstruction({
-      initialize: new Initialize({ clusterType, initData }),
+      initialize: new Initialize({ clusterType, size, initData }),
     });
   }
 
-  static write(offset: BN, data: Uint8Array): SolidInstruction {
+  static write(offset: number, data: Uint8Array): SolidInstruction {
     return new SolidInstruction({ write: new Write({ offset, data }) });
   }
 
@@ -60,6 +61,7 @@ export function initialize(
   solidKey: PublicKey,
   authority: PublicKey,
   clusterType: ClusterType,
+  size: number,
   initData: SolidData
 ): TransactionInstruction {
   const keys: AccountMeta[] = [
@@ -69,7 +71,7 @@ export function initialize(
     { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
     { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
   ];
-  const data = SolidInstruction.initialize(clusterType, initData).encode();
+  const data = SolidInstruction.initialize(clusterType, size, initData).encode();
   return new TransactionInstruction({
     keys,
     programId: PROGRAM_ID,
@@ -80,7 +82,7 @@ export function initialize(
 export function write(
   solidAccount: PublicKey,
   authority: PublicKey,
-  offset: BN,
+  offset: number,
   solidData: Uint8Array
 ): TransactionInstruction {
   const keys: AccountMeta[] = [
@@ -129,6 +131,7 @@ SCHEMA.set(Initialize, {
   kind: 'struct',
   fields: [
     ['clusterType', ClusterType],
+    ['size', 'u64'],
     ['initData', SolidData],
   ],
 });

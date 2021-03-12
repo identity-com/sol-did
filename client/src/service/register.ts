@@ -18,12 +18,14 @@ export const register = async (request: RegisterRequest): Promise<string> => {
     ? new PublicKey(request.owner)
     : getPublicKey(request.payer);
   const cluster = request.cluster || ClusterType.mainnetBeta();
+  const size = request.size || 1_000;
   const connection = new Connection(cluster.solanaUrl(), SOLANA_COMMITMENT);
   const solidKey = await SolidTransaction.createSolid(
     connection,
     payer,
     owner,
     cluster,
+    size,
     SolidData.parse(request.document)
   );
 

@@ -3,7 +3,7 @@ import { SolidData } from '../../src/lib/solana/solid-data';
 import { SolanaUtil } from '../../src/lib/solana/solana-util';
 import { SolidTransaction } from '../../src/lib/solana/transaction';
 import { Account, Connection, PublicKey } from '@solana/web3.js';
-import { CLUSTER, VALIDATOR_URL } from '../constants';
+import { CLUSTER, DOCUMENT_SIZE, VALIDATOR_URL } from '../constants';
 
 describe('deactivate', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');
@@ -17,6 +17,7 @@ describe('deactivate', () => {
       owner,
       owner.publicKey,
       CLUSTER,
+      DOCUMENT_SIZE,
       SolidData.empty()
     );
   }, 60000);
