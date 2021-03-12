@@ -5,6 +5,7 @@ import {
   TransactionSignature,
   sendAndConfirmTransaction,
 } from '@solana/web3.js';
+import { SOLANA_COMMITMENT } from '../constants';
 
 export class SolanaUtil {
   static sendAndConfirmTransaction(
@@ -14,7 +15,7 @@ export class SolanaUtil {
   ): Promise<TransactionSignature> {
     return sendAndConfirmTransaction(connection, transaction, signers, {
       skipPreflight: false,
-      commitment: 'recent',
+      commitment: SOLANA_COMMITMENT,
       preflightCommitment: 'recent',
     });
   }
