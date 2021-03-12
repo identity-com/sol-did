@@ -11,15 +11,13 @@ import { SOLANA_COMMITMENT } from '../lib/constants';
 export const deactivate = async (request: DeactivateRequest): Promise<void> => {
   const id = DistributedId.parse(request.identifier);
   const payer = makeAccount(request.payer);
-  const authority = request.authority
-    ? makeAccount(request.authority)
-    : undefined;
+  const owner = request.owner ? makeAccount(request.owner) : undefined;
   const cluster = id.clusterType;
   const connection = new Connection(cluster.solanaUrl(), SOLANA_COMMITMENT);
   await SolidTransaction.deactivateSolid(
     connection,
     payer,
     id.pubkey.toPublicKey(),
-    authority
+    owner
   );
 };

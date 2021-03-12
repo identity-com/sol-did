@@ -10,6 +10,7 @@ import { DistributedId, SolidData } from '../lib/solana/solid-data';
 export const update = async (request: UpdateRequest): Promise<void> => {
   const id = DistributedId.parse(request.identifier);
   const payer = makeAccount(request.payer);
+  const owner = request.owner ? makeAccount(request.owner) : undefined;
   const cluster = id.clusterType;
   const connection = new Connection(cluster.solanaUrl(), 'recent');
   await SolidTransaction.updateSolid(
@@ -17,6 +18,7 @@ export const update = async (request: UpdateRequest): Promise<void> => {
     payer,
     id.pubkey.toPublicKey(),
     SolidData.parse(request.document),
-    request.mergeBehaviour || 'Append'
+    request.mergeBehaviour || 'Append',
+    owner
   );
 };

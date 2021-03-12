@@ -45,7 +45,7 @@ describe('deactivate', () => {
     );
     const did = 'did:solid:' + CLUSTER + ':' + solidDIDKey.toBase58();
     const deactivateRequest: DeactivateRequest = {
-      authority: owner.secretKey,
+      owner: owner.secretKey,
       payer: payer.secretKey,
       identifier: did,
     };

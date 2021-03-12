@@ -51,19 +51,19 @@ export class SolidTransaction {
    * @param connection A connection to the blockchain
    * @param payer The payer of the transaction - this account also receives the lamports stored
    * @param recordKey
-   * @param authority
+   * @param owner
    */
   static async deactivateSolid(
     connection: Connection,
     payer: Account,
     recordKey: PublicKey,
-    authority: Account = payer
+    owner: Account = payer
   ): Promise<string> {
     // Create the transaction to close the Solid DID account
     // The payer must have permissions to deactivate the DID
     // The payer receives the lamports stored in the DID account
     const transaction = new Transaction().add(
-      closeAccount(recordKey, authority.publicKey, payer.publicKey)
+      closeAccount(recordKey, owner.publicKey, payer.publicKey)
     );
 
     // Send the instructions
@@ -71,7 +71,7 @@ export class SolidTransaction {
       connection,
       transaction,
       payer,
-      authority
+      owner
     );
   }
 
@@ -80,7 +80,8 @@ export class SolidTransaction {
     payer: Account,
     recordKey: PublicKey,
     dataToMerge: SolidData,
-    mergeBehaviour: MergeBehaviour
+    mergeBehaviour: MergeBehaviour,
+    owner: Account = payer
   ): Promise<string> {
     // Update the solid DID
     const existingData = await this.getSolid(connection, recordKey);
@@ -93,10 +94,15 @@ export class SolidTransaction {
     );
 
     const transaction = new Transaction().add(
-      write(recordKey, payer.publicKey, new BN(0), mergedData.encode())
+      write(recordKey, owner.publicKey, new BN(0), mergedData.encode())
     );
 
     // Send the instructions
-    return SolanaUtil.sendAndConfirmTransaction(connection, transaction, payer);
+    return SolanaUtil.sendAndConfirmTransaction(
+      connection,
+      transaction,
+      payer,
+      owner
+    );
   }
 }

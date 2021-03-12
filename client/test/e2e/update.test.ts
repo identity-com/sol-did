@@ -22,14 +22,14 @@ const makeServiceRequest = (
 describe('update', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');
   let solidDIDKey: PublicKey;
-  let payer: Account;
+  let owner: Account;
 
   beforeEach(async () => {
-    payer = await SolanaUtil.newAccountWithLamports(connection, 1000000000);
+    owner = await SolanaUtil.newAccountWithLamports(connection, 1000000000);
     solidDIDKey = await SolidTransaction.createSolid(
       connection,
-      payer,
-      payer.publicKey,
+      owner,
+      owner.publicKey,
       CLUSTER,
       SolidData.empty()
     );
@@ -37,9 +37,33 @@ describe('update', () => {
 
   it('adds a service to a DID', async () => {
     const identifier = 'did:solid:' + CLUSTER + ':' + solidDIDKey.toBase58();
-    const service = makeService(payer);
+    const service = makeService(owner);
+    const request: UpdateRequest = {
+      payer: owner.secretKey,
+      identifier,
+      document: {
+        service: [service],
+      },
+    };
+
+    await update(request);
+
+    const doc = await resolve(identifier);
+
+    // ensure the doc contains the service
+    expect(doc.service).toEqual([service]);
+  });
+
+  it('adds a service to a DID with a separate payer', async () => {
+    const payer = await SolanaUtil.newAccountWithLamports(
+      connection,
+      1000000000
+    );
+    const identifier = 'did:solid:' + CLUSTER + ':' + solidDIDKey.toBase58();
+    const service = makeService(owner);
     const request: UpdateRequest = {
       payer: payer.secretKey,
+      owner: owner.secretKey,
       identifier,
       document: {
         service: [service],
@@ -57,16 +81,16 @@ describe('update', () => {
   it('adds a service to a DID with an existing service', async () => {
     const identifier = 'did:solid:' + CLUSTER + ':' + solidDIDKey.toBase58();
 
-    const service1 = makeService(payer);
-    const service2 = makeService(payer);
+    const service1 = makeService(owner);
+    const service2 = makeService(owner);
 
     const request1: UpdateRequest = makeServiceRequest(
-      payer,
+      owner,
       identifier,
       service1
     );
     const request2: UpdateRequest = makeServiceRequest(
-      payer,
+      owner,
       identifier,
       service2
     );
