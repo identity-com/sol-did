@@ -8,14 +8,14 @@ import { CLUSTER, VALIDATOR_URL } from '../constants';
 describe('deactivate', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');
   let solidDIDKey: PublicKey;
-  let payer: Account;
+  let owner: Account;
 
-  beforeAll(async () => {
-    payer = await SolanaUtil.newAccountWithLamports(connection, 1000000000);
+  beforeEach(async () => {
+    owner = await SolanaUtil.newAccountWithLamports(connection, 1000000000);
     solidDIDKey = await SolidTransaction.createSolid(
       connection,
-      payer,
-      payer.publicKey,
+      owner,
+      owner.publicKey,
       CLUSTER,
       SolidData.empty()
     );
@@ -24,6 +24,28 @@ describe('deactivate', () => {
   it('deactivates a DID', async () => {
     const did = 'did:solid:' + CLUSTER + ':' + solidDIDKey.toBase58();
     const deactivateRequest: DeactivateRequest = {
+      payer: owner.secretKey,
+      identifier: did,
+    };
+
+    // ensure the DID is currently registered
+    await resolve(did);
+
+    // deactivate it
+    await deactivate(deactivateRequest);
+
+    // expect the DID no longer to be registered
+    return expect(resolve(did)).rejects.toThrow(/No DID found/);
+  });
+
+  it('deactivates a DID with a different payer', async () => {
+    const payer = await SolanaUtil.newAccountWithLamports(
+      connection,
+      1000000000
+    );
+    const did = 'did:solid:' + CLUSTER + ':' + solidDIDKey.toBase58();
+    const deactivateRequest: DeactivateRequest = {
+      authority: owner.secretKey,
       payer: payer.secretKey,
       identifier: did,
     };

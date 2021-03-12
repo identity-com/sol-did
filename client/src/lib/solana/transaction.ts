@@ -39,19 +39,32 @@ export class SolidTransaction {
     return SolidTransaction.getSolid(connection, recordKey);
   }
 
+  /**
+   * Create and send an instruction to deactivate the DID
+   * @param connection A connection to the blockchain
+   * @param payer The payer of the transaction - this account also receives the lamports stored
+   * @param recordKey
+   * @param authority
+   */
   static async deactivateSolid(
     connection: Connection,
     payer: Account,
-    recordKey: PublicKey
+    recordKey: PublicKey,
+    authority: Account = payer
   ): Promise<string> {
     // Create the transaction to close the Solid DID account
     // The payer must have permissions to deactivate the DID
     // The payer receives the lamports stored in the DID account
     const transaction = new Transaction().add(
-      closeAccount(recordKey, payer.publicKey, payer.publicKey)
+      closeAccount(recordKey, authority.publicKey, payer.publicKey)
     );
 
     // Send the instructions
-    return SolanaUtil.sendAndConfirmTransaction(connection, transaction, payer);
+    return SolanaUtil.sendAndConfirmTransaction(
+      connection,
+      transaction,
+      payer,
+      authority
+    );
   }
 }
