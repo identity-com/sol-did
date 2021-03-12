@@ -22,7 +22,14 @@ export class SolidTransaction {
 
     // Allocate memory for the account
     const transaction = new Transaction().add(
-      initialize(payer.publicKey, solidKey, authority, clusterType, size, initData)
+      initialize(
+        payer.publicKey,
+        solidKey,
+        authority,
+        clusterType,
+        size,
+        initData
+      )
     );
 
     // Send the instructions

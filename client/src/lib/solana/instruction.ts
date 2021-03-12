@@ -71,7 +71,11 @@ export function initialize(
     { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
     { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
   ];
-  const data = SolidInstruction.initialize(clusterType, size, initData).encode();
+  const data = SolidInstruction.initialize(
+    clusterType,
+    size,
+    initData
+  ).encode();
   return new TransactionInstruction({
     keys,
     programId: PROGRAM_ID,
