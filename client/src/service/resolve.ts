@@ -1,7 +1,7 @@
 import { DIDDocument } from 'did-resolver';
 import { Connection } from '@solana/web3.js';
 import { SolidTransaction } from '../lib/solana/transaction';
-import { DistributedId } from '../lib/solana/solid-data';
+import { DecentralizedIdentifier } from '../lib/solana/solid-data';
 import { SOLANA_COMMITMENT } from '../lib/constants';
 
 /**
@@ -11,7 +11,7 @@ import { SOLANA_COMMITMENT } from '../lib/constants';
  * @throws Error if the document is not found
  */
 export const resolve = async (identifier: string): Promise<DIDDocument> => {
-  const id = DistributedId.parse(identifier);
+  const id = DecentralizedIdentifier.parse(identifier);
   const connection = new Connection(
     id.clusterType.solanaUrl(),
     SOLANA_COMMITMENT

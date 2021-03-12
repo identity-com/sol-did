@@ -1,6 +1,6 @@
 import { DIDDocument } from 'did-resolver';
 import { Account, PublicKey } from '@solana/web3.js';
-import { ClusterType, DistributedId } from './solana/solid-data';
+import { ClusterType, DecentralizedIdentifier } from './solana/solid-data';
 import { decode, encode } from 'bs58';
 import { getKeyFromAuthority } from './solana/instruction';
 
@@ -74,7 +74,7 @@ export const getPublicKey = (privateKey: PrivateKey): PublicKey =>
 export const accountAndClusterToDID = (
   account: Account,
   cluster: ClusterType = ClusterType.mainnetBeta()
-) => DistributedId.create(account.publicKey, cluster).toString();
+) => DecentralizedIdentifier.create(account.publicKey, cluster).toString();
 
 type EncodedKeyPair = {
   secretKey: string;
@@ -93,5 +93,5 @@ export const keyToIdentifier = async (
   clusterType: ClusterType = ClusterType.mainnetBeta()
 ) => {
   const didKey = await getKeyFromAuthority(key);
-  return DistributedId.create(didKey, clusterType).toString();
+  return DecentralizedIdentifier.create(didKey, clusterType).toString();
 };

@@ -3,7 +3,7 @@ import { SolidTransaction } from '../lib/solana/transaction';
 import { Connection, PublicKey } from '@solana/web3.js';
 import {
   ClusterType,
-  DistributedId,
+  DecentralizedIdentifier,
   SolidData,
 } from '../lib/solana/solid-data';
 import { SOLANA_COMMITMENT } from '../lib/constants';
@@ -27,5 +27,5 @@ export const register = async (request: RegisterRequest): Promise<string> => {
     SolidData.parse(request.document)
   );
 
-  return DistributedId.create(solidKey, cluster).toString();
+  return DecentralizedIdentifier.create(solidKey, cluster).toString();
 };

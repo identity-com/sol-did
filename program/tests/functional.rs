@@ -19,7 +19,7 @@ use {
         error::SolidError,
         id, instruction,
         processor::process_instruction,
-        state::{ClusterType, DistributedId, ServiceEndpoint, SolidData, VerificationMethod},
+        state::{ClusterType, DecentralizedIdentifier, ServiceEndpoint, SolidData, VerificationMethod},
     },
 };
 
@@ -46,7 +46,7 @@ async fn initialize_did_account(
 }
 
 fn check_solid(data: SolidData, solid_key: Pubkey, authority: Pubkey) {
-    let did = DistributedId::new(ClusterType::Development, solid_key);
+    let did = DecentralizedIdentifier::new(ClusterType::Development, solid_key);
     let verification_method = VerificationMethod::new(did.clone(), authority);
     assert_eq!(data.context, SolidData::default_context());
     assert_eq!(data.did, did);
@@ -90,7 +90,7 @@ async fn initialize_with_service_success() {
     let (solid, _) = instruction::get_solid_address_with_seed(&authority);
     let mut init_data = SolidData::default();
     let cluster_type = ClusterType::Development;
-    let id = DistributedId::new(cluster_type.clone(), authority.clone());
+    let id = DecentralizedIdentifier::new(cluster_type.clone(), authority.clone());
     let endpoint = "http://localhost".to_string();
     let endpoint_type = "local".to_string();
     let description = "A localhost service".to_string();
@@ -225,7 +225,7 @@ async fn write_fail_wrong_authority() {
 
     let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
     let new_data = SolidData::new_sparse(
-        DistributedId::new(ClusterType::Development, authority.pubkey()),
+        DecentralizedIdentifier::new(ClusterType::Development, authority.pubkey()),
         authority.pubkey(),
     );
     let wrong_authority = Keypair::new();
@@ -265,7 +265,7 @@ async fn write_fail_unsigned() {
         .unwrap();
 
     let new_data = SolidData::new_sparse(
-        DistributedId::new(ClusterType::Development, authority.pubkey()),
+        DecentralizedIdentifier::new(ClusterType::Development, authority.pubkey()),
         authority.pubkey(),
     );
     let data = new_data.try_to_vec().unwrap();

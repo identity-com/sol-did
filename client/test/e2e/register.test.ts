@@ -2,7 +2,7 @@ import { register, resolve, RegisterRequest } from '../../src';
 import { SolanaUtil } from '../../src/lib/solana/solana-util';
 import { Account, Connection } from '@solana/web3.js';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
-import { DistributedId } from '../../src/lib/solana/solid-data';
+import { DecentralizedIdentifier } from '../../src/lib/solana/solid-data';
 import { makeService } from '../util';
 
 describe('register', () => {
@@ -26,7 +26,7 @@ describe('register', () => {
     };
     const identifier = await register(registerRequest);
 
-    expect(DistributedId.valid(identifier)).toBeTruthy();
+    expect(DecentralizedIdentifier.valid(identifier)).toBeTruthy();
 
     console.log(identifier);
   }, 30000);

@@ -1,7 +1,7 @@
 import { DeactivateRequest, makeAccount } from '../lib/util';
 import { SolidTransaction } from '../lib/solana/transaction';
 import { Connection } from '@solana/web3.js';
-import { DistributedId } from '../lib/solana/solid-data';
+import { DecentralizedIdentifier } from '../lib/solana/solid-data';
 import { SOLANA_COMMITMENT } from '../lib/constants';
 
 /**
@@ -9,7 +9,7 @@ import { SOLANA_COMMITMENT } from '../lib/constants';
  * @param request
  */
 export const deactivate = async (request: DeactivateRequest): Promise<void> => {
-  const id = DistributedId.parse(request.identifier);
+  const id = DecentralizedIdentifier.parse(request.identifier);
   const payer = makeAccount(request.payer);
   const owner = request.owner ? makeAccount(request.owner) : undefined;
   const cluster = id.clusterType;
