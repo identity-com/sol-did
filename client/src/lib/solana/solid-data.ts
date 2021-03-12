@@ -11,13 +11,13 @@ import {
 
 export class SolidData extends Assignable {
   context: string[];
-  did: DistributedId;
+  did: DecentralizedIdentifier;
   verificationMethod: VerificationMethod[];
-  authentication: DistributedId[];
-  capabilityInvocation: DistributedId[];
-  capabilityDelegation: DistributedId[];
-  keyAgreement: DistributedId[];
-  assertionMethod: DistributedId[];
+  authentication: DecentralizedIdentifier[];
+  capabilityInvocation: DecentralizedIdentifier[];
+  capabilityDelegation: DecentralizedIdentifier[];
+  keyAgreement: DecentralizedIdentifier[];
+  assertionMethod: DecentralizedIdentifier[];
   service: ServiceEndpoint[];
 
   merge(other: SolidData, overwriteArrays: boolean = false): SolidData {
@@ -46,7 +46,7 @@ export class SolidData extends Assignable {
   ): SolidData {
     const context = SolidData.defaultContext();
     const pubkey = SolidPublicKey.fromPublicKey(account);
-    const did = new DistributedId({
+    const did = new DecentralizedIdentifier({
       clusterType,
       pubkey,
       identifier: '',
@@ -74,7 +74,7 @@ export class SolidData extends Assignable {
   static empty(): SolidData {
     return new SolidData({
       context: [],
-      did: DistributedId.empty(),
+      did: DecentralizedIdentifier.empty(),
       verificationMethod: [],
       authentication: [],
       capabilityInvocation: [],
@@ -106,20 +106,24 @@ export class SolidData extends Assignable {
       return new SolidData({
         context: document['@context'] || [],
         did: document.id
-          ? DistributedId.parse(document.id)
-          : DistributedId.empty(),
+          ? DecentralizedIdentifier.parse(document.id)
+          : DecentralizedIdentifier.empty(),
         verificationMethod: document.verificationMethod
           ? document.verificationMethod.map(v => VerificationMethod.parse(v))
           : [],
-        authentication: DistributedId.parseMaybeArray(document.authentication),
-        capabilityInvocation: DistributedId.parseMaybeArray(
+        authentication: DecentralizedIdentifier.parseMaybeArray(
+          document.authentication
+        ),
+        capabilityInvocation: DecentralizedIdentifier.parseMaybeArray(
           document.capabilityInvocation
         ),
-        capabilityDelegation: DistributedId.parseMaybeArray(
+        capabilityDelegation: DecentralizedIdentifier.parseMaybeArray(
           document.capabilityDelegation
         ),
-        keyAgreement: DistributedId.parseMaybeArray(document.keyAgreement),
-        assertionMethod: DistributedId.parseMaybeArray(
+        keyAgreement: DecentralizedIdentifier.parseMaybeArray(
+          document.keyAgreement
+        ),
+        assertionMethod: DecentralizedIdentifier.parseMaybeArray(
           document.assertionMethod
         ),
         service: document.service
@@ -133,9 +137,9 @@ export class SolidData extends Assignable {
 }
 
 export class VerificationMethod extends Assignable {
-  id: DistributedId;
+  id: DecentralizedIdentifier;
   verificationType: string;
-  controller: DistributedId;
+  controller: DecentralizedIdentifier;
   pubkey: SolidPublicKey;
 
   static defaultVerificationType(): string {
@@ -143,7 +147,7 @@ export class VerificationMethod extends Assignable {
   }
 
   static newPublicKey(
-    controller: DistributedId,
+    controller: DecentralizedIdentifier,
     authority: PublicKey
   ): VerificationMethod {
     const id = controller.clone();
@@ -166,9 +170,11 @@ export class VerificationMethod extends Assignable {
     didVerificationMethod: DIDVerificationMethod
   ): VerificationMethod {
     return new VerificationMethod({
-      id: DistributedId.parse(didVerificationMethod.id),
+      id: DecentralizedIdentifier.parse(didVerificationMethod.id),
       verificationType: didVerificationMethod.type,
-      controller: DistributedId.parse(didVerificationMethod.controller),
+      controller: DecentralizedIdentifier.parse(
+        didVerificationMethod.controller
+      ),
       pubkey: didVerificationMethod.publicKeyBase58
         ? SolidPublicKey.parse(didVerificationMethod.publicKeyBase58)
         : undefined,
@@ -177,7 +183,7 @@ export class VerificationMethod extends Assignable {
 }
 
 export class ServiceEndpoint extends Assignable {
-  id: DistributedId;
+  id: DecentralizedIdentifier;
   endpointType: string;
   endpoint: string;
   description: string;
@@ -193,7 +199,7 @@ export class ServiceEndpoint extends Assignable {
 
   static parse(service: DIDServiceEndpoint): ServiceEndpoint {
     return new ServiceEndpoint({
-      id: DistributedId.parse(service.id),
+      id: DecentralizedIdentifier.parse(service.id),
       endpointType: service.type,
       endpoint: service.serviceEndpoint,
       description: service.description,
@@ -201,13 +207,13 @@ export class ServiceEndpoint extends Assignable {
   }
 }
 
-export class DistributedId extends Assignable {
+export class DecentralizedIdentifier extends Assignable {
   clusterType: ClusterType;
   pubkey: SolidPublicKey;
   identifier: string;
 
-  clone(): DistributedId {
-    return new DistributedId({
+  clone(): DecentralizedIdentifier {
+    return new DecentralizedIdentifier({
       clusterType: this.clusterType,
       pubkey: this.pubkey,
       identifier: this.identifier,
@@ -224,12 +230,12 @@ export class DistributedId extends Assignable {
 
   static REGEX = new RegExp('^did:' + DID_METHOD + ':?(\\w*):(\\w+)#?(\\w*)$');
 
-  static parse(did: string | DIDVerificationMethod): DistributedId {
+  static parse(did: string | DIDVerificationMethod): DecentralizedIdentifier {
     if (typeof did === 'string') {
-      const matches = DistributedId.REGEX.exec(did);
+      const matches = DecentralizedIdentifier.REGEX.exec(did);
 
       if (!matches) throw new Error('Invalid DID');
-      return new DistributedId({
+      return new DecentralizedIdentifier({
         clusterType: ClusterType.parse(matches[1]),
         pubkey: SolidPublicKey.parse(matches[2]),
         identifier: matches[3],
@@ -241,15 +247,15 @@ export class DistributedId extends Assignable {
 
   static valid(did: string): boolean {
     try {
-      DistributedId.parse(did);
+      DecentralizedIdentifier.parse(did);
       return true;
     } catch {
       return false;
     }
   }
 
-  static empty(): DistributedId {
-    return new DistributedId({
+  static empty(): DecentralizedIdentifier {
+    return new DecentralizedIdentifier({
       clusterType: ClusterType.mainnetBeta(),
       pubkey: SolidPublicKey.empty(),
       identifier: '',
@@ -258,16 +264,16 @@ export class DistributedId extends Assignable {
 
   static parseMaybeArray(
     dids: (string | DIDVerificationMethod)[] | undefined
-  ): DistributedId[] {
-    return dids ? dids.map(v => DistributedId.parse(v)) : [];
+  ): DecentralizedIdentifier[] {
+    return dids ? dids.map(v => DecentralizedIdentifier.parse(v)) : [];
   }
 
   static create(
     pubkey: PublicKey,
     clusterType: ClusterType,
     identifier: string = ''
-  ): DistributedId {
-    return new DistributedId({
+  ): DecentralizedIdentifier {
+    return new DecentralizedIdentifier({
       pubkey: SolidPublicKey.fromPublicKey(pubkey),
       clusterType,
       identifier,
@@ -373,26 +379,26 @@ SCHEMA.set(SolidData, {
   kind: 'struct',
   fields: [
     ['context', ['string']],
-    ['did', DistributedId],
+    ['did', DecentralizedIdentifier],
     ['verificationMethod', [VerificationMethod]],
-    ['authentication', [DistributedId]],
-    ['capabilityInvocation', [DistributedId]],
-    ['capabilityDelegation', [DistributedId]],
-    ['keyAgreement', [DistributedId]],
-    ['assertionMethod', [DistributedId]],
+    ['authentication', [DecentralizedIdentifier]],
+    ['capabilityInvocation', [DecentralizedIdentifier]],
+    ['capabilityDelegation', [DecentralizedIdentifier]],
+    ['keyAgreement', [DecentralizedIdentifier]],
+    ['assertionMethod', [DecentralizedIdentifier]],
     ['service', [ServiceEndpoint]],
   ],
 });
 SCHEMA.set(VerificationMethod, {
   kind: 'struct',
   fields: [
-    ['id', DistributedId],
+    ['id', DecentralizedIdentifier],
     ['verificationType', 'string'],
-    ['controller', DistributedId],
+    ['controller', DecentralizedIdentifier],
     ['pubkey', SolidPublicKey],
   ],
 });
-SCHEMA.set(DistributedId, {
+SCHEMA.set(DecentralizedIdentifier, {
   kind: 'struct',
   fields: [
     ['clusterType', ClusterType],
@@ -403,7 +409,7 @@ SCHEMA.set(DistributedId, {
 SCHEMA.set(ServiceEndpoint, {
   kind: 'struct',
   fields: [
-    ['id', DistributedId],
+    ['id', DecentralizedIdentifier],
     ['endpointType', 'string'],
     ['endpoint', 'string'],
     ['description', 'string'],

@@ -6,7 +6,7 @@ use {
         error::SolidError,
         id,
         instruction::{get_solid_address_with_seed, SolidInstruction},
-        state::{DistributedId, SolidData},
+        state::{DecentralizedIdentifier, SolidData},
     },
     borsh::{BorshDeserialize, BorshSerialize},
     solana_program::{
@@ -98,7 +98,7 @@ pub fn process_instruction(
                 &[&solid_signer_seeds],
             )?;
 
-            let did = DistributedId::new(cluster_type, *data_info.key);
+            let did = DecentralizedIdentifier::new(cluster_type, *data_info.key);
             let mut solid = SolidData::new_sparse(did, *authority_info.key);
             solid.merge(init_data);
             solid

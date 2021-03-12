@@ -1,6 +1,6 @@
 import { accountAndClusterToDID, keyToIdentifier } from '../../../src/lib/util';
 import { ClusterType } from '../../../src';
-import { DistributedId } from '../../../src/lib/solana/solid-data';
+import { DecentralizedIdentifier } from '../../../src/lib/solana/solid-data';
 import { Account, PublicKey } from '@solana/web3.js';
 import {
   TEST_DID_ACCOUNT_PUBLIC_KEY,
@@ -11,7 +11,7 @@ describe('util', () => {
   describe('extractMethodIdentifierFromDID', () => {
     it('should extract the method identifier from a DID', () => {
       expect(
-        DistributedId.parse(
+        DecentralizedIdentifier.parse(
           'did:solid:Bm8bvjnBCJj6nKExmZk17khkRRNXAvcv2npKbhaqNWGC'
         ).pubkey.toString()
       ).toEqual('Bm8bvjnBCJj6nKExmZk17khkRRNXAvcv2npKbhaqNWGC');
