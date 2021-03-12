@@ -15,6 +15,7 @@ export const deactivate = async (request: DeactivateRequest): Promise<void> => {
   await SolidTransaction.deactivateSolid(
     connection,
     payer,
-    id.pubkey.toPublicKey()
+    id.pubkey.toPublicKey(),
+    authority
   );
 };
