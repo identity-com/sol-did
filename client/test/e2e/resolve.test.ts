@@ -1,11 +1,11 @@
 import { resolve } from '../../src';
+import { DEFAULT_DOCUMENT_SIZE } from '../../src/lib/constants';
 import { SolidData } from '../../src/lib/solana/solid-data';
 import { SolanaUtil } from '../../src/lib/solana/solana-util';
 import { SolidTransaction } from '../../src/lib/solana/transaction';
 import { Account, Connection, PublicKey } from '@solana/web3.js';
 import {
   CLUSTER,
-  DOCUMENT_SIZE,
   TEST_DID_ACCOUNT_SECRET_KEY,
   VALIDATOR_URL,
 } from '../constants';
@@ -26,7 +26,7 @@ describe('resolve', () => {
       payer,
       authority.publicKey,
       CLUSTER,
-      DOCUMENT_SIZE,
+      DEFAULT_DOCUMENT_SIZE,
       SolidData.empty()
     );
   }, 60000);
