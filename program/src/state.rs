@@ -18,18 +18,24 @@ fn merge_vecs<T: PartialEq>(lhs: &mut Vec<T>, rhs: Vec<T>) {
 /// Struct wrapping data and providing metadata
 #[derive(Clone, Debug, Default, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
 pub struct SolidData {
+    /// The cluster to which the DID belongs (needed to generate the identifier)
+    pub cluster: ClusterType,
+
+    /// The public key of the solidData account - used to derive the identifier
+    /// and first verification method
+    pub authority: Pubkey,
     /// DecentralizedIdentifier context, defaults to:
     /// ["https://w3id.org/did/v1.0", "https://w3id.org/solid/v1"]
     pub context: Vec<String>,
 
     /// the DecentralizedIdentifier for this document
-    pub did: DecentralizedIdentifier,
+    pub did: InferredDecentralizedIdentifier,
 
     /// All of the public keys related to the DecentralizedIdentifier
     pub verification_method: Vec<VerificationMethod>,
     /// TODO
     pub authentication: Vec<DecentralizedIdentifier>,
-    /// Currenty the most important part, decides which ID gets to do things
+    /// Currently the most important part, decides which ID gets to do things
     pub capability_invocation: Vec<DecentralizedIdentifier>,
     /// TODO
     pub capability_delegation: Vec<DecentralizedIdentifier>,
@@ -58,10 +64,12 @@ impl SolidData {
         ]
     }
     /// Create a new SOLID for testing write capabilities
-    pub fn new_sparse(did: DecentralizedIdentifier, authority: Pubkey) -> Self {
-        let verification_method = VerificationMethod::new(did.clone(), authority);
+    pub fn new_sparse(did: InferredDecentralizedIdentifier, authority: Pubkey, cluster: ClusterType) -> Self {
+        let verification_method = VerificationMethod::new_inferred(did.clone(), authority);
         let verification_id = verification_method.id.clone();
         Self {
+            cluster,
+            authority,
             context: Self::default_context(),
             did,
             verification_method: vec![verification_method],
@@ -140,15 +148,65 @@ impl FromStr for ClusterType {
     }
 }
 
+/// All SOLID DIDs start with this.
+const DEFAULT_DID_START: &'static str = "did:solid";
+
+pub trait AbstractDecentralizedIdentifier {
+
+  fn identifier(&self, solid_data: &SolidData) -> String {
+    format!(
+      "{}:{}{}{}",
+      Self::DEFAULT_DID_START,
+      self.cluster(solid_data),
+      self.pubkey(solid_data),
+      self.url()
+    )
+  }
+
+  fn url(&self) -> String {
+    if self.url_field.is_empty() {
+      "".to_string()
+    } else {
+      format!("#{}", self.identifier)
+    }
+  }
+
+  fn cluster(&self, solid_data: &SolidData) -> String {
+    match solid_data.cluster {
+      ClusterType::MainnetBeta => "".to_string(),
+      _ => format!("{}:", solid_data.cluster_type.did_identifier()),
+    }
+  }
+
+  fn pubkey(&self, _: &SolidData) -> String;
+}
+
+/// Typed representation of a DecentralizedIdentifier
+#[derive(Clone, Debug, Default, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
+pub struct InferredDecentralizedIdentifier {
+  /// Additional url information
+  pub url_field: String,
+}
+
+impl AbstractDecentralizedIdentifier for InferredDecentralizedIdentifier {
+  fn pubkey(&self, solid_data: &SolidData) -> PubKey {
+    solid_data.authority
+  }
+}
+
 /// Typed representation of a DecentralizedIdentifier
 #[derive(Clone, Debug, Default, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
 pub struct DecentralizedIdentifier {
-    /// Cluster the DID is hosted in (mainnet, testnet, devnet, or localnet)
-    pub cluster_type: ClusterType,
     /// Ed25519 Public Key associated with the id
     pub pubkey: Pubkey,
-    /// Additional identifier information
-    pub identifier: String,
+    /// Additional url information
+    pub url_field: String,
+}
+
+impl AbstractDecentralizedIdentifier for DecentralizedIdentifier {
+  fn pubkey(&self, _: &SolidData) -> PubKey {
+    self.pubkey
+  }
 }
 
 impl FromStr for DecentralizedIdentifier {
@@ -158,13 +216,11 @@ impl FromStr for DecentralizedIdentifier {
         let re = Regex::new(r"did:solid:?(\w*):(\w+)#?(\w*)").unwrap();
         match re.captures(s) {
             Some(capture) => {
-                let cluster_type = ClusterType::from_str(&capture[1])?;
                 let pubkey = Pubkey::from_str(&capture[2])?;
-                let identifier = capture[3].to_string();
+                let url = capture[3].to_string();
                 Ok(Self {
-                    cluster_type,
                     pubkey,
-                    identifier,
+                    url_field,
                 })
             }
             None => Err(SolidError::InvalidString),
@@ -172,46 +228,16 @@ impl FromStr for DecentralizedIdentifier {
     }
 }
 
-impl ToString for DecentralizedIdentifier {
-    fn to_string(&self) -> String {
-        format!(
-            "{}:{}{}{}",
-            Self::DEFAULT_DID_START,
-            self.cluster(),
-            self.pubkey,
-            self.identifier()
-        )
-    }
-}
-
 impl DecentralizedIdentifier {
-    /// All SOLID DIDs start with this.
-    pub const DEFAULT_DID_START: &'static str = "did:solid";
-
     /// Create new DID when no additional identifier is specified
     pub fn new(cluster_type: ClusterType, pubkey: Pubkey) -> Self {
         Self {
-            cluster_type,
             pubkey,
-            identifier: "".to_string(),
-        }
-    }
-
-    fn identifier(&self) -> String {
-        if self.identifier.is_empty() {
-            "".to_string()
-        } else {
-            format!("#{}", self.identifier)
-        }
-    }
-
-    fn cluster(&self) -> String {
-        match self.cluster_type {
-            ClusterType::MainnetBeta => "".to_string(),
-            _ => format!("{}:", self.cluster_type.did_identifier()),
+            url_field: "".to_string(),
         }
     }
 }
+
 
 /// Struct for the service endpoint related to a DID
 #[derive(Clone, Debug, Default, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
@@ -230,11 +256,11 @@ pub struct ServiceEndpoint {
 #[derive(Clone, Debug, Default, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
 pub struct VerificationMethod {
     /// Unique id for the verification method, and how to find it
-    pub id: DecentralizedIdentifier,
+    pub id: dyn AbstractDecentralizedIdentifier,
     /// What kind of key this is. TODO use an enum?
     pub verification_type: String,
     /// The DID that controls the verification method
-    pub controller: DecentralizedIdentifier,
+    pub controller: dyn AbstractDecentralizedIdentifier,
     /// The associated pubkey itself
     pub pubkey: Pubkey,
 }
@@ -250,13 +276,24 @@ impl VerificationMethod {
     /// authenticated by the given Pubkey
     pub fn new(controller: DecentralizedIdentifier, pubkey: Pubkey) -> Self {
         let mut id = controller.clone();
-        id.identifier = Self::DEFAULT_KEY_ID.to_string();
+        id.url_field = Self::DEFAULT_KEY_ID.to_string();
         Self {
             id,
             verification_type: Self::DEFAULT_TYPE.to_string(),
             controller,
             pubkey,
         }
+    }
+
+    pub fn new_inferred(controller: InferredDecentralizedIdentifier, pubkey: Pubkey) -> Self {
+      let mut id = controller.clone();
+      id.url_field = Self::DEFAULT_KEY_ID.to_string();
+      Self {
+        id,
+        verification_type: Self::DEFAULT_TYPE.to_string(),
+        controller,
+        pubkey,
+      }
     }
 }
 
@@ -283,11 +320,15 @@ pub mod tests {
     pub fn test_did() -> DecentralizedIdentifier {
         DecentralizedIdentifier::new(ClusterType::MainnetBeta, TEST_PUBKEY)
     }
+
+    pub fn test_inferred_did() -> InferredDecentralizedIdentifier {
+      InferredDecentralizedIdentifier::new()
+    }
+
     pub fn test_key_id() -> DecentralizedIdentifier {
         DecentralizedIdentifier {
-            cluster_type: ClusterType::MainnetBeta,
             pubkey: TEST_PUBKEY,
-            identifier: VerificationMethod::DEFAULT_KEY_ID.to_string(),
+            url_field: VerificationMethod::DEFAULT_KEY_ID.to_string(),
         }
     }
     pub fn test_verification_method() -> VerificationMethod {
@@ -301,8 +342,10 @@ pub mod tests {
 
     pub fn test_solid_data() -> SolidData {
         SolidData {
+            cluster: ClusterType::MainnetBeta,
+            authority: TEST_PUBKEY,
             context: SolidData::default_context(),
-            did: test_did(),
+            did: test_inferred_did(),
             verification_method: vec![test_verification_method()],
             authentication: vec![test_key_id()],
             capability_invocation: vec![test_key_id()],
@@ -329,9 +372,8 @@ pub mod tests {
         assert_eq!(
             deserialized.did,
             DecentralizedIdentifier {
-                cluster_type: ClusterType::Testnet,
                 pubkey: Pubkey::new_from_array([0; 32]),
-                identifier: "".to_string()
+                url_field: "".to_string()
             }
         );
         assert_eq!(deserialized.verification_method, vec![]);
@@ -350,27 +392,23 @@ pub mod tests {
 
         let valid = "did:solid:devnet:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP";
         let did = DecentralizedIdentifier::from_str(&valid).unwrap();
-        assert_eq!(did.cluster_type, ClusterType::Devnet);
         assert_eq!(did.pubkey, valid_pubkey);
-        assert_eq!(did.identifier, "");
+        assert_eq!(did.url_field, "");
 
         let valid = "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP";
         let did = DecentralizedIdentifier::from_str(&valid).unwrap();
-        assert_eq!(did.cluster_type, ClusterType::MainnetBeta);
         assert_eq!(did.pubkey, valid_pubkey);
-        assert_eq!(did.identifier, "");
+        assert_eq!(did.url_field, "");
 
         let valid = "did:solid:testnet:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP#key1";
         let did = DecentralizedIdentifier::from_str(&valid).unwrap();
-        assert_eq!(did.cluster_type, ClusterType::Testnet);
         assert_eq!(did.pubkey, valid_pubkey);
-        assert_eq!(did.identifier, "key1");
+        assert_eq!(did.url_field, "key1");
 
         let valid = "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP#key1";
         let did = DecentralizedIdentifier::from_str(&valid).unwrap();
-        assert_eq!(did.cluster_type, ClusterType::MainnetBeta);
         assert_eq!(did.pubkey, valid_pubkey);
-        assert_eq!(did.identifier, "key1");
+        assert_eq!(did.url_field, "key1");
     }
 
     #[test]
