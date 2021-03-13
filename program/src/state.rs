@@ -42,6 +42,8 @@ pub struct SolidData {
 }
 
 impl SolidData {
+    /// Default size of struct
+    pub const DEFAULT_SIZE: usize = 1_000;
     /// The context coming from SOLID
     pub const SOLID_CONTEXT: &'static str = "https://w3id.org/solid/v1";
     /// The default context from any DID
@@ -320,7 +322,7 @@ pub mod tests {
 
     #[test]
     fn deserialize_empty() {
-        let data = [0u8; 1_000];
+        let data = [0u8; SolidData::DEFAULT_SIZE];
         let deserialized = program_borsh::try_from_slice_incomplete::<SolidData>(&data).unwrap();
         assert_eq!(deserialized.context, vec![] as Vec<String>);
         assert_eq!(
