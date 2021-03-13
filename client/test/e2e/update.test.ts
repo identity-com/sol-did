@@ -52,6 +52,7 @@ describe('update', () => {
 
     // ensure the doc contains the service
     expect(doc.service).toEqual([service]);
+    expect(doc.id).toEqual(identifier);
   });
 
   it('adds a service to a DID with a separate payer', async () => {
