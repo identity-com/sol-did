@@ -128,7 +128,7 @@ mod tests {
     #[test]
     fn serialize_initialize() {
         let cluster_type = ClusterType::Development;
-        let size = 1_000u64;
+        let size = SolidData::DEFAULT_SIZE as u64;
         let init_data = test_solid_data();
         let mut expected = vec![0, 3];
         expected.extend_from_slice(&size.to_le_bytes());

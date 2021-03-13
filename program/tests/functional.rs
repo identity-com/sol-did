@@ -32,14 +32,14 @@ fn program_test() -> ProgramTest {
 async fn initialize_did_account(
     context: &mut ProgramTestContext,
     authority: &Pubkey,
-    size: u64,
+    size: usize,
 ) -> transport::Result<()> {
     let transaction = Transaction::new_signed_with_payer(
         &[instruction::initialize(
             &context.payer.pubkey(),
             authority,
             ClusterType::Development,
-            size,
+            size as u64,
             SolidData::default(),
         )],
         Some(&context.payer.pubkey()),
@@ -72,7 +72,7 @@ async fn initialize_success() {
 
     let authority = Pubkey::new_unique();
     let (solid, _) = instruction::get_solid_address_with_seed(&authority);
-    initialize_did_account(&mut context, &authority, 1_000)
+    initialize_did_account(&mut context, &authority, SolidData::DEFAULT_SIZE)
         .await
         .unwrap();
     let account_info = context
@@ -110,7 +110,7 @@ async fn initialize_with_service_success() {
             &context.payer.pubkey(),
             &authority,
             cluster_type,
-            1_000,
+            SolidData::DEFAULT_SIZE,
             init_data,
         )],
         Some(&context.payer.pubkey()),
@@ -138,7 +138,7 @@ async fn initialize_twice_fail() {
     let mut context = program_test().start_with_context().await;
 
     let authority = Pubkey::new_unique();
-    initialize_did_account(&mut context, &authority, 1_000)
+    initialize_did_account(&mut context, &authority, SolidData::DEFAULT_SIZE)
         .await
         .unwrap();
     // doing what looks like the same transaction twice causes issues, so
@@ -188,7 +188,7 @@ async fn write_success() {
 
     let authority = Keypair::new();
     let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
-    initialize_did_account(&mut context, &authority.pubkey(), 1_000)
+    initialize_did_account(&mut context, &authority.pubkey(), SolidData::DEFAULT_SIZE)
         .await
         .unwrap();
 
@@ -240,7 +240,7 @@ async fn write_fail_wrong_authority() {
     let mut context = program_test().start_with_context().await;
 
     let authority = Keypair::new();
-    initialize_did_account(&mut context, &authority.pubkey(), 1_000)
+    initialize_did_account(&mut context, &authority.pubkey(), SolidData::DEFAULT_SIZE)
         .await
         .unwrap();
 
@@ -281,7 +281,7 @@ async fn write_fail_unsigned() {
 
     let authority = Keypair::new();
     let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
-    initialize_did_account(&mut context, &authority.pubkey(), 1_000)
+    initialize_did_account(&mut context, &authority.pubkey(), SolidData::DEFAULT_SIZE)
         .await
         .unwrap();
 
@@ -320,7 +320,7 @@ async fn close_account_success() {
 
     let authority = Keypair::new();
     let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
-    initialize_did_account(&mut context, &authority.pubkey(), 1_000)
+    initialize_did_account(&mut context, &authority.pubkey(), SolidData::DEFAULT_SIZE)
         .await
         .unwrap();
     let recipient = Pubkey::new_unique();
@@ -349,7 +349,7 @@ async fn close_account_success() {
         .unwrap();
     assert_eq!(
         account.lamports,
-        1.max(Rent::default().minimum_balance(1_000))
+        1.max(Rent::default().minimum_balance(SolidData::DEFAULT_SIZE))
     );
 }
 
@@ -359,7 +359,7 @@ async fn close_account_fail_wrong_authority() {
 
     let authority = Keypair::new();
     let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
-    initialize_did_account(&mut context, &authority.pubkey(), 1_000)
+    initialize_did_account(&mut context, &authority.pubkey(), SolidData::DEFAULT_SIZE)
         .await
         .unwrap();
     let recipient = Pubkey::new_unique();
@@ -395,7 +395,7 @@ async fn close_account_fail_unsigned() {
 
     let authority = Keypair::new();
     let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
-    initialize_did_account(&mut context, &authority.pubkey(), 1_000)
+    initialize_did_account(&mut context, &authority.pubkey(), SolidData::DEFAULT_SIZE)
         .await
         .unwrap();
 
