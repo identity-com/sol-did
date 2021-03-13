@@ -1,9 +1,10 @@
 import { Account, Connection } from '@solana/web3.js';
+import { DEFAULT_DOCUMENT_SIZE } from '../../src/lib/constants';
 import { SolidTransaction } from '../../src/lib/solana/transaction';
 import { SolidData } from '../../src/lib/solana/solid-data';
 import { SolanaUtil } from '../../src/lib/solana/solana-util';
 import { strict as assert } from 'assert';
-import { CLUSTER, DOCUMENT_SIZE, VALIDATOR_URL } from '../constants';
+import { CLUSTER, VALIDATOR_URL } from '../constants';
 
 describe('transaction', () => {
   it('create works', async () => {
@@ -18,7 +19,7 @@ describe('transaction', () => {
       payer,
       authority.publicKey,
       CLUSTER,
-      DOCUMENT_SIZE,
+      DEFAULT_DOCUMENT_SIZE,
       SolidData.empty()
     );
     const solid = await SolidTransaction.getSolid(connection, solidKey);
