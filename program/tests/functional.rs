@@ -110,7 +110,7 @@ async fn initialize_with_service_success() {
             &context.payer.pubkey(),
             &authority,
             cluster_type,
-            SolidData::DEFAULT_SIZE,
+            SolidData::DEFAULT_SIZE as u64,
             init_data,
         )],
         Some(&context.payer.pubkey()),
