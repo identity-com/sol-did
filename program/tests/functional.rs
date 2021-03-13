@@ -47,20 +47,20 @@ async fn initialize_did_account(
     context.banks_client.process_transaction(transaction).await
 }
 
-fn check_solid(data: SolidData, solid_key: Pubkey, authority: Pubkey) {
-    let did = DecentralizedIdentifier::new(ClusterType::Development, solid_key);
-    let verification_method = VerificationMethod::new(did.clone(), authority);
+fn check_solid(data: SolidData, authority: Pubkey) {
+    let did = DecentralizedIdentifier::new(&data);
+    let verification_method = VerificationMethod::new(authority);
     assert_eq!(data.context, SolidData::default_context());
-    assert_eq!(data.did, did);
+    assert_eq!(data.did(), did);
     assert_eq!(data.verification_method, vec![verification_method.clone()]);
     assert_eq!(data.authentication, vec![verification_method.id.clone()]);
     assert_eq!(
         data.capability_invocation,
         vec![verification_method.id.clone()]
     );
-    assert_eq!(data.capability_delegation, vec![]);
-    assert_eq!(data.key_agreement, vec![]);
-    assert_eq!(data.assertion_method, vec![]);
+    assert_eq!(data.capability_delegation, vec![] as Vec<String>);
+    assert_eq!(data.key_agreement, vec![] as Vec<String>);
+    assert_eq!(data.assertion_method, vec![] as Vec<String>);
     assert_eq!(data.service, vec![]);
 }
 
@@ -81,7 +81,7 @@ async fn initialize_success() {
         .unwrap();
     let account_data =
         program_borsh::try_from_slice_incomplete::<SolidData>(&account_info.data).unwrap();
-    check_solid(account_data, solid, authority);
+    check_solid(account_data, authority);
 }
 
 #[tokio::test]
@@ -92,12 +92,12 @@ async fn initialize_with_service_success() {
     let (solid, _) = instruction::get_solid_address_with_seed(&authority);
     let mut init_data = SolidData::default();
     let cluster_type = ClusterType::Development;
-    let id = DecentralizedIdentifier::new(cluster_type.clone(), authority.clone());
+    // let id = DecentralizedIdentifier::new(cluster_type.clone(), authority.clone());
     let endpoint = "http://localhost".to_string();
     let endpoint_type = "local".to_string();
     let description = "A localhost service".to_string();
     let service_endpoint = ServiceEndpoint {
-        id,
+        id: "service1".to_string(),
         endpoint_type,
         endpoint,
         description,
@@ -182,7 +182,7 @@ async fn write_success() {
     let mut solid_data =
         program_borsh::try_from_slice_incomplete::<SolidData>(&account_info.data).unwrap();
     let test_endpoint = ServiceEndpoint {
-        id: solid_data.did.clone(),
+        id: "service1".to_string(),
         endpoint_type: "example".to_string(),
         endpoint: "example.com".to_string(),
         description: "".to_string(),
@@ -227,8 +227,8 @@ async fn write_fail_wrong_authority() {
 
     let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
     let new_data = SolidData::new_sparse(
-        DecentralizedIdentifier::new(ClusterType::Development, authority.pubkey()),
         authority.pubkey(),
+        ClusterType::Development
     );
     let wrong_authority = Keypair::new();
     let transaction = Transaction::new_signed_with_payer(
@@ -267,8 +267,8 @@ async fn write_fail_unsigned() {
         .unwrap();
 
     let new_data = SolidData::new_sparse(
-        DecentralizedIdentifier::new(ClusterType::Development, authority.pubkey()),
         authority.pubkey(),
+        ClusterType::Development
     );
     let data = new_data.try_to_vec().unwrap();
     let transaction = Transaction::new_signed_with_payer(
