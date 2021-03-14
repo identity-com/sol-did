@@ -3,7 +3,7 @@
 use {
     crate::{
         id,
-        state::{ClusterType, SolidData},
+        state::{ClusterType, SolidData, get_solid_address_with_seed},
     },
     borsh::{BorshDeserialize, BorshSerialize},
     solana_program::{
@@ -54,11 +54,6 @@ pub enum SolidInstruction {
     /// 1. `[signer]` Solid authority
     /// 2. `[]` Receiver of account lamports
     CloseAccount,
-}
-
-/// Get program-derived solid address for the authority
-pub fn get_solid_address_with_seed(authority: &Pubkey) -> (Pubkey, u8) {
-    Pubkey::find_program_address(&[&authority.to_bytes(), br"solid"], &id())
 }
 
 /// Create a `SolidInstruction::Initialize` instruction

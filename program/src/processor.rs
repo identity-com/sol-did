@@ -5,8 +5,8 @@ use {
         borsh as program_borsh,
         error::SolidError,
         id,
-        instruction::{get_solid_address_with_seed, SolidInstruction},
-        state::{SolidData},
+        instruction::{SolidInstruction},
+        state::{get_solid_address_with_seed, SolidData},
     },
     borsh::{BorshDeserialize, BorshSerialize},
     solana_program::{
@@ -46,9 +46,11 @@ pub fn process_instruction(
     accounts: &[AccountInfo],
     input: &[u8],
 ) -> ProgramResult {
+    msg!("Hello");
     let instruction = SolidInstruction::try_from_slice(input)?;
     let account_info_iter = &mut accounts.iter();
 
+  msg!("Hello2");
     match instruction {
         SolidInstruction::Initialize {
             cluster_type,

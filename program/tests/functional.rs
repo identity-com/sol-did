@@ -21,6 +21,7 @@ use {
         processor::process_instruction,
         state::{
             ClusterType, DecentralizedIdentifier, ServiceEndpoint, SolidData, VerificationMethod,
+            get_solid_address_with_seed
         },
     },
 };
@@ -69,7 +70,7 @@ async fn initialize_success() {
     let mut context = program_test().start_with_context().await;
 
     let authority = Pubkey::new_unique();
-    let (solid, _) = instruction::get_solid_address_with_seed(&authority);
+    let (solid, _) = get_solid_address_with_seed(&authority);
     initialize_did_account(&mut context, &authority)
         .await
         .unwrap();
@@ -89,7 +90,7 @@ async fn initialize_with_service_success() {
     let mut context = program_test().start_with_context().await;
 
     let authority = Pubkey::new_unique();
-    let (solid, _) = instruction::get_solid_address_with_seed(&authority);
+    let (solid, _) = get_solid_address_with_seed(&authority);
     let mut init_data = SolidData::default();
     let cluster_type = ClusterType::Development;
     // let id = DecentralizedIdentifier::new(cluster_type.clone(), authority.clone());
@@ -168,7 +169,7 @@ async fn write_success() {
     let mut context = program_test().start_with_context().await;
 
     let authority = Keypair::new();
-    let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
+    let (solid, _) = get_solid_address_with_seed(&authority.pubkey());
     initialize_did_account(&mut context, &authority.pubkey())
         .await
         .unwrap();
@@ -225,7 +226,7 @@ async fn write_fail_wrong_authority() {
         .await
         .unwrap();
 
-    let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
+    let (solid, _) = get_solid_address_with_seed(&authority.pubkey());
     let new_data = SolidData::new_sparse(
         authority.pubkey(),
         ClusterType::Development
@@ -261,7 +262,7 @@ async fn write_fail_unsigned() {
     let mut context = program_test().start_with_context().await;
 
     let authority = Keypair::new();
-    let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
+    let (solid, _) = get_solid_address_with_seed(&authority.pubkey());
     initialize_did_account(&mut context, &authority.pubkey())
         .await
         .unwrap();
@@ -300,7 +301,7 @@ async fn close_account_success() {
     let mut context = program_test().start_with_context().await;
 
     let authority = Keypair::new();
-    let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
+    let (solid, _) = get_solid_address_with_seed(&authority.pubkey());
     initialize_did_account(&mut context, &authority.pubkey())
         .await
         .unwrap();
@@ -339,7 +340,7 @@ async fn close_account_fail_wrong_authority() {
     let mut context = program_test().start_with_context().await;
 
     let authority = Keypair::new();
-    let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
+    let (solid, _) = get_solid_address_with_seed(&authority.pubkey());
     initialize_did_account(&mut context, &authority.pubkey())
         .await
         .unwrap();
@@ -375,7 +376,7 @@ async fn close_account_fail_unsigned() {
     let mut context = program_test().start_with_context().await;
 
     let authority = Keypair::new();
-    let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
+    let (solid, _) = get_solid_address_with_seed(&authority.pubkey());
     initialize_did_account(&mut context, &authority.pubkey())
         .await
         .unwrap();

@@ -74,7 +74,6 @@ export class SolidData extends Assignable {
   static empty(): SolidData {
     return new SolidData({
       context: [],
-      did: DecentralizedIdentifier.empty(),
       verificationMethod: [],
       authentication: [],
       capabilityInvocation: [],

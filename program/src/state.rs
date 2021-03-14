@@ -1,6 +1,6 @@
 //! Program state
 use {
-    crate::error::SolidError,
+    crate::{error::SolidError, id},
     borsh::{BorshDeserialize, BorshSchema, BorshSerialize},
     // regex::Regex,
     solana_program::{program_pack::IsInitialized, pubkey::Pubkey},
@@ -154,6 +154,11 @@ impl FromStr for ClusterType {
 }
 
 
+/// Get program-derived solid address for the authority
+pub fn get_solid_address_with_seed(authority: &Pubkey) -> (Pubkey, u8) {
+  Pubkey::find_program_address(&[&authority.to_bytes(), br"solid"], &id())
+}
+
 /// Typed representation of a DecentralizedIdentifier
 #[derive(Clone, Debug, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
 pub struct DecentralizedIdentifier<'a> {
@@ -164,13 +169,12 @@ pub struct DecentralizedIdentifier<'a> {
 }
 
 
-
 impl<'a> DecentralizedIdentifier<'a> {
     /// All SOLID DIDs start with this.
     const DEFAULT_DID_START: &'static str = "did:solid";
 
     fn pubkey(&self) -> Pubkey {
-      self.solid_data.authority
+      get_solid_address_with_seed(&self.solid_data.authority).0
     }
 
     fn identifier(&self) -> String {
