@@ -121,6 +121,27 @@ paths:
         "500":
           description: error!
       x-swagger-router-controller: Default
+  /create:
+    post:
+      summary: Registers a DID.
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        "200":
+          description: successfully registered!
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterState'
+        "400":
+          description: invalid input!
+        "500":
+          description: error!
+      x-swagger-router-controller: Default
   /update:
     post:
       summary: Updates a DID.
