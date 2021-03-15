@@ -2,7 +2,57 @@
 
 A typescript client library for registering and resolving DIDs using the SOLID method
 
-## Getting started
+## Getting Started
+
+
+### Command line tool
+
+```shell
+yarn global add @identity.com/solid-did-client # or npm install -g @identity.com/solid-did-client
+solid did:solid:devnet:HxzSJWiK9R4bpRu2YPgg47s2x2D4zT8AK5ziqoQqkzAo
+```
+
+### Client library
+
+```js
+import { register, resolve } from '@identity.com/solid-did-client';
+
+// generate an X25519 key, eg using 'tweetnacl'
+import nacl from 'tweetnacl';
+
+const keyPair = nacl.sign.keyPair();
+
+// register a DID
+const identifier = await register({
+  payer: keyPair.secretKey,
+});
+
+// resolve a DID
+const document = await resolve(identifier);
+
+// update a DID
+const request = {
+  payer: keyPair.secretKey,
+  identifier,
+  document: {
+    service: [{
+      description: 'Messaging Service',
+      id: `${identifier}#service1`,
+      serviceEndpoint: `https://dummmy.dummy/${identifier}`,
+      type: 'Messaging',
+    }],
+  },
+};
+await update(request);
+
+// deactivate a DID
+await deactivate({
+  payer: keyPair.secretKey,
+  identifier: did,
+});
+```
+
+## Contributing
 
 Note: Before contributing to this project, please check out the code of conduct
 and contributing guidelines.
