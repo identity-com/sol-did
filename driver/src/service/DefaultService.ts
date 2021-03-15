@@ -16,26 +16,26 @@ export type RegisterOptions = {
   owner?: string;
 };
 export type RegisterSecrets = {
-  payer: string;
+  payer?: string;
 };
 
 export type DeactivateOptions = {};
-export type DeactivateSecrets = RegisterSecrets;
+export type DeactivateSecrets = RegisterSecrets & { owner?: string };
 export type DeactivateRequest = {
   identifier: string;
   options?: DeactivateOptions;
-  secret?: DeactivateSecrets;
+  secret: DeactivateSecrets;
 };
 
 export type UpdateOptions = {
   mergeBehaviour?: DID.MergeBehaviour;
 };
-export type UpdateSecrets = RegisterSecrets;
+export type UpdateSecrets = RegisterSecrets & { owner?: string };
 export type UpdateRequest = {
   identifier: string;
   jobId?: string;
   options?: UpdateOptions;
-  secret?: UpdateSecrets;
+  secret: UpdateSecrets;
   didDocument: DIDDocument;
 };
 export type RegisterRequest = {

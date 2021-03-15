@@ -221,6 +221,7 @@ components:
     UpdateRequest:
       required:
         - identifier
+        - secret
       type: object
       properties:
         jobId:
@@ -240,10 +241,13 @@ components:
               default: append
         secret:
           required:
-            - payer
+            - owner
           type: object
           properties:
             payer:
+              type: string
+              example: 5UpZQ4Jfrh6QZBedtNgVTYm5dbUzWhQKDjcj9FKYwnzNU42nGaGcf4YuqscxT7iiVPNyZthnpat3d3pfpMSJ2etd
+            owner:
               type: string
               example: 5UpZQ4Jfrh6QZBedtNgVTYm5dbUzWhQKDjcj9FKYwnzNU42nGaGcf4YuqscxT7iiVPNyZthnpat3d3pfpMSJ2etd
         didDocument:
@@ -253,6 +257,7 @@ components:
     DeactivateRequest:
       required:
         - identifier
+        - secret
       type: object
       properties:
         jobId:
@@ -265,9 +270,12 @@ components:
           type: object
         secret:
           required:
-            - payer
+            - owner
           type: object
           properties:
+            owner:
+              type: string
+              example: 5UpZQ4Jfrh6QZBedtNgVTYm5dbUzWhQKDjcj9FKYwnzNU42nGaGcf4YuqscxT7iiVPNyZthnpat3d3pfpMSJ2etd
             payer:
               type: string
               example: 5UpZQ4Jfrh6QZBedtNgVTYm5dbUzWhQKDjcj9FKYwnzNU42nGaGcf4YuqscxT7iiVPNyZthnpat3d3pfpMSJ2etd
