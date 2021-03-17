@@ -11,7 +11,7 @@ import {
 
 export class SolidData extends Assignable {
   // derived
-  publicKey: SolidPublicKey;
+  account: SolidPublicKey;
   cluster: ClusterType;
 
   // persisted
@@ -32,7 +32,7 @@ export class SolidData extends Assignable {
   ): SolidData {
     const solidData = SolidData.decode<SolidData>(accountData);
     solidData.cluster = cluster;
-    solidData.publicKey = SolidPublicKey.fromPublicKey(accountKey);
+    solidData.account = SolidPublicKey.fromPublicKey(accountKey);
     return solidData;
   }
 
@@ -43,7 +43,10 @@ export class SolidData extends Assignable {
     });
   }
 
-  merge(other: SolidData, overwriteArrays: boolean = false): SolidData {
+  merge(
+    other: Partial<SolidData>,
+    overwriteArrays: boolean = false
+  ): SolidData {
     const mergeBehaviour = (a: any, b: any): any => {
       if (a && Array.isArray(a)) {
         return overwriteArrays && b ? b : [...a, ...b];
@@ -77,7 +80,7 @@ export class SolidData extends Assignable {
     const service = [];
     return new SolidData({
       cluster: clusterType,
-      publicKey: SolidPublicKey.fromPublicKey(account),
+      account: SolidPublicKey.fromPublicKey(account),
       authority: SolidPublicKey.fromPublicKey(authority),
       context,
       verificationMethod: [verificationMethod],
@@ -92,7 +95,10 @@ export class SolidData extends Assignable {
 
   static empty(): SolidData {
     return new SolidData({
+      cluster: ClusterType.mainnetBeta(),
+      // account: SolidPublicKey.fromPublicKey(new Account().publicKey),
       authority: SolidPublicKey.fromPublicKey(new Account().publicKey),
+
       context: [],
       verificationMethod: [],
       authentication: [],
@@ -107,7 +113,7 @@ export class SolidData extends Assignable {
   identifier(): DecentralizedIdentifier {
     return new DecentralizedIdentifier({
       clusterType: this.cluster,
-      pubkey: this.publicKey,
+      pubkey: this.account,
     });
   }
 
