@@ -57,7 +57,7 @@ describe('register', () => {
       payer: payer.secretKey,
       cluster: CLUSTER,
       owner: owner.publicKey.toBase58(),
-      size: 400,
+      size: 250,
     };
     const identifier = await register(registerRequest);
 
