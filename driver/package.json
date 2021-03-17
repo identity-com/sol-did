@@ -43,7 +43,7 @@
     "typescript": "^4.1.5"
   },
   "dependencies": {
-    "@identity.com/solid-did-client": "^0.0.8",
+    "@identity.com/solid-did-client": "^0.1.0",
     "cors": "^2.8.5",
     "did-resolver": "^3.0.1",
     "oas3-tools": "^2.2.3"

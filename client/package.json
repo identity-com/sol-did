@@ -3,6 +3,8 @@
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "repository": "https://github.com/identity-com/solid-did",
+  "homepage": "https://github.com/identity-com/solid-did",
   "files": [
     "dist",
     "src",
