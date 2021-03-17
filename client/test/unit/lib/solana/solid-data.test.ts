@@ -9,7 +9,8 @@ import { makeService } from '../../../util';
 
 const pub = () => new Account().publicKey;
 
-const withoutAuthority = (solidData: SolidData) => omit(['authority'], solidData);
+const withoutAuthority = (solidData: SolidData) =>
+  omit(['authority'], solidData);
 
 describe('solid-data', () => {
   describe('merge', () => {
@@ -24,7 +25,7 @@ describe('solid-data', () => {
 
         const merged = empty.merge(sparse);
 
-        expect(merged).toEqual(sparse);
+        expect(merged).toMatchObject(sparse);
       });
 
       it('should not change a sparse solidData object when merging an empty one into it, except for the authority', () => {
@@ -37,9 +38,7 @@ describe('solid-data', () => {
 
         const merged = sparse.merge(empty);
 
-        expect(withoutAuthority(merged)).toEqual(
-          withoutAuthority(sparse)
-        );
+        expect(withoutAuthority(merged)).toEqual(withoutAuthority(sparse));
 
         expect(merged.authority).toEqual(empty.authority);
       });
@@ -55,7 +54,7 @@ describe('solid-data', () => {
 
         const merged = sparse.merge(empty);
 
-        expect(merged).toEqual(sparse);
+        expect(merged).toMatchObject(sparse);
       });
 
       it('should allow properties to be added to empty arrays', async () => {
@@ -108,7 +107,7 @@ describe('solid-data', () => {
 
         const merged = empty.merge(sparse, true);
 
-        expect(merged).toEqual(sparse);
+        expect(merged).toMatchObject(sparse);
       });
 
       it('should clear the contents of a solidData object when merging an empty one', () => {
@@ -121,7 +120,7 @@ describe('solid-data', () => {
 
         const merged = sparse.merge(empty, true);
 
-        expect(merged).toEqual({
+        expect(merged).toMatchObject({
           ...empty,
           account: sparse.account, // empty SolidData objects have no account
         });

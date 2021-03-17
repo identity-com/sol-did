@@ -37,10 +37,7 @@ describe('(de)serialize operations', () => {
       authority.publicKey,
       ClusterType.mainnetBeta()
     );
-    const instruction = SolidInstruction.initialize(
-      100,
-      solidData
-    );
+    const instruction = SolidInstruction.initialize(100, solidData);
     testSerialization(SolidInstruction, instruction);
   });
 

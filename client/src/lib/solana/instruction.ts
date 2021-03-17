@@ -26,10 +26,7 @@ export class SolidInstruction extends Enum {
   write: Write;
   closeAccount: CloseAccount;
 
-  static initialize(
-    size: number,
-    initData: SolidData
-  ): SolidInstruction {
+  static initialize(size: number, initData: SolidData): SolidInstruction {
     return new SolidInstruction({
       initialize: new Initialize({ size, initData }),
     });
@@ -130,8 +127,10 @@ SCHEMA.set(SolidInstruction, {
 });
 SCHEMA.set(Initialize, {
   kind: 'struct',
-  fields: [['size', 'u64'],
-    ['initData', SolidData]],
+  fields: [
+    ['size', 'u64'],
+    ['initData', SolidData],
+  ],
 });
 SCHEMA.set(Write, {
   kind: 'struct',
