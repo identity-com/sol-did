@@ -5,12 +5,14 @@ import {
   SolidPublicKey,
 } from '../src/lib/solana/solid-data';
 import { CLUSTER } from './constants';
+import { getKeyFromAuthority } from '../src/lib/solana/instruction';
 
-export const makeService = (owner: Account): ServiceEndpoint => {
+export const makeService = async (owner: Account): Promise<ServiceEndpoint> => {
+  const pubkey = await getKeyFromAuthority(owner.publicKey);
+
   const identifier = new DecentralizedIdentifier({
     clusterType: CLUSTER,
-    pubkey: SolidPublicKey.fromPublicKey(owner.publicKey),
-    identifier: '',
+    pubkey: SolidPublicKey.fromPublicKey(pubkey),
   }).toString();
 
   return {

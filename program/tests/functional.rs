@@ -20,8 +20,8 @@ use {
         id, instruction,
         processor::process_instruction,
         state::{
-            ClusterType, DecentralizedIdentifier, ServiceEndpoint, SolidData, VerificationMethod,
-            get_solid_address_with_seed
+            get_solid_address_with_seed, ClusterType, DecentralizedIdentifier, ServiceEndpoint,
+            SolidData, VerificationMethod,
         },
     },
 };
@@ -227,10 +227,7 @@ async fn write_fail_wrong_authority() {
         .unwrap();
 
     let (solid, _) = get_solid_address_with_seed(&authority.pubkey());
-    let new_data = SolidData::new_sparse(
-        authority.pubkey(),
-        ClusterType::Development
-    );
+    let new_data = SolidData::new_sparse(authority.pubkey());
     let wrong_authority = Keypair::new();
     let transaction = Transaction::new_signed_with_payer(
         &[instruction::write(
@@ -267,10 +264,7 @@ async fn write_fail_unsigned() {
         .await
         .unwrap();
 
-    let new_data = SolidData::new_sparse(
-        authority.pubkey(),
-        ClusterType::Development
-    );
+    let new_data = SolidData::new_sparse(authority.pubkey());
     let data = new_data.try_to_vec().unwrap();
     let transaction = Transaction::new_signed_with_payer(
         &[Instruction::new_with_borsh(

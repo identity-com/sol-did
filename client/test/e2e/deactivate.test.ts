@@ -16,7 +16,6 @@ describe('deactivate', () => {
       connection,
       owner,
       owner.publicKey,
-      CLUSTER,
       SolidData.empty()
     );
   }, 60000);

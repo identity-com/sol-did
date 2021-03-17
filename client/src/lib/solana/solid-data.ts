@@ -1,4 +1,4 @@
-import { clusterApiUrl, Cluster, PublicKey } from '@solana/web3.js';
+import { clusterApiUrl, Cluster, PublicKey, Account } from '@solana/web3.js';
 import { Assignable, Enum, SCHEMA } from './solana-borsh';
 import { DID_METHOD, DID_HEADER } from '../constants';
 import { encode } from 'bs58';
@@ -10,15 +10,38 @@ import {
 } from 'did-resolver';
 
 export class SolidData extends Assignable {
+  // derived
+  publicKey: SolidPublicKey;
+  cluster: ClusterType;
+
+  // persisted
+  authority: SolidPublicKey;
   context: string[];
-  did: DecentralizedIdentifier;
   verificationMethod: VerificationMethod[];
-  authentication: DecentralizedIdentifier[];
-  capabilityInvocation: DecentralizedIdentifier[];
-  capabilityDelegation: DecentralizedIdentifier[];
-  keyAgreement: DecentralizedIdentifier[];
-  assertionMethod: DecentralizedIdentifier[];
+  authentication: string[];
+  capabilityInvocation: string[];
+  capabilityDelegation: string[];
+  keyAgreement: string[];
+  assertionMethod: string[];
   service: ServiceEndpoint[];
+
+  static fromAccount(
+    accountKey: PublicKey,
+    accountData: Buffer,
+    cluster: ClusterType
+  ): SolidData {
+    const solidData = SolidData.decode<SolidData>(accountData);
+    solidData.cluster = cluster;
+    solidData.publicKey = SolidPublicKey.fromPublicKey(accountKey);
+    return solidData;
+  }
+
+  forAuthority(authority: PublicKey) {
+    return new SolidData({
+      ...this,
+      authority: SolidPublicKey.fromPublicKey(authority),
+    });
+  }
 
   merge(other: SolidData, overwriteArrays: boolean = false): SolidData {
     const mergeBehaviour = (a: any, b: any): any => {
@@ -45,13 +68,7 @@ export class SolidData extends Assignable {
     clusterType: ClusterType
   ): SolidData {
     const context = SolidData.defaultContext();
-    const pubkey = SolidPublicKey.fromPublicKey(account);
-    const did = new DecentralizedIdentifier({
-      clusterType,
-      pubkey,
-      identifier: '',
-    });
-    const verificationMethod = VerificationMethod.newPublicKey(did, authority);
+    const verificationMethod = VerificationMethod.newPublicKey(authority);
     const authentication = [verificationMethod.id];
     const capabilityInvocation = [verificationMethod.id];
     const capabilityDelegation = [];
@@ -59,8 +76,10 @@ export class SolidData extends Assignable {
     const assertionMethod = [];
     const service = [];
     return new SolidData({
+      cluster: clusterType,
+      publicKey: SolidPublicKey.fromPublicKey(account),
+      authority: SolidPublicKey.fromPublicKey(authority),
       context,
-      did,
       verificationMethod: [verificationMethod],
       authentication,
       capabilityInvocation,
@@ -73,6 +92,7 @@ export class SolidData extends Assignable {
 
   static empty(): SolidData {
     return new SolidData({
+      authority: SolidPublicKey.fromPublicKey(new Account().publicKey),
       context: [],
       verificationMethod: [],
       authentication: [],
@@ -84,19 +104,33 @@ export class SolidData extends Assignable {
     });
   }
 
-  toDID(): DIDDocument {
+  identifier(): DecentralizedIdentifier {
+    return new DecentralizedIdentifier({
+      clusterType: this.cluster,
+      pubkey: this.publicKey,
+    });
+  }
+
+  toDIDDocument(): DIDDocument {
+    const deriveDID = (urlField: string) =>
+      this.identifier()
+        .withUrl(urlField)
+        .toString();
+
+    const verificationMethods = this.verificationMethod.map(v =>
+      v.toDID(this.identifier())
+    );
     return {
       '@context': this.context,
-      id: this.did.toString(),
-      verificationMethod: this.verificationMethod.map(v => v.toDID()),
-      authentication: this.authentication.map(v => v.toString()),
-      assertionMethod: this.assertionMethod.map(v => v.toString()),
-      keyAgreement: this.keyAgreement.map(v => v.toString()),
-      capabilityInvocation: this.capabilityInvocation.map(v => v.toString()),
-      capabilityDelegation: this.capabilityDelegation.map(v => v.toString()),
-      service: this.service.map(v => v.toDID()),
-      // @ts-ignore
-      publicKey: this.verificationMethod.map(v => v.toDID()),
+      id: this.identifier().toString(),
+      verificationMethod: verificationMethods,
+      authentication: this.authentication.map(deriveDID),
+      assertionMethod: this.assertionMethod.map(deriveDID),
+      keyAgreement: this.keyAgreement.map(deriveDID),
+      capabilityInvocation: this.capabilityInvocation.map(deriveDID),
+      capabilityDelegation: this.capabilityDelegation.map(deriveDID),
+      service: this.service.map(v => v.toDID(this.identifier())),
+      publicKey: verificationMethods,
     };
   }
 
@@ -136,7 +170,7 @@ export class SolidData extends Assignable {
 }
 
 export class VerificationMethod extends Assignable {
-  id: DecentralizedIdentifier;
+  id: string;
   verificationType: string;
   controller: DecentralizedIdentifier;
   pubkey: SolidPublicKey;
@@ -145,22 +179,18 @@ export class VerificationMethod extends Assignable {
     return 'Ed25519VerificationKey2018';
   }
 
-  static newPublicKey(
-    controller: DecentralizedIdentifier,
-    authority: PublicKey
-  ): VerificationMethod {
-    const id = controller.clone();
-    id.identifier = 'key1';
+  static newPublicKey(authority: PublicKey): VerificationMethod {
+    const id = 'key1';
     const verificationType = VerificationMethod.defaultVerificationType();
     const pubkey = SolidPublicKey.fromPublicKey(authority);
-    return new VerificationMethod({ id, verificationType, controller, pubkey });
+    return new VerificationMethod({ id, verificationType, pubkey });
   }
 
-  toDID(): DIDVerificationMethod {
+  toDID(parentDID: DecentralizedIdentifier): DIDVerificationMethod {
     return {
-      id: this.id.toString(),
+      id: parentDID.withUrl(this.id).toString(),
       type: this.verificationType,
-      controller: this.controller.toString(),
+      controller: parentDID.toString(),
       publicKeyBase58: this.pubkey.toString(),
     };
   }
@@ -182,14 +212,14 @@ export class VerificationMethod extends Assignable {
 }
 
 export class ServiceEndpoint extends Assignable {
-  id: DecentralizedIdentifier;
+  id: string;
   endpointType: string;
   endpoint: string;
   description: string;
 
-  toDID(): DIDServiceEndpoint {
+  toDID(parentDID: DecentralizedIdentifier): DIDServiceEndpoint {
     return {
-      id: this.id.toString(),
+      id: parentDID.withUrl(this.id).toString(),
       type: this.endpointType,
       serviceEndpoint: this.endpoint,
       description: this.description,
@@ -198,7 +228,7 @@ export class ServiceEndpoint extends Assignable {
 
   static parse(service: DIDServiceEndpoint): ServiceEndpoint {
     return new ServiceEndpoint({
-      id: DecentralizedIdentifier.parse(service.id),
+      id: DecentralizedIdentifier.parse(service.id).urlField,
       endpointType: service.type,
       endpoint: service.serviceEndpoint,
       description: service.description,
@@ -209,13 +239,20 @@ export class ServiceEndpoint extends Assignable {
 export class DecentralizedIdentifier extends Assignable {
   clusterType: ClusterType;
   pubkey: SolidPublicKey;
-  identifier: string;
+  urlField: string;
 
   clone(): DecentralizedIdentifier {
     return new DecentralizedIdentifier({
       clusterType: this.clusterType,
       pubkey: this.pubkey,
-      identifier: this.identifier,
+      urlField: this.urlField,
+    });
+  }
+
+  withUrl(urlField: string) {
+    return new DecentralizedIdentifier({
+      ...this,
+      urlField,
     });
   }
 
@@ -223,8 +260,9 @@ export class DecentralizedIdentifier extends Assignable {
     const cluster = this.clusterType.mainnetBeta
       ? ''
       : `${this.clusterType.toString()}:`;
-    const identifier = this.identifier === '' ? '' : `#${this.identifier}`;
-    return `${DID_HEADER}:${DID_METHOD}:${cluster}${this.pubkey.toString()}${identifier}`;
+    const urlField =
+      !this.urlField || this.urlField === '' ? '' : `#${this.urlField}`; // TODO add support for / urls
+    return `${DID_HEADER}:${DID_METHOD}:${cluster}${this.pubkey.toString()}${urlField}`;
   }
 
   static REGEX = new RegExp('^did:' + DID_METHOD + ':?(\\w*):(\\w+)#?(\\w*)$');
@@ -237,7 +275,7 @@ export class DecentralizedIdentifier extends Assignable {
       return new DecentralizedIdentifier({
         clusterType: ClusterType.parse(matches[1]),
         pubkey: SolidPublicKey.parse(matches[2]),
-        identifier: matches[3],
+        urlField: matches[3],
       });
     } else {
       throw new Error('Provided DID is not a string');
@@ -377,38 +415,36 @@ export class Development extends Assignable {}
 SCHEMA.set(SolidData, {
   kind: 'struct',
   fields: [
+    ['authority', SolidPublicKey],
     ['context', ['string']],
-    ['did', DecentralizedIdentifier],
     ['verificationMethod', [VerificationMethod]],
-    ['authentication', [DecentralizedIdentifier]],
-    ['capabilityInvocation', [DecentralizedIdentifier]],
-    ['capabilityDelegation', [DecentralizedIdentifier]],
-    ['keyAgreement', [DecentralizedIdentifier]],
-    ['assertionMethod', [DecentralizedIdentifier]],
+    ['authentication', ['string']],
+    ['capabilityInvocation', ['string']],
+    ['capabilityDelegation', ['string']],
+    ['keyAgreement', ['string']],
+    ['assertionMethod', ['string']],
     ['service', [ServiceEndpoint]],
   ],
 });
 SCHEMA.set(VerificationMethod, {
   kind: 'struct',
   fields: [
-    ['id', DecentralizedIdentifier],
+    ['id', 'string'],
     ['verificationType', 'string'],
-    ['controller', DecentralizedIdentifier],
     ['pubkey', SolidPublicKey],
   ],
 });
 SCHEMA.set(DecentralizedIdentifier, {
   kind: 'struct',
   fields: [
-    ['clusterType', ClusterType],
-    ['pubkey', SolidPublicKey],
+    ['solidData', SolidData],
     ['identifier', 'string'],
   ],
 });
 SCHEMA.set(ServiceEndpoint, {
   kind: 'struct',
   fields: [
-    ['id', DecentralizedIdentifier],
+    ['id', 'string'],
     ['endpointType', 'string'],
     ['endpoint', 'string'],
     ['description', 'string'],

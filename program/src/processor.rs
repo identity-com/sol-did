@@ -5,7 +5,7 @@ use {
         borsh as program_borsh,
         error::SolidError,
         id,
-        instruction::{SolidInstruction},
+        instruction::SolidInstruction,
         state::{get_solid_address_with_seed, SolidData},
     },
     borsh::{BorshDeserialize, BorshSerialize},
@@ -50,12 +50,9 @@ pub fn process_instruction(
     let instruction = SolidInstruction::try_from_slice(input)?;
     let account_info_iter = &mut accounts.iter();
 
-  msg!("Hello2");
+    msg!("Hello2");
     match instruction {
-        SolidInstruction::Initialize {
-            cluster_type,
-            init_data,
-        } => {
+        SolidInstruction::Initialize { init_data } => {
             msg!("SolidInstruction::Initialize");
 
             let funder_info = next_account_info(account_info_iter)?;
@@ -100,7 +97,7 @@ pub fn process_instruction(
                 &[&solid_signer_seeds],
             )?;
 
-            let mut solid = SolidData::new_sparse( *authority_info.key, cluster_type);
+            let mut solid = SolidData::new_sparse(*authority_info.key);
             solid.merge(init_data);
             solid
                 .serialize(&mut *data_info.data.borrow_mut())

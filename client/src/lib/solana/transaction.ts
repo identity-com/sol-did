@@ -15,14 +15,13 @@ export class SolidTransaction {
     connection: Connection,
     payer: Account,
     authority: PublicKey,
-    clusterType: ClusterType,
     initData: SolidData
   ): Promise<PublicKey> {
     const solidKey = await getKeyFromAuthority(authority);
 
     // Allocate memory for the account
     const transaction = new Transaction().add(
-      initialize(payer.publicKey, solidKey, authority, clusterType, initData)
+      initialize(payer.publicKey, solidKey, authority, initData)
     );
 
     // Send the instructions
@@ -32,18 +31,23 @@ export class SolidTransaction {
 
   static async getSolid(
     connection: Connection,
+    clusterType: ClusterType,
     recordKey: PublicKey
   ): Promise<SolidData | null> {
     const data = await connection.getAccountInfo(recordKey);
-    return data ? SolidData.decode(data.data) : null;
+
+    if (!data) return null;
+
+    return SolidData.fromAccount(recordKey, data.data, clusterType);
   }
 
   static async getSolidFromAuthority(
     connection: Connection,
+    clusterType: ClusterType,
     authority: PublicKey
   ): Promise<SolidData | null> {
     const recordKey = await getKeyFromAuthority(authority);
-    return SolidTransaction.getSolid(connection, recordKey);
+    return SolidTransaction.getSolid(connection, clusterType, recordKey);
   }
 
   /**
@@ -77,6 +81,7 @@ export class SolidTransaction {
 
   static async updateSolid(
     connection: Connection,
+    clusterType: ClusterType,
     payer: Account,
     recordKey: PublicKey,
     dataToMerge: SolidData,
@@ -84,7 +89,11 @@ export class SolidTransaction {
     owner: Account = payer
   ): Promise<string> {
     // Update the solid DID
-    const existingData = await this.getSolid(connection, recordKey);
+    const existingData = await this.getSolid(
+      connection,
+      clusterType,
+      recordKey
+    );
 
     if (!existingData) throw new Error('DID does not exist');
 

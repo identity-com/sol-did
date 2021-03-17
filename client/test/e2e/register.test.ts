@@ -32,7 +32,7 @@ describe('register', () => {
   }, 30000);
 
   it('registers a DID with a document', async () => {
-    const service = makeService(owner);
+    const service = await makeService(owner);
 
     const registerRequest: RegisterRequest = {
       payer: payer.secretKey,
@@ -46,7 +46,7 @@ describe('register', () => {
 
     const doc = await resolve(identifier);
 
-    console.log({ service, doc });
+    console.log({ service, doc: JSON.stringify(doc, null, 1) });
 
     // ensure the doc contains the service
     expect(doc.service).toEqual([service]);

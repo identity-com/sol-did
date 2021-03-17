@@ -18,9 +18,6 @@ fn merge_vecs<T: PartialEq>(lhs: &mut Vec<T>, rhs: Vec<T>) {
 /// Struct wrapping data and providing metadata
 #[derive(Clone, Debug, Default, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
 pub struct SolidData {
-    /// The cluster to which the DID belongs (needed to generate the identifier)
-    pub cluster: ClusterType,
-
     /// The public key of the solidData account - used to derive the identifier
     /// and first verification method
     pub authority: Pubkey,
@@ -56,10 +53,10 @@ impl SolidData {
 
     /// Create a DID for this DIDDocument
     pub fn did(&self) -> DecentralizedIdentifier {
-      DecentralizedIdentifier {
-        solid_data: self,
-        url_field: "".to_string()
-      }
+        DecentralizedIdentifier {
+            solid_data: self,
+            url_field: "".to_string(),
+        }
     }
 
     /// Default context field on a SOLID
@@ -70,11 +67,10 @@ impl SolidData {
         ]
     }
     /// Create a new SOLID for testing write capabilities
-    pub fn new_sparse(authority: Pubkey, cluster: ClusterType) -> Self {
+    pub fn new_sparse(authority: Pubkey) -> Self {
         let verification_method = VerificationMethod::new(authority);
         let verification_id = verification_method.id.clone();
         Self {
-            cluster,
             authority,
             context: Self::default_context(),
             verification_method: vec![verification_method],
@@ -153,53 +149,51 @@ impl FromStr for ClusterType {
     }
 }
 
-
 /// Get program-derived solid address for the authority
 pub fn get_solid_address_with_seed(authority: &Pubkey) -> (Pubkey, u8) {
-  Pubkey::find_program_address(&[&authority.to_bytes(), br"solid"], &id())
+    Pubkey::find_program_address(&[&authority.to_bytes(), br"solid"], &id())
 }
 
 /// Typed representation of a DecentralizedIdentifier
 #[derive(Clone, Debug, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
 pub struct DecentralizedIdentifier<'a> {
-  /// A reference to the DID Document that this identifier belongs to
-  pub solid_data: &'a SolidData,
-  /// Additional url information
-  pub url_field: String,
+    /// A reference to the DID Document that this identifier belongs to
+    pub solid_data: &'a SolidData,
+    /// Additional url information
+    pub url_field: String,
 }
-
 
 impl<'a> DecentralizedIdentifier<'a> {
     /// All SOLID DIDs start with this.
     const DEFAULT_DID_START: &'static str = "did:solid";
 
     fn pubkey(&self) -> Pubkey {
-      get_solid_address_with_seed(&self.solid_data.authority).0
+        get_solid_address_with_seed(&self.solid_data.authority).0
     }
 
-    fn identifier(&self) -> String {
-      format!(
-        "{}:{}{}{}",
-        Self::DEFAULT_DID_START,
-        self.cluster(),
-        self.pubkey(),
-        self.url()
-      )
+    fn identifier(&self, cluster: ClusterType) -> String {
+        format!(
+            "{}:{}{}{}",
+            Self::DEFAULT_DID_START,
+            DecentralizedIdentifier::<'a>::cluster(cluster),
+            self.pubkey(),
+            self.url()
+        )
     }
 
     fn url(&self) -> String {
-      if self.url_field.is_empty() {
-        "".to_string()
-      } else {
-        format!("#{}", self.url_field)
-      }
+        if self.url_field.is_empty() {
+            "".to_string()
+        } else {
+            format!("#{}", self.url_field)
+        }
     }
 
-    fn cluster(&self) -> String {
-      match self.solid_data.cluster {
-        ClusterType::MainnetBeta => "".to_string(),
-        _ => format!("{}:", self.solid_data.cluster.did_identifier()),
-      }
+    fn cluster(cluster: ClusterType) -> String {
+        match cluster {
+            ClusterType::MainnetBeta => "".to_string(),
+            _ => format!("{}:", cluster.did_identifier()),
+        }
     }
 
     /// Create new DID when no additional identifier is specified
@@ -291,7 +285,6 @@ pub mod tests {
 
     pub fn test_solid_data() -> SolidData {
         SolidData {
-            cluster: ClusterType::MainnetBeta,
             authority: TEST_PUBKEY,
             context: SolidData::default_context(),
             verification_method: vec![test_verification_method()],

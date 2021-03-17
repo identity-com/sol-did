@@ -3,11 +3,7 @@ import { SolidData } from '../../src/lib/solana/solid-data';
 import { SolanaUtil } from '../../src/lib/solana/solana-util';
 import { SolidTransaction } from '../../src/lib/solana/transaction';
 import { Account, Connection, PublicKey } from '@solana/web3.js';
-import {
-  CLUSTER,
-  TEST_DID_ACCOUNT_SECRET_KEY,
-  VALIDATOR_URL,
-} from '../constants';
+import { CLUSTER, VALIDATOR_URL } from '../constants';
 
 describe('resolve', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');
@@ -19,12 +15,11 @@ describe('resolve', () => {
       connection,
       1000000000
     );
-    authority = new Account(TEST_DID_ACCOUNT_SECRET_KEY);
+    authority = new Account();
     solidDIDKey = await SolidTransaction.createSolid(
       connection,
       payer,
       authority.publicKey,
-      CLUSTER,
       SolidData.empty()
     );
   }, 60000);
@@ -38,7 +33,7 @@ describe('resolve', () => {
       solidDIDKey,
       authority.publicKey,
       CLUSTER
-    ).toDID();
+    ).toDIDDocument();
     return expect(document).toMatchObject(expectedDocument);
   });
 });

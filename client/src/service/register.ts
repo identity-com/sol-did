@@ -23,7 +23,6 @@ export const register = async (request: RegisterRequest): Promise<string> => {
     connection,
     payer,
     owner,
-    cluster,
     SolidData.parse(request.document)
   );
 
