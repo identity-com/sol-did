@@ -163,38 +163,6 @@ pub struct DecentralizedIdentifier<'a> {
 }
 
 impl<'a> DecentralizedIdentifier<'a> {
-    /// All SOLID DIDs start with this.
-    const DEFAULT_DID_START: &'static str = "did:solid";
-
-    fn pubkey(&self) -> Pubkey {
-        get_solid_address_with_seed(&self.solid_data.authority).0
-    }
-
-    fn identifier(&self, cluster: ClusterType) -> String {
-        format!(
-            "{}:{}{}{}",
-            Self::DEFAULT_DID_START,
-            DecentralizedIdentifier::<'a>::cluster(cluster),
-            self.pubkey(),
-            self.url()
-        )
-    }
-
-    fn url(&self) -> String {
-        if self.url_field.is_empty() {
-            "".to_string()
-        } else {
-            format!("#{}", self.url_field)
-        }
-    }
-
-    fn cluster(cluster: ClusterType) -> String {
-        match cluster {
-            ClusterType::MainnetBeta => "".to_string(),
-            _ => format!("{}:", cluster.did_identifier()),
-        }
-    }
-
     /// Create new DID when no additional identifier is specified
     pub fn new(solid_data: &'a SolidData) -> Self {
         Self {

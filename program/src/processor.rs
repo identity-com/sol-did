@@ -46,16 +46,11 @@ pub fn process_instruction(
     accounts: &[AccountInfo],
     input: &[u8],
 ) -> ProgramResult {
-    msg!("Hello");
     let instruction = SolidInstruction::try_from_slice(input)?;
     let account_info_iter = &mut accounts.iter();
 
-    msg!("Hello2");
     match instruction {
-        SolidInstruction::Initialize {
-            size,
-            init_data
-        } => {
+        SolidInstruction::Initialize { size, init_data } => {
             msg!("SolidInstruction::Initialize");
 
             let funder_info = next_account_info(account_info_iter)?;

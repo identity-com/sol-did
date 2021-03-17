@@ -66,10 +66,7 @@ pub fn initialize(
     let (solid_account, _) = get_solid_address_with_seed(authority);
     Instruction::new_with_borsh(
         id(),
-        &SolidInstruction::Initialize {
-            size,
-            init_data,
-        },
+        &SolidInstruction::Initialize { size, init_data },
         vec![
             AccountMeta::new(*funder_account, true),
             AccountMeta::new(solid_account, false),
@@ -124,10 +121,7 @@ mod tests {
         let mut expected = vec![0];
         expected.extend_from_slice(&size.to_le_bytes());
         expected.append(&mut init_data.try_to_vec().unwrap());
-        let instruction = SolidInstruction::Initialize {
-            size,
-            init_data,
-        };
+        let instruction = SolidInstruction::Initialize { size, init_data };
         assert_eq!(instruction.try_to_vec().unwrap(), expected);
         assert_eq!(
             SolidInstruction::try_from_slice(&expected).unwrap(),
