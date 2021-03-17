@@ -7,7 +7,6 @@ import {
   write,
 } from './instruction';
 import { Account, Connection, PublicKey, Transaction } from '@solana/web3.js';
-import BN from 'bn.js';
 import { MergeBehaviour } from '../util';
 
 export class SolidTransaction {
@@ -15,13 +14,20 @@ export class SolidTransaction {
     connection: Connection,
     payer: Account,
     authority: PublicKey,
+    size: number,
     initData: SolidData
   ): Promise<PublicKey> {
     const solidKey = await getKeyFromAuthority(authority);
 
     // Allocate memory for the account
     const transaction = new Transaction().add(
-      initialize(payer.publicKey, solidKey, authority, initData)
+      initialize(
+        payer.publicKey,
+        solidKey,
+        authority,
+        size,
+        initData
+      )
     );
 
     // Send the instructions
@@ -103,7 +109,7 @@ export class SolidTransaction {
     );
 
     const transaction = new Transaction().add(
-      write(recordKey, owner.publicKey, new BN(0), mergedData.encode())
+      write(recordKey, owner.publicKey, 0, mergedData.encode())
     );
 
     // Send the instructions

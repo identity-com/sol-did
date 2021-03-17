@@ -6,7 +6,7 @@ import {
   DecentralizedIdentifier,
   SolidData,
 } from '../lib/solana/solid-data';
-import { SOLANA_COMMITMENT } from '../lib/constants';
+import { DEFAULT_DOCUMENT_SIZE, SOLANA_COMMITMENT } from '../lib/constants';
 
 /**
  * Registers a SOLID DID on Solana.
@@ -18,11 +18,13 @@ export const register = async (request: RegisterRequest): Promise<string> => {
     ? new PublicKey(request.owner)
     : getPublicKey(request.payer);
   const cluster = request.cluster || ClusterType.mainnetBeta();
+  const size = request.size || DEFAULT_DOCUMENT_SIZE;
   const connection = new Connection(cluster.solanaUrl(), SOLANA_COMMITMENT);
   const solidKey = await SolidTransaction.createSolid(
     connection,
     payer,
     owner,
+    size,
     SolidData.parse(request.document)
   );
 

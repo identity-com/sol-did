@@ -51,4 +51,18 @@ describe('register', () => {
     // ensure the doc contains the service
     expect(doc.service).toEqual([service]);
   }, 30000);
+
+  it('registers a DID with a size', async () => {
+    const registerRequest: RegisterRequest = {
+      payer: payer.secretKey,
+      cluster: CLUSTER,
+      owner: owner.publicKey.toBase58(),
+      size: 400,
+    };
+    const identifier = await register(registerRequest);
+
+    expect(DecentralizedIdentifier.valid(identifier)).toBeTruthy();
+
+    console.log(identifier);
+  }, 30000);
 });

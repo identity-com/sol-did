@@ -26,6 +26,8 @@ pub enum SolidInstruction {
     /// 3. `[]` Rent sysvar
     /// 4. `[]` System program
     Initialize {
+        /// Size of the DID document
+        size: u64,
         /// Additional data to write into the document
         init_data: SolidData,
     },
@@ -58,12 +60,16 @@ pub fn initialize(
     funder_account: &Pubkey,
     authority: &Pubkey,
     _cluster_type: ClusterType,
+    size: u64,
     init_data: SolidData,
 ) -> Instruction {
     let (solid_account, _) = get_solid_address_with_seed(authority);
     Instruction::new_with_borsh(
         id(),
-        &SolidInstruction::Initialize { init_data },
+        &SolidInstruction::Initialize {
+            size,
+            init_data,
+        },
         vec![
             AccountMeta::new(*funder_account, true),
             AccountMeta::new(solid_account, false),
@@ -113,10 +119,15 @@ mod tests {
     #[test]
     fn serialize_initialize() {
         let _cluster_type = ClusterType::Development;
+        let size = SolidData::DEFAULT_SIZE as u64;
         let init_data = test_solid_data();
         let mut expected = vec![0];
+        expected.extend_from_slice(&size.to_le_bytes());
         expected.append(&mut init_data.try_to_vec().unwrap());
-        let instruction = SolidInstruction::Initialize { init_data };
+        let instruction = SolidInstruction::Initialize {
+            size,
+            init_data,
+        };
         assert_eq!(instruction.try_to_vec().unwrap(), expected);
         assert_eq!(
             SolidInstruction::try_from_slice(&expected).unwrap(),

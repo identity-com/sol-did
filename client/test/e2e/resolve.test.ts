@@ -1,4 +1,5 @@
 import { resolve } from '../../src';
+import { DEFAULT_DOCUMENT_SIZE } from '../../src/lib/constants';
 import { SolidData } from '../../src/lib/solana/solid-data';
 import { SolanaUtil } from '../../src/lib/solana/solana-util';
 import { SolidTransaction } from '../../src/lib/solana/transaction';
@@ -20,6 +21,7 @@ describe('resolve', () => {
       connection,
       payer,
       authority.publicKey,
+      DEFAULT_DOCUMENT_SIZE,
       SolidData.empty()
     );
   }, 60000);

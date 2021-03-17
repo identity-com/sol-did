@@ -9,6 +9,8 @@ import { makeService } from '../../../util';
 
 const pub = () => new Account().publicKey;
 
+const withoutAuthority = (solidData: SolidData) => omit(['authority'], solidData);
+
 describe('solid-data', () => {
   describe('merge', () => {
     describe('with default behaviour', () => {
@@ -35,8 +37,8 @@ describe('solid-data', () => {
 
         const merged = sparse.merge(empty);
 
-        expect(omit(['authority'], merged)).toEqual(
-          omit(['authority'], sparse)
+        expect(withoutAuthority(merged)).toEqual(
+          withoutAuthority(sparse)
         );
 
         expect(merged.authority).toEqual(empty.authority);

@@ -8,14 +8,14 @@ import {
   SystemProgram,
   SYSVAR_RENT_PUBKEY,
 } from '@solana/web3.js';
-import BN from 'bn.js';
 
 export class Initialize extends Assignable {
+  size: number;
   initData: SolidData;
 }
 
 export class Write extends Assignable {
-  offset: BN;
+  offset: number;
   data: Uint8Array;
 }
 
@@ -26,13 +26,16 @@ export class SolidInstruction extends Enum {
   write: Write;
   closeAccount: CloseAccount;
 
-  static initialize(initData: SolidData): SolidInstruction {
+  static initialize(
+    size: number,
+    initData: SolidData
+  ): SolidInstruction {
     return new SolidInstruction({
-      initialize: new Initialize({ initData }),
+      initialize: new Initialize({ size, initData }),
     });
   }
 
-  static write(offset: BN, data: Uint8Array): SolidInstruction {
+  static write(offset: number, data: Uint8Array): SolidInstruction {
     return new SolidInstruction({ write: new Write({ offset, data }) });
   }
 
@@ -55,6 +58,7 @@ export function initialize(
   payer: PublicKey,
   solidKey: PublicKey,
   authority: PublicKey,
+  size: number,
   initData: SolidData
 ): TransactionInstruction {
   const keys: AccountMeta[] = [
@@ -66,6 +70,7 @@ export function initialize(
   ];
   const initDataWithAuthorityAndKey = initData.forAuthority(authority);
   const data = SolidInstruction.initialize(
+    size,
     initDataWithAuthorityAndKey
   ).encode();
   return new TransactionInstruction({
@@ -78,7 +83,7 @@ export function initialize(
 export function write(
   solidAccount: PublicKey,
   authority: PublicKey,
-  offset: BN,
+  offset: number,
   solidData: Uint8Array
 ): TransactionInstruction {
   const keys: AccountMeta[] = [
@@ -125,7 +130,8 @@ SCHEMA.set(SolidInstruction, {
 });
 SCHEMA.set(Initialize, {
   kind: 'struct',
-  fields: [['initData', SolidData]],
+  fields: [['size', 'u64'],
+    ['initData', SolidData]],
 });
 SCHEMA.set(Write, {
   kind: 'struct',

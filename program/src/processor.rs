@@ -52,7 +52,10 @@ pub fn process_instruction(
 
     msg!("Hello2");
     match instruction {
-        SolidInstruction::Initialize { init_data } => {
+        SolidInstruction::Initialize {
+            size,
+            init_data
+        } => {
             msg!("SolidInstruction::Initialize");
 
             let funder_info = next_account_info(account_info_iter)?;
@@ -85,8 +88,8 @@ pub fn process_instruction(
                 &system_instruction::create_account(
                     funder_info.key,
                     data_info.key,
-                    1.max(rent.minimum_balance(SolidData::LEN)),
-                    SolidData::LEN as u64,
+                    1.max(rent.minimum_balance(size as usize)),
+                    size,
                     &id(),
                 ),
                 &[

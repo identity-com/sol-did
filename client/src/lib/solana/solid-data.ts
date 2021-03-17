@@ -2,7 +2,7 @@ import { clusterApiUrl, Cluster, PublicKey, Account } from '@solana/web3.js';
 import { Assignable, Enum, SCHEMA } from './solana-borsh';
 import { DID_METHOD, DID_HEADER } from '../constants';
 import { encode } from 'bs58';
-import { mergeWith } from 'ramda';
+import { mergeWith, omit } from 'ramda';
 import {
   DIDDocument,
   VerificationMethod as DIDVerificationMethod,
@@ -53,7 +53,11 @@ export class SolidData extends Assignable {
       }
       return b;
     };
-    const mergedData = mergeWith(mergeBehaviour, this, other);
+
+    // merging data into a DID Document should not change its identifier
+    const dataToMerge = omit(['did'], other);
+
+    const mergedData = mergeWith(mergeBehaviour, this, dataToMerge);
     return new SolidData(mergedData);
   }
 
