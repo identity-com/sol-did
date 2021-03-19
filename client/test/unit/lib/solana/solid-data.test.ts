@@ -15,7 +15,7 @@ const withoutAuthority = (solidData: SolidData) =>
 describe('solid-data', () => {
   describe('merge', () => {
     describe('with default behaviour', () => {
-      it('should merge a sparse solidData object into an empty one', () => {
+      it('should merge a sparse solidData object into an empty one, except the authority', () => {
         const empty = SolidData.empty();
         const sparse = SolidData.sparse(
           pub(),
@@ -25,10 +25,10 @@ describe('solid-data', () => {
 
         const merged = empty.merge(sparse);
 
-        expect(merged).toMatchObject(sparse);
+        expect(withoutAuthority(merged)).toEqual(withoutAuthority(sparse));
       });
 
-      it('should not change a sparse solidData object when merging an empty one into it, except for the authority', () => {
+      it('should not change a sparse solidData object when merging an empty one into it', () => {
         const empty = SolidData.empty();
         const sparse = SolidData.sparse(
           pub(),
@@ -38,9 +38,7 @@ describe('solid-data', () => {
 
         const merged = sparse.merge(empty);
 
-        expect(withoutAuthority(merged)).toEqual(withoutAuthority(sparse));
-
-        expect(merged.authority).toEqual(empty.authority);
+        expect(merged).toMatchObject(sparse);
       });
 
       it('should not change a sparse solidData object when merging an empty one with no authority', () => {
@@ -107,7 +105,7 @@ describe('solid-data', () => {
 
         const merged = empty.merge(sparse, true);
 
-        expect(merged).toMatchObject(sparse);
+        expect(withoutAuthority(merged)).toEqual(withoutAuthority(sparse));
       });
 
       it('should clear the contents of a solidData object when merging an empty one', () => {
@@ -120,8 +118,8 @@ describe('solid-data', () => {
 
         const merged = sparse.merge(empty, true);
 
-        expect(merged).toMatchObject({
-          ...empty,
+        expect(withoutAuthority(merged)).toMatchObject({
+          ...withoutAuthority(empty),
           account: sparse.account, // empty SolidData objects have no account
         });
       });

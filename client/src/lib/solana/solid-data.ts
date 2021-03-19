@@ -9,6 +9,9 @@ import {
   ServiceEndpoint as DIDServiceEndpoint,
 } from 'did-resolver';
 
+// The identifier for a default verification method, i.e one inferred from the authority
+export const DEFAULT_KEY_ID = 'default';
+
 export class SolidData extends Assignable {
   // derived
   account: SolidPublicKey;
@@ -54,8 +57,8 @@ export class SolidData extends Assignable {
       return b;
     };
 
-    // merging data into a DID Document should not change its identifier
-    const dataToMerge = omit(['did'], other);
+    // merging data into a DID Document should not change its identifier (derived from the authority)
+    const dataToMerge = omit(['authority'], other);
 
     const mergedData = mergeWith(mergeBehaviour, this, dataToMerge);
     return new SolidData(mergedData);
@@ -74,34 +77,22 @@ export class SolidData extends Assignable {
     authority: PublicKey,
     clusterType: ClusterType
   ): SolidData {
-    const context = SolidData.defaultContext();
-    const verificationMethod = VerificationMethod.newPublicKey(authority);
-    const authentication = [verificationMethod.id];
-    const capabilityInvocation = [verificationMethod.id];
-    const capabilityDelegation = [];
-    const keyAgreement = [];
-    const assertionMethod = [];
-    const service = [];
-    return new SolidData({
-      cluster: clusterType,
+    const emptySolidData = SolidData.empty(authority);
+
+    return emptySolidData.merge({
+      context: SolidData.defaultContext(),
       account: SolidPublicKey.fromPublicKey(account),
       authority: SolidPublicKey.fromPublicKey(authority),
-      context,
-      verificationMethod: [verificationMethod],
-      authentication,
-      capabilityInvocation,
-      capabilityDelegation,
-      keyAgreement,
-      assertionMethod,
-      service,
+      cluster: clusterType,
     });
   }
 
-  static empty(): SolidData {
+  static empty(authority?: PublicKey): SolidData {
     return new SolidData({
       cluster: ClusterType.mainnetBeta(),
-      // account: SolidPublicKey.fromPublicKey(new Account().publicKey),
-      authority: SolidPublicKey.fromPublicKey(new Account().publicKey),
+      authority: SolidPublicKey.fromPublicKey(
+        authority || new Account().publicKey
+      ),
 
       context: [],
       verificationMethod: [],
@@ -121,13 +112,44 @@ export class SolidData extends Assignable {
     });
   }
 
+  /**
+   * Infers a set of verification methods by combining:
+   * 1. The authority
+   * 2. the explicit verification methods stored in the document
+   *
+   * Should match the program function state.rs SolidData.inferred_verification_methods
+   */
+  inferredVerificationMethods(): VerificationMethod[] {
+    return [
+      VerificationMethod.newPublicKey(this.authority.toPublicKey()),
+      ...this.verificationMethod,
+    ];
+  }
+
+  /*
+   * Infers a set of capability invocations from either:
+   * 1. The authority
+   * 2. the explicit capability invocations stored in the document
+   * By default, the authority is also the key that is allowed to update or delete the DID,
+   * However, if an explicit capability invocation list is specified, this can be overruled,
+   * allowing revocability of lost keys while retaining the original DID identifier (which is
+   * derived from the authority)
+   *
+   * Should match the program function state.rs SolidData.inferred_capability_invocation
+   */
+  inferredCapabilityInvocation(): string[] {
+    return this.capabilityInvocation && this.capabilityInvocation.length
+      ? this.capabilityInvocation
+      : [DEFAULT_KEY_ID];
+  }
+
   toDIDDocument(): DIDDocument {
     const deriveDID = (urlField: string) =>
       this.identifier()
         .withUrl(urlField)
         .toString();
 
-    const verificationMethods = this.verificationMethod.map(v =>
+    const verificationMethods = this.inferredVerificationMethods().map(v =>
       v.toDID(this.identifier())
     );
     return {
@@ -137,7 +159,7 @@ export class SolidData extends Assignable {
       authentication: this.authentication.map(deriveDID),
       assertionMethod: this.assertionMethod.map(deriveDID),
       keyAgreement: this.keyAgreement.map(deriveDID),
-      capabilityInvocation: this.capabilityInvocation.map(deriveDID),
+      capabilityInvocation: this.inferredCapabilityInvocation().map(deriveDID),
       capabilityDelegation: this.capabilityDelegation.map(deriveDID),
       service: this.service.map(v => v.toDID(this.identifier())),
       publicKey: verificationMethods,
@@ -189,8 +211,10 @@ export class VerificationMethod extends Assignable {
     return 'Ed25519VerificationKey2018';
   }
 
-  static newPublicKey(authority: PublicKey): VerificationMethod {
-    const id = 'key1';
+  static newPublicKey(
+    authority: PublicKey,
+    id = DEFAULT_KEY_ID
+  ): VerificationMethod {
     const verificationType = VerificationMethod.defaultVerificationType();
     const pubkey = SolidPublicKey.fromPublicKey(authority);
     return new VerificationMethod({ id, verificationType, pubkey });
