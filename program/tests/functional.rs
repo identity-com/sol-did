@@ -277,6 +277,8 @@ async fn write_fail_wrong_authority() {
 async fn write_fail_overridden_authority() {
     let mut context = program_test().start_with_context().await;
 
+    // create a DID with an authority, but immediately add a new authority to the verification methods
+    // so the original authority is no longer able to use it
     let original_authority = Keypair::new();
     let new_authority = Keypair::new();
     let mut init_data = SolidData::default();
@@ -304,6 +306,7 @@ async fn write_fail_overridden_authority() {
     let (solid, _) = get_solid_address_with_seed(&original_authority.pubkey());
     let new_data = SolidData::new_sparse(original_authority.pubkey());
 
+    // attempt to make a change as the original authority
     let transaction_with_original_authority = Transaction::new_signed_with_payer(
         &[instruction::write(
             &solid,
@@ -315,6 +318,9 @@ async fn write_fail_overridden_authority() {
         &[&context.payer, &original_authority],
         context.last_blockhash,
     );
+
+    // the transaction should fail because
+    // the original authority is no longer authorized to make changes
     assert_eq!(
         context
             .banks_client
