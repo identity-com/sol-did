@@ -24,7 +24,6 @@ use {
 };
 
 fn check_authority(authority_info: &AccountInfo, solid: &SolidData) -> ProgramResult {
-  // TODO - infer authority from authority field
     if !authority_info.is_signer {
         msg!("Solid authority signature missing");
         return Err(ProgramError::MissingRequiredSignature);

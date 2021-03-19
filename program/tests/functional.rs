@@ -20,8 +20,8 @@ use {
         id, instruction,
         processor::process_instruction,
         state::{
-            get_solid_address_with_seed, ClusterType, DecentralizedIdentifier, ServiceEndpoint,
-            SolidData, VerificationMethod,
+            get_solid_address_with_seed, DecentralizedIdentifier, ServiceEndpoint, SolidData,
+            VerificationMethod,
         },
     },
 };
@@ -39,7 +39,6 @@ async fn initialize_did_account(
         &[instruction::initialize(
             &context.payer.pubkey(),
             authority,
-            ClusterType::Development,
             size as u64,
             SolidData::default(),
         )],
@@ -52,14 +51,19 @@ async fn initialize_did_account(
 
 fn check_solid(data: SolidData, authority: Pubkey) {
     let did = DecentralizedIdentifier::new(&data);
-    let verification_method = VerificationMethod::new(authority);
+    let verification_method = VerificationMethod::new_default(authority);
     assert_eq!(data.context, SolidData::default_context());
     assert_eq!(data.did(), did);
-    assert_eq!(data.verification_method, vec![verification_method.clone()]);
-    assert_eq!(data.authentication, vec![verification_method.id.clone()]);
+    assert_eq!(data.verification_method, vec![]);
     assert_eq!(
-        data.capability_invocation,
-        vec![verification_method.id.clone()]
+        data.inferred_verification_methods(),
+        vec![verification_method.clone()]
+    );
+    assert_eq!(data.authentication, vec![] as Vec<String>);
+    assert_eq!(data.capability_invocation, vec![] as Vec<String>);
+    assert_eq!(
+        data.inferred_capability_invocation(),
+        vec![VerificationMethod::DEFAULT_KEY_ID.to_string()]
     );
     assert_eq!(data.capability_delegation, vec![] as Vec<String>);
     assert_eq!(data.key_agreement, vec![] as Vec<String>);
@@ -94,8 +98,6 @@ async fn initialize_with_service_success() {
     let authority = Pubkey::new_unique();
     let (solid, _) = get_solid_address_with_seed(&authority);
     let mut init_data = SolidData::default();
-    let cluster_type = ClusterType::Development;
-    // let id = DecentralizedIdentifier::new(cluster_type.clone(), authority.clone());
     let endpoint = "http://localhost".to_string();
     let endpoint_type = "local".to_string();
     let description = "A localhost service".to_string();
@@ -110,7 +112,6 @@ async fn initialize_with_service_success() {
         &[instruction::initialize(
             &context.payer.pubkey(),
             &authority,
-            cluster_type,
             SolidData::DEFAULT_SIZE as u64,
             init_data,
         )],
@@ -149,7 +150,6 @@ async fn initialize_twice_fail() {
         &[instruction::initialize(
             &context.payer.pubkey(),
             &authority,
-            ClusterType::Development,
             1,
             SolidData::default(),
         )],
@@ -263,6 +263,62 @@ async fn write_fail_wrong_authority() {
         context
             .banks_client
             .process_transaction(transaction)
+            .await
+            .unwrap_err()
+            .unwrap(),
+        TransactionError::InstructionError(
+            0,
+            InstructionError::Custom(SolidError::IncorrectAuthority as u32)
+        )
+    );
+}
+
+#[tokio::test]
+async fn write_fail_overridden_authority() {
+    let mut context = program_test().start_with_context().await;
+
+    let original_authority = Keypair::new();
+    let new_authority = Keypair::new();
+    let mut init_data = SolidData::default();
+    let new_authority_method = VerificationMethod::new(new_authority.pubkey(), "key1".to_string());
+    init_data.verification_method = vec![new_authority_method];
+    init_data.capability_invocation = vec!["key1".to_string()];
+
+    let create_transaction = Transaction::new_signed_with_payer(
+        &[instruction::initialize(
+            &context.payer.pubkey(),
+            &original_authority.pubkey(),
+            SolidData::DEFAULT_SIZE as u64,
+            init_data,
+        )],
+        Some(&context.payer.pubkey()),
+        &[&context.payer],
+        context.last_blockhash,
+    );
+    context
+        .banks_client
+        .process_transaction(create_transaction)
+        .await
+        .unwrap();
+
+    let (solid, _) = get_solid_address_with_seed(&original_authority.pubkey());
+    let new_data = SolidData::new_sparse(original_authority.pubkey());
+
+    let transaction_with_original_authority = Transaction::new_signed_with_payer(
+        &[instruction::write(
+            &solid,
+            &original_authority.pubkey(),
+            0,
+            new_data.try_to_vec().unwrap(),
+        )],
+        Some(&context.payer.pubkey()),
+        &[&context.payer, &original_authority],
+        context.last_blockhash,
+    );
+    assert_eq!(
+        context
+            .banks_client
+            .process_transaction(transaction_with_original_authority)
             .await
             .unwrap_err()
             .unwrap(),
