@@ -1,6 +1,11 @@
 import { clusterApiUrl, Cluster, PublicKey, Account } from '@solana/web3.js';
 import { Assignable, Enum, SCHEMA } from './solana-borsh';
-import { DID_METHOD, DID_HEADER } from '../constants';
+import {
+  DID_METHOD,
+  DID_HEADER,
+  SOLID_CONTEXT_PREFIX,
+  W3ID_CONTEXT,
+} from '../constants';
 import { encode } from 'bs58';
 import { mergeWith, omit } from 'ramda';
 import {
@@ -9,8 +14,13 @@ import {
   ServiceEndpoint as DIDServiceEndpoint,
 } from 'did-resolver';
 
+// The current SOLID method version
+export const VERSION = '1';
+
 // The identifier for a default verification method, i.e one inferred from the authority
 export const DEFAULT_KEY_ID = 'default';
+
+type Context = 'https://w3id.org/did/v1' | string | string[];
 
 export class SolidData extends Assignable {
   // derived
@@ -19,7 +29,7 @@ export class SolidData extends Assignable {
 
   // persisted
   authority: SolidPublicKey;
-  context: string[];
+  version: string;
   verificationMethod: VerificationMethod[];
   authentication: string[];
   capabilityInvocation: string[];
@@ -68,8 +78,12 @@ export class SolidData extends Assignable {
     return 1000;
   }
 
-  static defaultContext(): string[] {
-    return ['https://w3id.org/did/v1.0', 'https://w3id.org/solid/v1'];
+  static solidContext(version: string = VERSION) {
+    return SOLID_CONTEXT_PREFIX + version;
+  }
+
+  static defaultContext(version: string = VERSION): string[] {
+    return [W3ID_CONTEXT, SolidData.solidContext(version)];
   }
 
   static sparse(
@@ -80,7 +94,7 @@ export class SolidData extends Assignable {
     const emptySolidData = SolidData.empty(authority);
 
     return emptySolidData.merge({
-      context: SolidData.defaultContext(),
+      version: VERSION,
       account: SolidPublicKey.fromPublicKey(account),
       authority: SolidPublicKey.fromPublicKey(authority),
       cluster: clusterType,
@@ -94,7 +108,7 @@ export class SolidData extends Assignable {
         authority || new Account().publicKey
       ),
 
-      context: [],
+      version: VERSION,
       verificationMethod: [],
       authentication: [],
       capabilityInvocation: [],
@@ -153,7 +167,7 @@ export class SolidData extends Assignable {
       v.toDID(this.identifier())
     );
     return {
-      '@context': this.context,
+      '@context': SolidData.defaultContext(this.version),
       id: this.identifier().toString(),
       verificationMethod: verificationMethods,
       authentication: this.authentication.map(deriveDID),
@@ -166,10 +180,26 @@ export class SolidData extends Assignable {
     };
   }
 
+  // extract the version from a DID JSON-LD context, if the context is an array
+  // and includes the Solid Context Prefix.
+  // Otherwise, just return the default version.
+  private static parseVersion(context: Context | undefined) {
+    if (context && Array.isArray(context)) {
+      const solidContext = context.find(c =>
+        c.startsWith(SOLID_CONTEXT_PREFIX)
+      );
+
+      if (solidContext)
+        return solidContext.substring(SOLID_CONTEXT_PREFIX.length);
+    }
+
+    return VERSION;
+  }
+
   static parse(document: Partial<DIDDocument> | undefined): SolidData {
     if (document) {
       return new SolidData({
-        context: document['@context'] || [],
+        version: SolidData.parseVersion(document['@context']),
         did: document.id
           ? DecentralizedIdentifier.parse(document.id)
           : DecentralizedIdentifier.empty(),
@@ -450,7 +480,7 @@ SCHEMA.set(SolidData, {
   kind: 'struct',
   fields: [
     ['authority', SolidPublicKey],
-    ['context', ['string']],
+    ['version', 'string'],
     ['verificationMethod', [VerificationMethod]],
     ['authentication', ['string']],
     ['capabilityInvocation', ['string']],

@@ -2,7 +2,6 @@
 use {
     crate::{error::SolidError, id},
     borsh::{BorshDeserialize, BorshSchema, BorshSerialize},
-    // regex::Regex,
     solana_program::{program_pack::IsInitialized, pubkey::Pubkey},
     std::str::FromStr,
 };
@@ -22,9 +21,9 @@ pub struct SolidData {
     /// and first verification method
     pub authority: Pubkey,
 
-    /// DecentralizedIdentifier context, defaults to:
-    /// ["https://w3id.org/did/v1.0", "https://w3id.org/solid/v1"]
-    pub context: Vec<String>,
+    /// DecentralizedIdentifier version - used to generate the DID JSON-LD context:
+    /// ["https://w3id.org/did/v1.0", "https://w3id.org/solid/v" +  version]
+    pub version: String,
 
     /// All of the public keys related to the DecentralizedIdentifier
     pub verification_method: Vec<VerificationMethod>,
@@ -45,10 +44,8 @@ pub struct SolidData {
 impl SolidData {
     /// Default size of struct
     pub const DEFAULT_SIZE: usize = 1_000;
-    /// The context coming from SOLID
-    pub const SOLID_CONTEXT: &'static str = "https://w3id.org/solid/v1";
-    /// The default context from any DID
-    pub const DID_CONTEXT: &'static str = "https://w3id.org/did/v1.0";
+    /// The SOLID DID method version
+    pub const DEFAULT_VERSION: &'static str = "1";
 
     /// Create a DID for this DIDDocument
     pub fn did(&self) -> DecentralizedIdentifier {
@@ -58,20 +55,13 @@ impl SolidData {
         }
     }
 
-    /// Default context field on a SOLID
-    pub fn default_context() -> Vec<String> {
-        vec![
-            Self::DID_CONTEXT.to_string(),
-            Self::SOLID_CONTEXT.to_string(),
-        ]
-    }
     /// Create a new SOLID for testing write capabilities
     /// The verification methods and capability invocation arrays
     /// are inferred from the authority
     pub fn new_sparse(authority: Pubkey) -> Self {
         Self {
             authority,
-            context: Self::default_context(),
+            version: Self::DEFAULT_VERSION.to_string(),
             verification_method: vec![],
             authentication: vec![],
             capability_invocation: vec![],
@@ -120,7 +110,9 @@ impl SolidData {
     }
     /// Merge one DID into another.  The ID does not change, exact copies
     pub fn merge(&mut self, other: SolidData) {
-        merge_vecs(&mut self.context, other.context);
+        if !other.version.is_empty() {
+            self.version = other.version
+        }
         merge_vecs(&mut self.verification_method, other.verification_method);
         merge_vecs(&mut self.authentication, other.authentication);
         merge_vecs(&mut self.capability_invocation, other.capability_invocation);
@@ -257,8 +249,7 @@ impl VerificationMethod {
 impl IsInitialized for SolidData {
     /// Is initialized
     fn is_initialized(&self) -> bool {
-        self.context.iter().any(|e| e == Self::SOLID_CONTEXT)
-            && self.context.iter().any(|e| e == Self::DID_CONTEXT)
+        !self.version.is_empty()
     }
 }
 
@@ -289,7 +280,7 @@ pub mod tests {
     pub fn test_solid_data() -> SolidData {
         SolidData {
             authority: TEST_PUBKEY,
-            context: SolidData::default_context(),
+            version: SolidData::DEFAULT_VERSION.to_string(),
             verification_method: vec![test_verification_method()],
             authentication: vec![VerificationMethod::DEFAULT_KEY_ID.to_string()],
             capability_invocation: vec![VerificationMethod::DEFAULT_KEY_ID.to_string()],
@@ -312,7 +303,7 @@ pub mod tests {
     fn deserialize_empty() {
         let data = [0u8; SolidData::DEFAULT_SIZE];
         let deserialized = program_borsh::try_from_slice_incomplete::<SolidData>(&data).unwrap();
-        assert_eq!(deserialized.context, vec![] as Vec<String>);
+        assert_eq!(deserialized.version, "");
         assert_eq!(deserialized.verification_method, vec![]);
         assert_eq!(deserialized.authentication, vec![] as Vec<String>);
         assert_eq!(deserialized.capability_invocation, vec![] as Vec<String>);
