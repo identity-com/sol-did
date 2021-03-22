@@ -23,16 +23,19 @@ use {
     },
 };
 
+fn is_authority(authority_info: &AccountInfo, solid: &SolidData) -> bool {
+    solid
+        .write_authorized_pubkeys()
+        .iter()
+        .any(|v| v == authority_info.key)
+}
+
 fn check_authority(authority_info: &AccountInfo, solid: &SolidData) -> ProgramResult {
     if !authority_info.is_signer {
         msg!("Solid authority signature missing");
         return Err(ProgramError::MissingRequiredSignature);
     }
-    if solid
-        .write_authorized_pubkeys()
-        .iter()
-        .any(|v| v == authority_info.key)
-    {
+    if is_authority(authority_info, solid) {
         Ok(())
     } else {
         msg!("Incorrect Solid authority provided");
@@ -148,5 +151,24 @@ pub fn process_instruction(
                 .ok_or(SolidError::Overflow)?;
             Ok(())
         }
+    }
+}
+
+/// Given a DID, validate that the signers contain at least one
+/// account that has permissions to sign transactions using the DID.
+pub fn validate_owner(did: &AccountInfo, signers: &[AccountInfo]) -> ProgramResult {
+    let solid = program_borsh::try_from_slice_incomplete::<SolidData>(*did.data.borrow())?;
+
+    if signers
+        .iter()
+        .any(|s| s.is_signer && is_authority(s, &solid))
+    {
+        Ok(())
+    } else {
+        msg!(&format!(
+            "No valid signer provided for the DID provided: {}",
+            did.key
+        ));
+        Err(SolidError::IncorrectAuthority.into())
     }
 }

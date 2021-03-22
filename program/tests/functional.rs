@@ -1,6 +1,7 @@
 // Mark this test as BPF-only due to current `ProgramTest` limitations when CPIing into the system program
 #![cfg(feature = "test-bpf")]
 
+use solana_sdk::account::Account;
 use {
     borsh::BorshSerialize,
     solana_program::{
@@ -10,6 +11,7 @@ use {
     },
     solana_program_test::{processor, ProgramTest, ProgramTestContext},
     solana_sdk::{
+        account_info::{AccountInfo, IntoAccountInfo},
         signature::{Keypair, Signer},
         transaction::{Transaction, TransactionError},
         transport,
@@ -18,7 +20,7 @@ use {
         borsh as program_borsh,
         error::SolidError,
         id, instruction,
-        processor::process_instruction,
+        processor::{process_instruction, validate_owner},
         state::{
             get_solid_address_with_seed, DecentralizedIdentifier, ServiceEndpoint, SolidData,
             VerificationMethod,
@@ -480,3 +482,35 @@ async fn close_account_fail_unsigned() {
         TransactionError::InstructionError(0, InstructionError::MissingRequiredSignature)
     );
 }
+
+// #[tokio::test]
+// async fn validate_owner_success() {
+//   let mut context = program_test().start_with_context().await;
+//
+//   let authority = Keypair::new();
+//   initialize_did_account(&mut context, &authority.pubkey(), SolidData::DEFAULT_SIZE)
+//     .await
+//     .unwrap();
+//
+//   let (solid, _) = get_solid_address_with_seed(&authority.pubkey());
+//   let mut solid_account = context
+//     .banks_client
+//     .get_account(solid)
+//     .await
+//     .unwrap()
+//     .unwrap();
+//
+//   let solid_account_info = make_account_info(&authority, solid, &mut solid_account);
+//   let authority_account_info = make_account_info(&authority, authority.pubkey(), &mut solid_account);
+//
+//   assert_eq!(
+//     validate_owner(&solid_account_info, &[authority_account_info]),
+//     Ok(())
+//   )
+// }
+//
+// fn make_account_info<'a>(authority: &'a Keypair, pubkey: Pubkey, account: &'a mut Account) -> AccountInfo<'a> {
+//   let mut lamports: u64 = 0;
+//   let mut account_data = account.data.as_mut_slice();
+//   return AccountInfo::new(&pubkey, false, false, &mut lamports, & mut account_data, &authority.pubkey(), false, 0);
+// }
