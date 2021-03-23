@@ -12,7 +12,41 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./driver
+        working-directory: ./drivers/uniresolver
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install
+        run: yarn install
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Test
+        run: yarn test --ci --coverage --maxWorkers=2
+
+      - name: Build
+        run: yarn build
+
+  did-io-driver-build:
+    name: Build, lint, and test the driver on Node ${{ matrix.node }} and ${{ matrix.os }}
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node: ['15.x']
+        os: [ubuntu-latest]
+
+    defaults:
+      run:
+        working-directory: ./drivers/did-io
 
     steps:
       - name: Checkout repo
