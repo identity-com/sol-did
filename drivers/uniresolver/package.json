@@ -18,7 +18,7 @@
     "start": "tsdx watch",
     "build": "tsdx build",
     "postbuild": "mkdir dist/api && cp src/api/openapi.yml dist/api/",
-    "pretest": "(cd ../client && yarn && yarn build && yarn link) && yarn link @identity.com/solid-did-client",
+    "pretest": "(cd ../../client && yarn && yarn build && yarn link) && yarn link @identity.com/solid-did-client",
     "test": "tsdx test",
     "lint": "tsdx lint --maxWarnings 0",
     "prepare": "yarn build",
