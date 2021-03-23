@@ -66,26 +66,55 @@ impl SolidData {
         ]
     }
     /// Create a new SOLID for testing write capabilities
+    /// The verification methods and capability invocation arrays
+    /// are inferred from the authority
     pub fn new_sparse(authority: Pubkey) -> Self {
-        let verification_method = VerificationMethod::new(authority);
-        let verification_id = verification_method.id.clone();
         Self {
             authority,
             context: Self::default_context(),
-            verification_method: vec![verification_method],
-            authentication: vec![verification_id.clone()],
-            capability_invocation: vec![verification_id],
+            verification_method: vec![],
+            authentication: vec![],
+            capability_invocation: vec![],
             capability_delegation: vec![],
             key_agreement: vec![],
             assertion_method: vec![],
             service: vec![],
         }
     }
+
+    /// Infers a set of verification methods by combining:
+    /// 1. The authority
+    /// 2. the explicit verification methods stored in the document
+    pub fn inferred_verification_methods(&self) -> Vec<VerificationMethod> {
+        let default_verification_method = VerificationMethod::new_default(self.authority);
+        let mut combined_vector = vec![default_verification_method];
+
+        combined_vector.extend(self.verification_method.iter().cloned());
+
+        combined_vector
+    }
+
+    /// Infers a set of capability invocations from either:
+    /// 1. The authority
+    /// 2. the explicit capability invocations stored in the document
+    /// By default, the authority is also the key that is allowed to update or delete the DID,
+    /// However, if an explicit capability invocation list is specified, this can be overruled,
+    /// allowing revocability of lost keys while retaining the original DID identifier (which is
+    /// derived from the authority)
+    pub fn inferred_capability_invocation(&self) -> Vec<String> {
+        if !self.capability_invocation.is_empty() {
+            return self.capability_invocation.clone();
+        }
+
+        return vec![VerificationMethod::DEFAULT_KEY_ID.to_string()];
+    }
+
     /// Get the list of pubkeys that can update the document
     pub fn write_authorized_pubkeys(&self) -> Vec<Pubkey> {
-        self.verification_method
+        let inferred_capability_invocation_keys = self.inferred_capability_invocation();
+        self.inferred_verification_methods()
             .iter()
-            .filter(|v| self.capability_invocation.contains(&v.id))
+            .filter(|v| inferred_capability_invocation_keys.contains(&v.id))
             .map(|v| v.pubkey)
             .collect()
     }
@@ -201,17 +230,24 @@ pub struct VerificationMethod {
 }
 
 impl VerificationMethod {
-    /// TODO improve the key naming scheme.  Currently we just add on #key1
-    pub const DEFAULT_KEY_ID: &'static str = "key1";
+    /// The identifier for a default verification method, i.e one inferred from the
+    /// authority
+    pub const DEFAULT_KEY_ID: &'static str = "default";
 
     /// The only possible verification type at the moment
     pub const DEFAULT_TYPE: &'static str = "Ed25519VerificationKey2018";
 
     /// Create a new verification method controlled by the given DID, and
+    /// authenticated by the given Pubkey, with the default ID
+    pub fn new_default(pubkey: Pubkey) -> Self {
+        Self::new(pubkey, Self::DEFAULT_KEY_ID.to_string())
+    }
+
+    /// Create a new verification method controlled by the given DID, and
     /// authenticated by the given Pubkey
-    pub fn new(pubkey: Pubkey) -> Self {
+    pub fn new(pubkey: Pubkey, id: String) -> Self {
         Self {
-            id: Self::DEFAULT_KEY_ID.to_string(),
+            id,
             verification_type: Self::DEFAULT_TYPE.to_string(),
             pubkey,
         }
@@ -285,54 +321,4 @@ pub mod tests {
         assert_eq!(deserialized.assertion_method, vec![] as Vec<String>);
         assert_eq!(deserialized.service, vec![]);
     }
-
-    // #[test]
-    // fn parse_did() {
-    //     let valid_pubkey =
-    //         Pubkey::from_str("FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP").unwrap();
-    //
-    //     let valid = "did:solid:devnet:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP";
-    //     let did = DecentralizedIdentifier::from_str(&valid).unwrap();
-    //     assert_eq!(did.pubkey, valid_pubkey);
-    //     assert_eq!(did.url_field, "");
-    //
-    //     let valid = "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP";
-    //     let did = DecentralizedIdentifier::from_str(&valid).unwrap();
-    //     assert_eq!(did.pubkey, valid_pubkey);
-    //     assert_eq!(did.url_field, "");
-    //
-    //     let valid = "did:solid:testnet:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP#key1";
-    //     let did = DecentralizedIdentifier::from_str(&valid).unwrap();
-    //     assert_eq!(did.pubkey, valid_pubkey);
-    //     assert_eq!(did.url_field, "key1");
-    //
-    //     let valid = "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP#key1";
-    //     let did = DecentralizedIdentifier::from_str(&valid).unwrap();
-    //     assert_eq!(did.pubkey, valid_pubkey);
-    //     assert_eq!(did.url_field, "key1");
-    // }
-    //
-    // #[test]
-    // fn parse_invalid_did() {
-    //     // no did:solid
-    //     let invalid = "solid:devnet:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP";
-    //     assert_eq!(
-    //         DecentralizedIdentifier::from_str(&invalid).unwrap_err(),
-    //         SolidError::InvalidString
-    //     );
-    //
-    //     // unknown network
-    //     let invalid = "did:solid:mynetwork:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP";
-    //     assert_eq!(
-    //         DecentralizedIdentifier::from_str(&invalid).unwrap_err(),
-    //         SolidError::InvalidString
-    //     );
-    //
-    //     // bad pubkey
-    //     let invalid = "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP111111";
-    //     assert_eq!(
-    //         DecentralizedIdentifier::from_str(&invalid).unwrap_err(),
-    //         SolidError::InvalidString
-    //     );
-    // }
 }

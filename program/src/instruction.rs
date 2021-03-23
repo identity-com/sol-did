@@ -3,7 +3,7 @@
 use {
     crate::{
         id,
-        state::{get_solid_address_with_seed, ClusterType, SolidData},
+        state::{get_solid_address_with_seed, SolidData},
     },
     borsh::{BorshDeserialize, BorshSerialize},
     solana_program::{
@@ -59,7 +59,6 @@ pub enum SolidInstruction {
 pub fn initialize(
     funder_account: &Pubkey,
     authority: &Pubkey,
-    _cluster_type: ClusterType,
     size: u64,
     init_data: SolidData,
 ) -> Instruction {
@@ -115,7 +114,6 @@ mod tests {
 
     #[test]
     fn serialize_initialize() {
-        let _cluster_type = ClusterType::Development;
         let size = SolidData::DEFAULT_SIZE as u64;
         let init_data = test_solid_data();
         let mut expected = vec![0];
