@@ -1,40 +1,44 @@
-import {PublicKeyBase58, PrivateKey, ClusterType} from '@identity.com/solid-did-client';
+import {
+  PublicKeyBase58,
+  PrivateKey,
+  ClusterType,
+} from '@identity.com/solid-did-client';
 import * as DID from '@identity.com/solid-did-client';
-import {Cluster} from "@solana/web3.js";
-import {DIDDocument} from "did-resolver";
+import { Cluster } from '@solana/web3.js';
+import { DIDDocument } from 'did-resolver';
 
 type Properties = {
-  payer: PrivateKey
-}
+  payer: PrivateKey;
+};
 
 type GetParameters = {
-  did: string,
-}
+  did: string;
+};
 
 type RegisterParameters = {
-  key: PublicKeyBase58,
-  size: number,
-  cluster: 'localnet' | Cluster
-}
+  key: PublicKeyBase58;
+  size: number;
+  cluster: 'localnet' | Cluster;
+};
 
 export class Driver {
   private payer: PrivateKey;
 
-  constructor({ payer }:Properties) {
+  constructor({ payer }: Properties) {
     this.payer = payer;
   }
 
-  async get({did}:GetParameters):Promise<DIDDocument> {
+  async get({ did }: GetParameters): Promise<DIDDocument> {
     return DID.resolve(did);
   }
 
-  async register({key, size = 1000, cluster}:RegisterParameters) {
+  async register({ key, size = 1000, cluster }: RegisterParameters) {
     return DID.register({
       owner: key,
       payer: this.payer,
       size,
-      cluster: ClusterType.parse(cluster)
-    })
+      cluster: ClusterType.parse(cluster),
+    });
   }
 }
 

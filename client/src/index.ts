@@ -13,5 +13,5 @@ export {
   MergeBehaviour,
   generateKeypair,
   PrivateKey,
-  PublicKeyBase58
+  PublicKeyBase58,
 } from './lib/util';
