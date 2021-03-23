@@ -2,6 +2,7 @@
 #![cfg(feature = "test-bpf")]
 
 use solana_sdk::account::Account;
+use solana_sdk::program_error::ProgramError;
 use {
     borsh::BorshSerialize,
     solana_program::{
@@ -27,8 +28,6 @@ use {
         },
     },
 };
-use solana_sdk::account_info::AccountInfo;
-use std::borrow::Borrow;
 
 fn program_test() -> ProgramTest {
     ProgramTest::new("solid_did", id(), processor!(process_instruction))
@@ -487,45 +486,47 @@ async fn close_account_fail_unsigned() {
 
 #[tokio::test]
 async fn validate_owner_success() {
-  let authority = Keypair::new();
-  let solid_account_info = create_solid_account(authority).await;
+    let authority = Keypair::new();
 
-  let mut empty_account = Account::new(0, 0, &authority.pubkey());
-  let authority_key = &authority.pubkey();
-  let authority_account_info = (authority_key, true, &mut empty_account).into_account_info();
+    let (solid_pubkey, mut solid_account) = create_solid_account(authority.pubkey()).await;
+    let solid_account_info = (&solid_pubkey, false, &mut solid_account).into_account_info();
 
-  let validation_result = validate_owner(&solid_account_info, &[authority_account_info]);
-  assert_eq!(validation_result, Ok(()));
+    let mut empty_account = Account::new(0, 0, &authority.pubkey());
+    let authority_key = &authority.pubkey();
+    let authority_account_info = (authority_key, true, &mut empty_account).into_account_info();
+
+    let validation_result = validate_owner(&solid_account_info, &[authority_account_info]);
+    assert_eq!(validation_result, Ok(()));
 }
 
 #[tokio::test]
 async fn validate_owner_failed_non_signer() {
-  let authority = Keypair::new();
+    let authority = Keypair::new();
 
-  let solid_account_info = create_solid_account(authority).await;
+    let (solid_pubkey, mut solid_account) = create_solid_account(authority.pubkey()).await;
+    let solid_account_info = (&solid_pubkey, false, &mut solid_account).into_account_info();
 
-  let mut empty_account = Account::new(0, 0, &authority.pubkey());
-  let authority_key = &authority.pubkey();
-  let authority_account_info = (authority_key, false, &mut empty_account).into_account_info();
+    let mut empty_account = Account::new(0, 0, &authority.pubkey());
+    let authority_key = &authority.pubkey();
+    let authority_account_info = (authority_key, false, &mut empty_account).into_account_info();
 
-  let validation_result = validate_owner(&solid_account_info, &[authority_account_info]);
-  assert_eq!(validation_result, Ok(()))
+    let validation_result = validate_owner(&solid_account_info, &[authority_account_info]);
+    assert_eq!(validation_result, Err(ProgramError::Custom(0)))
 }
 
-async fn create_solid_account<'a>(authority: Keypair) -> AccountInfo<'a> {
-  let mut context = program_test().start_with_context().await;
-  initialize_did_account(&mut context, &authority.pubkey(), SolidData::DEFAULT_SIZE)
-    .await
-    .unwrap();
+async fn create_solid_account<'a>(authority_pubkey: Pubkey) -> (Pubkey, Account) {
+    let mut context = program_test().start_with_context().await;
+    initialize_did_account(&mut context, &authority_pubkey, SolidData::DEFAULT_SIZE)
+        .await
+        .unwrap();
 
-  let (solid, _) = get_solid_address_with_seed(&authority.pubkey());
-  let solidref:  &'a Pubkey = &(solid.borrow());
-  let mut solid_account = context
-    .banks_client
-    .get_account(solid)
-    .await
-    .unwrap()
-    .unwrap();
+    let (solid, _) = get_solid_address_with_seed(&authority_pubkey);
+    let solid_account = context
+        .banks_client
+        .get_account(solid)
+        .await
+        .unwrap()
+        .unwrap();
 
-  (solidref, false, & mut solid_account).into_account_info()
+    (solid, solid_account)
 }
