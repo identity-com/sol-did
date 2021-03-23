@@ -6,7 +6,9 @@ import { ClusterType, SolanaUtil } from '@identity.com/solid-did-client';
 
 const cluster = ClusterType.devnet();
 
-describe('did-io integration', () => {
+// Creates a DID on Solana Devnet
+// Skipped until the changes to the program are pushed to Devnet
+describe.skip('did-io integration', () => {
   beforeAll(async () => {
     const connection = new Connection(cluster.solanaUrl(), 'recent');
     const payerAccount = await SolanaUtil.newAccountWithLamports(
