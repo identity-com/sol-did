@@ -165,10 +165,6 @@ pub fn validate_owner(did: &AccountInfo, signers: &[AccountInfo]) -> ProgramResu
     {
         Ok(())
     } else {
-        msg!(&format!(
-            "No valid signer provided for the DID provided: {}",
-            did.key
-        ));
         Err(SolidError::IncorrectAuthority.into())
     }
 }
