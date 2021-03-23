@@ -3,7 +3,7 @@ on:
   push:
     paths:
     - 'client/**'
-  pull_request
+  pull_request:
 jobs:
   build:
     name: Build, lint, and test the solid client on Node ${{ matrix.node }} and ${{ matrix.os }}

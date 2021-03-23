@@ -3,7 +3,7 @@ on:
   push:
     paths:
     - 'program'
-  pull_request
+  pull_request:
 jobs:
   program-lint:
     name: Format and lint the solid on-chain program on Rust ${{ matrix.rust }} and ${{ matrix.os }}

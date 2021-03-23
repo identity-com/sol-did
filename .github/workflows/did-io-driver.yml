@@ -3,7 +3,7 @@ on:
   push:
     paths:
     - 'drivers/did-io'
-  pull_request
+  pull_request:
 jobs:
   driver-build:
     name: Build, lint, and test the did-io driver on Node ${{ matrix.node }} and ${{ matrix.os }}

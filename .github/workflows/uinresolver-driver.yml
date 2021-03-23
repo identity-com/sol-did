@@ -3,7 +3,7 @@ on:
   push:
     paths:
     - 'drivers/uniresolver'
-  pull_request
+  pull_request:
 jobs:
   driver-build:
     name: Build, lint, and test the driver on Node ${{ matrix.node }} and ${{ matrix.os }}
