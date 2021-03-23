@@ -9,12 +9,13 @@ import { makeService } from '../../../util';
 
 const pub = () => new Account().publicKey;
 
-const withoutIdentifier = (solidData: SolidData) => omit(['did'], solidData);
+const withoutAuthority = (solidData: SolidData) =>
+  omit(['authority'], solidData);
 
 describe('solid-data', () => {
   describe('merge', () => {
     describe('with default behaviour', () => {
-      it('should merge a sparse solidData object into an empty one', () => {
+      it('should merge a sparse solidData object into an empty one, except the authority', () => {
         const empty = SolidData.empty();
         const sparse = SolidData.sparse(
           pub(),
@@ -24,27 +25,10 @@ describe('solid-data', () => {
 
         const merged = empty.merge(sparse);
 
-        expect(merged).toMatchObject(withoutIdentifier(sparse));
+        expect(withoutAuthority(merged)).toEqual(withoutAuthority(sparse));
       });
 
-      it('should not change the solidData identifier on merge', () => {
-        const original = SolidData.sparse(
-          pub(),
-          pub(),
-          ClusterType.mainnetBeta()
-        );
-        const newData = SolidData.sparse(
-          pub(),
-          pub(),
-          ClusterType.mainnetBeta()
-        );
-
-        const merged = original.merge(newData);
-
-        expect(merged.did).toEqual(original.did);
-      });
-
-      it('should not change a sparse solidData object when merging an empty one into it, except for the identifier', () => {
+      it('should not change a sparse solidData object when merging an empty one into it', () => {
         const empty = SolidData.empty();
         const sparse = SolidData.sparse(
           pub(),
@@ -54,13 +38,27 @@ describe('solid-data', () => {
 
         const merged = sparse.merge(empty);
 
-        expect(withoutIdentifier(merged)).toEqual(withoutIdentifier(sparse));
+        expect(merged).toMatchObject(sparse);
       });
 
-      it('should allow properties to be added to empty arrays', () => {
+      it('should not change a sparse solidData object when merging an empty one with no authority', () => {
+        const empty = SolidData.empty() as Partial<SolidData>;
+        delete empty.authority;
+        const sparse = SolidData.sparse(
+          pub(),
+          pub(),
+          ClusterType.mainnetBeta()
+        );
+
+        const merged = sparse.merge(empty);
+
+        expect(merged).toMatchObject(sparse);
+      });
+
+      it('should allow properties to be added to empty arrays', async () => {
         const withService = SolidData.empty();
         withService.service = [
-          ServiceEndpoint.parse(makeService(new Account())),
+          ServiceEndpoint.parse(await makeService(new Account())),
         ];
         const sparse = SolidData.sparse(
           pub(),
@@ -73,18 +71,18 @@ describe('solid-data', () => {
         expect(merged.service).toEqual(withService.service);
       });
 
-      it('should allow properties to be added to existing arrays', () => {
+      it('should allow properties to be added to existing arrays', async () => {
         const sparseWithService = SolidData.sparse(
           pub(),
           pub(),
           ClusterType.mainnetBeta()
         );
         sparseWithService.service = [
-          ServiceEndpoint.parse(makeService(new Account())),
+          ServiceEndpoint.parse(await makeService(new Account())),
         ];
 
         const justService = new SolidData({
-          service: [ServiceEndpoint.parse(makeService(new Account()))],
+          service: [ServiceEndpoint.parse(await makeService(new Account()))],
         });
 
         const merged = sparseWithService.merge(justService);
@@ -107,7 +105,7 @@ describe('solid-data', () => {
 
         const merged = empty.merge(sparse, true);
 
-        expect(merged).toMatchObject(withoutIdentifier(sparse));
+        expect(withoutAuthority(merged)).toEqual(withoutAuthority(sparse));
       });
 
       it('should clear the contents of a solidData object when merging an empty one', () => {
@@ -120,21 +118,24 @@ describe('solid-data', () => {
 
         const merged = sparse.merge(empty, true);
 
-        expect(merged).toMatchObject(withoutIdentifier(empty));
+        expect(withoutAuthority(merged)).toMatchObject({
+          ...withoutAuthority(empty),
+          account: sparse.account, // empty SolidData objects have no account
+        });
       });
 
-      it('should allow properties to be replaced', () => {
+      it('should allow properties to be replaced', async () => {
         const sparseWithService = SolidData.sparse(
           pub(),
           pub(),
           ClusterType.mainnetBeta()
         );
         sparseWithService.service = [
-          ServiceEndpoint.parse(makeService(new Account())),
+          ServiceEndpoint.parse(await makeService(new Account())),
         ];
 
         const justService = new SolidData({
-          service: [ServiceEndpoint.parse(makeService(new Account()))],
+          service: [ServiceEndpoint.parse(await makeService(new Account()))],
         });
 
         const merged = sparseWithService.merge(justService, true);

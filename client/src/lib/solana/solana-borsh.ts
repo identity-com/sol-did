@@ -12,7 +12,7 @@ export abstract class Assignable {
     return Buffer.from(serialize(SCHEMA, this));
   }
 
-  static decode(data: Buffer): any {
+  static decode<T extends Assignable>(data: Buffer): T {
     return deserializeExtraBytes(SCHEMA, this, data);
   }
 }
@@ -111,11 +111,11 @@ function deserializeStruct(
 }
 
 /// Deserializes object from bytes using schema.
-export function deserializeExtraBytes(
+export function deserializeExtraBytes<T extends Assignable>(
   schema: Schema,
   classType: any,
   buffer: Buffer
-): any {
+): T {
   const reader = new BinaryReader(buffer);
   return deserializeStruct(schema, classType, reader);
 }

@@ -18,10 +18,11 @@ export const resolve = async (identifier: string): Promise<DIDDocument> => {
   );
   const solidData = await SolidTransaction.getSolid(
     connection,
+    id.clusterType,
     id.pubkey.toPublicKey()
   );
   if (solidData !== null) {
-    return solidData.toDID();
+    return solidData.toDIDDocument();
   } else {
     throw new Error(`No DID found at identifier ${identifier}`);
   }

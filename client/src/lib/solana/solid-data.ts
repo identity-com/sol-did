@@ -1,6 +1,11 @@
-import { clusterApiUrl, Cluster, PublicKey } from '@solana/web3.js';
+import { clusterApiUrl, Cluster, PublicKey, Account } from '@solana/web3.js';
 import { Assignable, Enum, SCHEMA } from './solana-borsh';
-import { DID_METHOD, DID_HEADER } from '../constants';
+import {
+  DID_METHOD,
+  DID_HEADER,
+  SOLID_CONTEXT_PREFIX,
+  W3ID_CONTEXT,
+} from '../constants';
 import { encode } from 'bs58';
 import { mergeWith, omit } from 'ramda';
 import {
@@ -9,18 +14,52 @@ import {
   ServiceEndpoint as DIDServiceEndpoint,
 } from 'did-resolver';
 
+// The current SOLID method version
+export const VERSION = '1';
+
+// The identifier for a default verification method, i.e one inferred from the authority
+export const DEFAULT_KEY_ID = 'default';
+
+type Context = 'https://w3id.org/did/v1' | string | string[];
+
 export class SolidData extends Assignable {
-  context: string[];
-  did: DecentralizedIdentifier;
+  // derived
+  account: SolidPublicKey;
+  cluster: ClusterType;
+
+  // persisted
+  authority: SolidPublicKey;
+  version: string;
   verificationMethod: VerificationMethod[];
-  authentication: DecentralizedIdentifier[];
-  capabilityInvocation: DecentralizedIdentifier[];
-  capabilityDelegation: DecentralizedIdentifier[];
-  keyAgreement: DecentralizedIdentifier[];
-  assertionMethod: DecentralizedIdentifier[];
+  authentication: string[];
+  capabilityInvocation: string[];
+  capabilityDelegation: string[];
+  keyAgreement: string[];
+  assertionMethod: string[];
   service: ServiceEndpoint[];
 
-  merge(other: SolidData, overwriteArrays: boolean = false): SolidData {
+  static fromAccount(
+    accountKey: PublicKey,
+    accountData: Buffer,
+    cluster: ClusterType
+  ): SolidData {
+    const solidData = SolidData.decode<SolidData>(accountData);
+    solidData.cluster = cluster;
+    solidData.account = SolidPublicKey.fromPublicKey(accountKey);
+    return solidData;
+  }
+
+  forAuthority(authority: PublicKey) {
+    return new SolidData({
+      ...this,
+      authority: SolidPublicKey.fromPublicKey(authority),
+    });
+  }
+
+  merge(
+    other: Partial<SolidData>,
+    overwriteArrays: boolean = false
+  ): SolidData {
     const mergeBehaviour = (a: any, b: any): any => {
       if (a && Array.isArray(a)) {
         return overwriteArrays && b ? b : [...a, ...b];
@@ -28,8 +67,8 @@ export class SolidData extends Assignable {
       return b;
     };
 
-    // merging data into a DID Document should not change its identifier
-    const dataToMerge = omit(['did'], other);
+    // merging data into a DID Document should not change its identifier (derived from the authority)
+    const dataToMerge = omit(['authority'], other);
 
     const mergedData = mergeWith(mergeBehaviour, this, dataToMerge);
     return new SolidData(mergedData);
@@ -39,8 +78,12 @@ export class SolidData extends Assignable {
     return 1000;
   }
 
-  static defaultContext(): string[] {
-    return ['https://w3id.org/did/v1.0', 'https://w3id.org/solid/v1'];
+  static solidContext(version: string = VERSION) {
+    return SOLID_CONTEXT_PREFIX + version;
+  }
+
+  static defaultContext(version: string = VERSION): string[] {
+    return [W3ID_CONTEXT, SolidData.solidContext(version)];
   }
 
   static sparse(
@@ -48,37 +91,24 @@ export class SolidData extends Assignable {
     authority: PublicKey,
     clusterType: ClusterType
   ): SolidData {
-    const context = SolidData.defaultContext();
-    const pubkey = SolidPublicKey.fromPublicKey(account);
-    const did = new DecentralizedIdentifier({
-      clusterType,
-      pubkey,
-      identifier: '',
-    });
-    const verificationMethod = VerificationMethod.newPublicKey(did, authority);
-    const authentication = [verificationMethod.id];
-    const capabilityInvocation = [verificationMethod.id];
-    const capabilityDelegation = [];
-    const keyAgreement = [];
-    const assertionMethod = [];
-    const service = [];
-    return new SolidData({
-      context,
-      did,
-      verificationMethod: [verificationMethod],
-      authentication,
-      capabilityInvocation,
-      capabilityDelegation,
-      keyAgreement,
-      assertionMethod,
-      service,
+    const emptySolidData = SolidData.empty(authority);
+
+    return emptySolidData.merge({
+      version: VERSION,
+      account: SolidPublicKey.fromPublicKey(account),
+      authority: SolidPublicKey.fromPublicKey(authority),
+      cluster: clusterType,
     });
   }
 
-  static empty(): SolidData {
+  static empty(authority?: PublicKey): SolidData {
     return new SolidData({
-      context: [],
-      did: DecentralizedIdentifier.empty(),
+      cluster: ClusterType.mainnetBeta(),
+      authority: SolidPublicKey.fromPublicKey(
+        authority || new Account().publicKey
+      ),
+
+      version: VERSION,
       verificationMethod: [],
       authentication: [],
       capabilityInvocation: [],
@@ -89,26 +119,87 @@ export class SolidData extends Assignable {
     });
   }
 
-  toDID(): DIDDocument {
+  identifier(): DecentralizedIdentifier {
+    return new DecentralizedIdentifier({
+      clusterType: this.cluster,
+      pubkey: this.account,
+    });
+  }
+
+  /**
+   * Infers a set of verification methods by combining:
+   * 1. The authority
+   * 2. the explicit verification methods stored in the document
+   *
+   * Should match the program function state.rs SolidData.inferred_verification_methods
+   */
+  inferredVerificationMethods(): VerificationMethod[] {
+    return [
+      VerificationMethod.newPublicKey(this.authority.toPublicKey()),
+      ...this.verificationMethod,
+    ];
+  }
+
+  /*
+   * Infers a set of capability invocations from either:
+   * 1. The authority
+   * 2. the explicit capability invocations stored in the document
+   * By default, the authority is also the key that is allowed to update or delete the DID,
+   * However, if an explicit capability invocation list is specified, this can be overruled,
+   * allowing revocability of lost keys while retaining the original DID identifier (which is
+   * derived from the authority)
+   *
+   * Should match the program function state.rs SolidData.inferred_capability_invocation
+   */
+  inferredCapabilityInvocation(): string[] {
+    return this.capabilityInvocation && this.capabilityInvocation.length
+      ? this.capabilityInvocation
+      : [DEFAULT_KEY_ID];
+  }
+
+  toDIDDocument(): DIDDocument {
+    const deriveDID = (urlField: string) =>
+      this.identifier()
+        .withUrl(urlField)
+        .toString();
+
+    const verificationMethods = this.inferredVerificationMethods().map(v =>
+      v.toDID(this.identifier())
+    );
     return {
-      '@context': this.context,
-      id: this.did.toString(),
-      verificationMethod: this.verificationMethod.map(v => v.toDID()),
-      authentication: this.authentication.map(v => v.toString()),
-      assertionMethod: this.assertionMethod.map(v => v.toString()),
-      keyAgreement: this.keyAgreement.map(v => v.toString()),
-      capabilityInvocation: this.capabilityInvocation.map(v => v.toString()),
-      capabilityDelegation: this.capabilityDelegation.map(v => v.toString()),
-      service: this.service.map(v => v.toDID()),
-      // @ts-ignore
-      publicKey: this.verificationMethod.map(v => v.toDID()),
+      '@context': SolidData.defaultContext(this.version),
+      id: this.identifier().toString(),
+      verificationMethod: verificationMethods,
+      authentication: this.authentication.map(deriveDID),
+      assertionMethod: this.assertionMethod.map(deriveDID),
+      keyAgreement: this.keyAgreement.map(deriveDID),
+      capabilityInvocation: this.inferredCapabilityInvocation().map(deriveDID),
+      capabilityDelegation: this.capabilityDelegation.map(deriveDID),
+      service: this.service.map(v => v.toDID(this.identifier())),
+      publicKey: verificationMethods,
     };
+  }
+
+  // extract the version from a DID JSON-LD context, if the context is an array
+  // and includes the Solid Context Prefix.
+  // Otherwise, just return the default version.
+  private static parseVersion(context: Context | undefined) {
+    if (context && Array.isArray(context)) {
+      const solidContext = context.find(c =>
+        c.startsWith(SOLID_CONTEXT_PREFIX)
+      );
+
+      if (solidContext)
+        return solidContext.substring(SOLID_CONTEXT_PREFIX.length);
+    }
+
+    return VERSION;
   }
 
   static parse(document: Partial<DIDDocument> | undefined): SolidData {
     if (document) {
       return new SolidData({
-        context: document['@context'] || [],
+        version: SolidData.parseVersion(document['@context']),
         did: document.id
           ? DecentralizedIdentifier.parse(document.id)
           : DecentralizedIdentifier.empty(),
@@ -141,7 +232,7 @@ export class SolidData extends Assignable {
 }
 
 export class VerificationMethod extends Assignable {
-  id: DecentralizedIdentifier;
+  id: string;
   verificationType: string;
   controller: DecentralizedIdentifier;
   pubkey: SolidPublicKey;
@@ -151,21 +242,19 @@ export class VerificationMethod extends Assignable {
   }
 
   static newPublicKey(
-    controller: DecentralizedIdentifier,
-    authority: PublicKey
+    authority: PublicKey,
+    id = DEFAULT_KEY_ID
   ): VerificationMethod {
-    const id = controller.clone();
-    id.identifier = 'key1';
     const verificationType = VerificationMethod.defaultVerificationType();
     const pubkey = SolidPublicKey.fromPublicKey(authority);
-    return new VerificationMethod({ id, verificationType, controller, pubkey });
+    return new VerificationMethod({ id, verificationType, pubkey });
   }
 
-  toDID(): DIDVerificationMethod {
+  toDID(parentDID: DecentralizedIdentifier): DIDVerificationMethod {
     return {
-      id: this.id.toString(),
+      id: parentDID.withUrl(this.id).toString(),
       type: this.verificationType,
-      controller: this.controller.toString(),
+      controller: parentDID.toString(),
       publicKeyBase58: this.pubkey.toString(),
     };
   }
@@ -187,14 +276,14 @@ export class VerificationMethod extends Assignable {
 }
 
 export class ServiceEndpoint extends Assignable {
-  id: DecentralizedIdentifier;
+  id: string;
   endpointType: string;
   endpoint: string;
   description: string;
 
-  toDID(): DIDServiceEndpoint {
+  toDID(parentDID: DecentralizedIdentifier): DIDServiceEndpoint {
     return {
-      id: this.id.toString(),
+      id: parentDID.withUrl(this.id).toString(),
       type: this.endpointType,
       serviceEndpoint: this.endpoint,
       description: this.description,
@@ -203,7 +292,7 @@ export class ServiceEndpoint extends Assignable {
 
   static parse(service: DIDServiceEndpoint): ServiceEndpoint {
     return new ServiceEndpoint({
-      id: DecentralizedIdentifier.parse(service.id),
+      id: DecentralizedIdentifier.parse(service.id).urlField,
       endpointType: service.type,
       endpoint: service.serviceEndpoint,
       description: service.description,
@@ -214,13 +303,20 @@ export class ServiceEndpoint extends Assignable {
 export class DecentralizedIdentifier extends Assignable {
   clusterType: ClusterType;
   pubkey: SolidPublicKey;
-  identifier: string;
+  urlField: string;
 
   clone(): DecentralizedIdentifier {
     return new DecentralizedIdentifier({
       clusterType: this.clusterType,
       pubkey: this.pubkey,
-      identifier: this.identifier,
+      urlField: this.urlField,
+    });
+  }
+
+  withUrl(urlField: string) {
+    return new DecentralizedIdentifier({
+      ...this,
+      urlField,
     });
   }
 
@@ -228,8 +324,9 @@ export class DecentralizedIdentifier extends Assignable {
     const cluster = this.clusterType.mainnetBeta
       ? ''
       : `${this.clusterType.toString()}:`;
-    const identifier = this.identifier === '' ? '' : `#${this.identifier}`;
-    return `${DID_HEADER}:${DID_METHOD}:${cluster}${this.pubkey.toString()}${identifier}`;
+    const urlField =
+      !this.urlField || this.urlField === '' ? '' : `#${this.urlField}`; // TODO add support for / urls
+    return `${DID_HEADER}:${DID_METHOD}:${cluster}${this.pubkey.toString()}${urlField}`;
   }
 
   static REGEX = new RegExp('^did:' + DID_METHOD + ':?(\\w*):(\\w+)#?(\\w*)$');
@@ -242,7 +339,7 @@ export class DecentralizedIdentifier extends Assignable {
       return new DecentralizedIdentifier({
         clusterType: ClusterType.parse(matches[1]),
         pubkey: SolidPublicKey.parse(matches[2]),
-        identifier: matches[3],
+        urlField: matches[3],
       });
     } else {
       throw new Error('Provided DID is not a string');
@@ -382,38 +479,36 @@ export class Development extends Assignable {}
 SCHEMA.set(SolidData, {
   kind: 'struct',
   fields: [
-    ['context', ['string']],
-    ['did', DecentralizedIdentifier],
+    ['authority', SolidPublicKey],
+    ['version', 'string'],
     ['verificationMethod', [VerificationMethod]],
-    ['authentication', [DecentralizedIdentifier]],
-    ['capabilityInvocation', [DecentralizedIdentifier]],
-    ['capabilityDelegation', [DecentralizedIdentifier]],
-    ['keyAgreement', [DecentralizedIdentifier]],
-    ['assertionMethod', [DecentralizedIdentifier]],
+    ['authentication', ['string']],
+    ['capabilityInvocation', ['string']],
+    ['capabilityDelegation', ['string']],
+    ['keyAgreement', ['string']],
+    ['assertionMethod', ['string']],
     ['service', [ServiceEndpoint]],
   ],
 });
 SCHEMA.set(VerificationMethod, {
   kind: 'struct',
   fields: [
-    ['id', DecentralizedIdentifier],
+    ['id', 'string'],
     ['verificationType', 'string'],
-    ['controller', DecentralizedIdentifier],
     ['pubkey', SolidPublicKey],
   ],
 });
 SCHEMA.set(DecentralizedIdentifier, {
   kind: 'struct',
   fields: [
-    ['clusterType', ClusterType],
-    ['pubkey', SolidPublicKey],
+    ['solidData', SolidData],
     ['identifier', 'string'],
   ],
 });
 SCHEMA.set(ServiceEndpoint, {
   kind: 'struct',
   fields: [
-    ['id', DecentralizedIdentifier],
+    ['id', 'string'],
     ['endpointType', 'string'],
     ['endpoint', 'string'],
     ['description', 'string'],

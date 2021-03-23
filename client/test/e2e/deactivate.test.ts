@@ -17,7 +17,6 @@ describe('deactivate', () => {
       connection,
       owner,
       owner.publicKey,
-      CLUSTER,
       DEFAULT_DOCUMENT_SIZE,
       SolidData.empty()
     );

@@ -20,7 +20,8 @@ use {
         id, instruction,
         processor::process_instruction,
         state::{
-            ClusterType, DecentralizedIdentifier, ServiceEndpoint, SolidData, VerificationMethod,
+            get_solid_address_with_seed, DecentralizedIdentifier, ServiceEndpoint, SolidData,
+            VerificationMethod,
         },
     },
 };
@@ -38,7 +39,6 @@ async fn initialize_did_account(
         &[instruction::initialize(
             &context.payer.pubkey(),
             authority,
-            ClusterType::Development,
             size as u64,
             SolidData::default(),
         )],
@@ -49,20 +49,25 @@ async fn initialize_did_account(
     context.banks_client.process_transaction(transaction).await
 }
 
-fn check_solid(data: SolidData, solid_key: Pubkey, authority: Pubkey) {
-    let did = DecentralizedIdentifier::new(ClusterType::Development, solid_key);
-    let verification_method = VerificationMethod::new(did.clone(), authority);
-    assert_eq!(data.context, SolidData::default_context());
-    assert_eq!(data.did, did);
-    assert_eq!(data.verification_method, vec![verification_method.clone()]);
-    assert_eq!(data.authentication, vec![verification_method.id.clone()]);
+fn check_solid(data: SolidData, authority: Pubkey) {
+    let did = DecentralizedIdentifier::new(&data);
+    let verification_method = VerificationMethod::new_default(authority);
+    assert_eq!(data.version, SolidData::DEFAULT_VERSION);
+    assert_eq!(data.did(), did);
+    assert_eq!(data.verification_method, vec![]);
     assert_eq!(
-        data.capability_invocation,
-        vec![verification_method.id.clone()]
+        data.inferred_verification_methods(),
+        vec![verification_method.clone()]
     );
-    assert_eq!(data.capability_delegation, vec![]);
-    assert_eq!(data.key_agreement, vec![]);
-    assert_eq!(data.assertion_method, vec![]);
+    assert_eq!(data.authentication, vec![] as Vec<String>);
+    assert_eq!(data.capability_invocation, vec![] as Vec<String>);
+    assert_eq!(
+        data.inferred_capability_invocation(),
+        vec![VerificationMethod::DEFAULT_KEY_ID.to_string()]
+    );
+    assert_eq!(data.capability_delegation, vec![] as Vec<String>);
+    assert_eq!(data.key_agreement, vec![] as Vec<String>);
+    assert_eq!(data.assertion_method, vec![] as Vec<String>);
     assert_eq!(data.service, vec![]);
 }
 
@@ -71,7 +76,7 @@ async fn initialize_success() {
     let mut context = program_test().start_with_context().await;
 
     let authority = Pubkey::new_unique();
-    let (solid, _) = instruction::get_solid_address_with_seed(&authority);
+    let (solid, _) = get_solid_address_with_seed(&authority);
     initialize_did_account(&mut context, &authority, SolidData::DEFAULT_SIZE)
         .await
         .unwrap();
@@ -83,7 +88,7 @@ async fn initialize_success() {
         .unwrap();
     let account_data =
         program_borsh::try_from_slice_incomplete::<SolidData>(&account_info.data).unwrap();
-    check_solid(account_data, solid, authority);
+    check_solid(account_data, authority);
 }
 
 #[tokio::test]
@@ -91,15 +96,13 @@ async fn initialize_with_service_success() {
     let mut context = program_test().start_with_context().await;
 
     let authority = Pubkey::new_unique();
-    let (solid, _) = instruction::get_solid_address_with_seed(&authority);
+    let (solid, _) = get_solid_address_with_seed(&authority);
     let mut init_data = SolidData::default();
-    let cluster_type = ClusterType::Development;
-    let id = DecentralizedIdentifier::new(cluster_type.clone(), authority.clone());
     let endpoint = "http://localhost".to_string();
     let endpoint_type = "local".to_string();
     let description = "A localhost service".to_string();
     let service_endpoint = ServiceEndpoint {
-        id,
+        id: "service1".to_string(),
         endpoint_type,
         endpoint,
         description,
@@ -109,7 +112,6 @@ async fn initialize_with_service_success() {
         &[instruction::initialize(
             &context.payer.pubkey(),
             &authority,
-            cluster_type,
             SolidData::DEFAULT_SIZE as u64,
             init_data,
         )],
@@ -148,7 +150,6 @@ async fn initialize_twice_fail() {
         &[instruction::initialize(
             &context.payer.pubkey(),
             &authority,
-            ClusterType::Development,
             1,
             SolidData::default(),
         )],
@@ -187,7 +188,7 @@ async fn write_success() {
     let mut context = program_test().start_with_context().await;
 
     let authority = Keypair::new();
-    let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
+    let (solid, _) = get_solid_address_with_seed(&authority.pubkey());
     initialize_did_account(&mut context, &authority.pubkey(), SolidData::DEFAULT_SIZE)
         .await
         .unwrap();
@@ -201,7 +202,7 @@ async fn write_success() {
     let mut solid_data =
         program_borsh::try_from_slice_incomplete::<SolidData>(&account_info.data).unwrap();
     let test_endpoint = ServiceEndpoint {
-        id: solid_data.did.clone(),
+        id: "service1".to_string(),
         endpoint_type: "example".to_string(),
         endpoint: "example.com".to_string(),
         description: "".to_string(),
@@ -244,11 +245,8 @@ async fn write_fail_wrong_authority() {
         .await
         .unwrap();
 
-    let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
-    let new_data = SolidData::new_sparse(
-        DecentralizedIdentifier::new(ClusterType::Development, authority.pubkey()),
-        authority.pubkey(),
-    );
+    let (solid, _) = get_solid_address_with_seed(&authority.pubkey());
+    let new_data = SolidData::new_sparse(authority.pubkey());
     let wrong_authority = Keypair::new();
     let transaction = Transaction::new_signed_with_payer(
         &[instruction::write(
@@ -276,19 +274,78 @@ async fn write_fail_wrong_authority() {
 }
 
 #[tokio::test]
+async fn write_fail_overridden_authority() {
+    let mut context = program_test().start_with_context().await;
+
+    // create a DID with an authority, but immediately add a new authority to the verification methods
+    // so the original authority is no longer able to use it
+    let original_authority = Keypair::new();
+    let new_authority = Keypair::new();
+    let mut init_data = SolidData::default();
+    let new_authority_method = VerificationMethod::new(new_authority.pubkey(), "key1".to_string());
+    init_data.verification_method = vec![new_authority_method];
+    init_data.capability_invocation = vec!["key1".to_string()];
+
+    let create_transaction = Transaction::new_signed_with_payer(
+        &[instruction::initialize(
+            &context.payer.pubkey(),
+            &original_authority.pubkey(),
+            SolidData::DEFAULT_SIZE as u64,
+            init_data,
+        )],
+        Some(&context.payer.pubkey()),
+        &[&context.payer],
+        context.last_blockhash,
+    );
+    context
+        .banks_client
+        .process_transaction(create_transaction)
+        .await
+        .unwrap();
+
+    let (solid, _) = get_solid_address_with_seed(&original_authority.pubkey());
+    let new_data = SolidData::new_sparse(original_authority.pubkey());
+
+    // attempt to make a change as the original authority
+    let transaction_with_original_authority = Transaction::new_signed_with_payer(
+        &[instruction::write(
+            &solid,
+            &original_authority.pubkey(),
+            0,
+            new_data.try_to_vec().unwrap(),
+        )],
+        Some(&context.payer.pubkey()),
+        &[&context.payer, &original_authority],
+        context.last_blockhash,
+    );
+
+    // the transaction should fail because
+    // the original authority is no longer authorized to make changes
+    assert_eq!(
+        context
+            .banks_client
+            .process_transaction(transaction_with_original_authority)
+            .await
+            .unwrap_err()
+            .unwrap(),
+        TransactionError::InstructionError(
+            0,
+            InstructionError::Custom(SolidError::IncorrectAuthority as u32)
+        )
+    );
+}
+
+#[tokio::test]
 async fn write_fail_unsigned() {
     let mut context = program_test().start_with_context().await;
 
     let authority = Keypair::new();
-    let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
+    let (solid, _) = get_solid_address_with_seed(&authority.pubkey());
     initialize_did_account(&mut context, &authority.pubkey(), SolidData::DEFAULT_SIZE)
         .await
         .unwrap();
 
-    let new_data = SolidData::new_sparse(
-        DecentralizedIdentifier::new(ClusterType::Development, authority.pubkey()),
-        authority.pubkey(),
-    );
+    let new_data = SolidData::new_sparse(authority.pubkey());
     let data = new_data.try_to_vec().unwrap();
     let transaction = Transaction::new_signed_with_payer(
         &[Instruction::new_with_borsh(
@@ -319,7 +376,7 @@ async fn close_account_success() {
     let mut context = program_test().start_with_context().await;
 
     let authority = Keypair::new();
-    let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
+    let (solid, _) = get_solid_address_with_seed(&authority.pubkey());
     initialize_did_account(&mut context, &authority.pubkey(), SolidData::DEFAULT_SIZE)
         .await
         .unwrap();
@@ -358,7 +415,7 @@ async fn close_account_fail_wrong_authority() {
     let mut context = program_test().start_with_context().await;
 
     let authority = Keypair::new();
-    let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
+    let (solid, _) = get_solid_address_with_seed(&authority.pubkey());
     initialize_did_account(&mut context, &authority.pubkey(), SolidData::DEFAULT_SIZE)
         .await
         .unwrap();
@@ -394,7 +451,7 @@ async fn close_account_fail_unsigned() {
     let mut context = program_test().start_with_context().await;
 
     let authority = Keypair::new();
-    let (solid, _) = instruction::get_solid_address_with_seed(&authority.pubkey());
+    let (solid, _) = get_solid_address_with_seed(&authority.pubkey());
     initialize_did_account(&mut context, &authority.pubkey(), SolidData::DEFAULT_SIZE)
         .await
         .unwrap();

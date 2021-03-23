@@ -18,16 +18,20 @@ describe('transaction', () => {
       connection,
       payer,
       authority.publicKey,
-      CLUSTER,
       DEFAULT_DOCUMENT_SIZE,
       SolidData.empty()
     );
-    const solid = await SolidTransaction.getSolid(connection, solidKey);
+    const solid = await SolidTransaction.getSolid(
+      connection,
+      CLUSTER,
+      solidKey
+    );
     assert.notEqual(solid, null);
     const checkSolid = SolidData.sparse(solidKey, authority.publicKey, CLUSTER);
     assert.deepEqual(solid, checkSolid);
     const solidFromAuthority = await SolidTransaction.getSolidFromAuthority(
       connection,
+      CLUSTER,
       authority.publicKey
     );
     assert.deepEqual(solidFromAuthority, checkSolid);

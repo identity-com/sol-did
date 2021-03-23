@@ -4,6 +4,7 @@ import { Account, Connection } from '@solana/web3.js';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
 import { DecentralizedIdentifier } from '../../src/lib/solana/solid-data';
 import { makeService } from '../util';
+import { SOLID_CONTEXT_PREFIX, W3ID_CONTEXT } from '../../src/lib/constants';
 
 describe('register', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');
@@ -32,7 +33,7 @@ describe('register', () => {
   }, 30000);
 
   it('registers a DID with a document', async () => {
-    const service = makeService(owner);
+    const service = await makeService(owner);
 
     const registerRequest: RegisterRequest = {
       payer: payer.secretKey,
@@ -46,10 +47,32 @@ describe('register', () => {
 
     const doc = await resolve(identifier);
 
-    console.log({ service, doc });
+    console.log({ service, doc: JSON.stringify(doc, null, 1) });
 
     // ensure the doc contains the service
     expect(doc.service).toEqual([service]);
+  }, 30000);
+
+  it('registers a DID with a different version', async () => {
+    const version = '2.3.4';
+
+    const registerRequest: RegisterRequest = {
+      payer: payer.secretKey,
+      cluster: CLUSTER,
+      owner: owner.publicKey.toBase58(),
+      document: {
+        '@context': [W3ID_CONTEXT, SOLID_CONTEXT_PREFIX + version],
+      },
+    };
+    const identifier = await register(registerRequest);
+
+    const doc = await resolve(identifier);
+
+    console.log(JSON.stringify(doc, null, 1));
+
+    // ensure the doc contains the correct version in the context field
+    const context = doc['@context'];
+    expect(context).toEqual([W3ID_CONTEXT, SOLID_CONTEXT_PREFIX + version]);
   }, 30000);
 
   it('registers a DID with a size', async () => {
@@ -57,7 +80,7 @@ describe('register', () => {
       payer: payer.secretKey,
       cluster: CLUSTER,
       owner: owner.publicKey.toBase58(),
-      size: 400,
+      size: 65,
     };
     const identifier = await register(registerRequest);
 
