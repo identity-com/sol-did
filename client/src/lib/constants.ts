@@ -7,3 +7,6 @@ export const PROGRAM_ID: PublicKey = new PublicKey(
 );
 export const SOLANA_COMMITMENT: Commitment = 'confirmed';
 export const DEFAULT_DOCUMENT_SIZE = 1_000;
+
+export const W3ID_CONTEXT = 'https://w3id.org/did/v1.0';
+export const SOLID_CONTEXT_PREFIX = 'https://w3id.org/solid/v';

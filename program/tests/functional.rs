@@ -52,7 +52,7 @@ async fn initialize_did_account(
 fn check_solid(data: SolidData, authority: Pubkey) {
     let did = DecentralizedIdentifier::new(&data);
     let verification_method = VerificationMethod::new_default(authority);
-    assert_eq!(data.context, SolidData::default_context());
+    assert_eq!(data.version, SolidData::DEFAULT_VERSION);
     assert_eq!(data.did(), did);
     assert_eq!(data.verification_method, vec![]);
     assert_eq!(
