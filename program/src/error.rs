@@ -22,6 +22,10 @@ pub enum SolidError {
     /// Invalid string error, from parsing
     #[error("Invalid string")]
     InvalidString,
+
+    /// Incorrect program: The account passed is not owned by the Solid program
+    #[error("Incorrect program")]
+    IncorrectProgram,
 }
 impl From<SolidError> for ProgramError {
     fn from(e: SolidError) -> Self {

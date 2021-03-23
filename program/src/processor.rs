@@ -23,7 +23,14 @@ use {
     },
 };
 
-fn is_authority(authority_info: &AccountInfo, solid: &SolidData) -> bool {
+/// Checks if the authority account is an authority for the DID
+/// True iff:
+/// - the key is equal to the Authority field AND
+/// - the capability_invocation property is not overridden
+/// OR
+/// - the key is listed in the verification_methods AND
+/// - the key is referred to in the capability_invocation property.
+pub fn is_authority(authority_info: &AccountInfo, solid: &SolidData) -> bool {
     solid
         .write_authorized_pubkeys()
         .iter()
@@ -151,20 +158,5 @@ pub fn process_instruction(
                 .ok_or(SolidError::Overflow)?;
             Ok(())
         }
-    }
-}
-
-/// Given a DID, validate that the signers contain at least one
-/// account that has permissions to sign transactions using the DID.
-pub fn validate_owner(did: &AccountInfo, signers: &[AccountInfo]) -> ProgramResult {
-    let solid = program_borsh::try_from_slice_incomplete::<SolidData>(*did.data.borrow())?;
-
-    if signers
-        .iter()
-        .any(|s| s.is_signer && is_authority(s, &solid))
-    {
-        Ok(())
-    } else {
-        Err(SolidError::IncorrectAuthority.into())
     }
 }

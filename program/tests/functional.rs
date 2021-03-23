@@ -21,11 +21,12 @@ use {
         borsh as program_borsh,
         error::SolidError,
         id, instruction,
-        processor::{process_instruction, validate_owner},
+        processor::process_instruction,
         state::{
             get_solid_address_with_seed, DecentralizedIdentifier, ServiceEndpoint, SolidData,
             VerificationMethod,
         },
+        validate_owner,
     },
 };
 
@@ -502,19 +503,38 @@ async fn validate_owner_success() {
 #[tokio::test]
 async fn validate_owner_failed_non_signer() {
     let authority = Keypair::new();
-
     let (solid_pubkey, mut solid_account) = create_solid_account(authority.pubkey()).await;
     let solid_account_info = (&solid_pubkey, false, &mut solid_account).into_account_info();
 
     let mut empty_account = Account::new(0, 0, &authority.pubkey());
     let authority_key = &authority.pubkey();
+    // pass the authority, but not as a signer
     let authority_account_info = (authority_key, false, &mut empty_account).into_account_info();
 
     let validation_result = validate_owner(&solid_account_info, &[authority_account_info]);
-    assert_eq!(validation_result, Err(ProgramError::Custom(0)))
+    assert_eq!(validation_result, Err(ProgramError::Custom(0))) // IncorrectAuthority
 }
 
-async fn create_solid_account<'a>(authority_pubkey: Pubkey) -> (Pubkey, Account) {
+#[tokio::test]
+async fn validate_owner_failed_not_did() {
+    // Tests the case where the DID account information is not owned by the Solid program
+    // Checks against a spoofed DID
+    let authority = Keypair::new();
+
+    let (solid_pubkey, mut solid_account) = create_solid_account(authority.pubkey()).await;
+    // change the account owner to something other than the DID program
+    solid_account.owner = Pubkey::new_unique();
+    let solid_account_info = (&solid_pubkey, false, &mut solid_account).into_account_info();
+
+    let mut empty_account = Account::new(0, 0, &authority.pubkey());
+    let authority_key = &authority.pubkey();
+    let authority_account_info = (authority_key, true, &mut empty_account).into_account_info();
+
+    let validation_result = validate_owner(&solid_account_info, &[authority_account_info]);
+    assert_eq!(validation_result, Err(ProgramError::Custom(3))) // IncorrectProgram
+}
+
+async fn create_solid_account(authority_pubkey: Pubkey) -> (Pubkey, Account) {
     let mut context = program_test().start_with_context().await;
     initialize_did_account(&mut context, &authority_pubkey, SolidData::DEFAULT_SIZE)
         .await
