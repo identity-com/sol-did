@@ -1,5 +1,5 @@
 import { Enum, Assignable, SCHEMA } from './solana-borsh';
-import { ClusterType, SolidData } from './solid-data';
+import { SolidData } from './solid-data';
 import { DID_METHOD, PROGRAM_ID } from '../constants';
 import {
   AccountMeta,
@@ -10,7 +10,6 @@ import {
 } from '@solana/web3.js';
 
 export class Initialize extends Assignable {
-  clusterType: ClusterType;
   size: number;
   initData: SolidData;
 }
@@ -27,13 +26,9 @@ export class SolidInstruction extends Enum {
   write: Write;
   closeAccount: CloseAccount;
 
-  static initialize(
-    clusterType: ClusterType,
-    size: number,
-    initData: SolidData
-  ): SolidInstruction {
+  static initialize(size: number, initData: SolidData): SolidInstruction {
     return new SolidInstruction({
-      initialize: new Initialize({ clusterType, size, initData }),
+      initialize: new Initialize({ size, initData }),
     });
   }
 
@@ -60,7 +55,6 @@ export function initialize(
   payer: PublicKey,
   solidKey: PublicKey,
   authority: PublicKey,
-  clusterType: ClusterType,
   size: number,
   initData: SolidData
 ): TransactionInstruction {
@@ -71,10 +65,10 @@ export function initialize(
     { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
     { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
   ];
+  const initDataWithAuthorityAndKey = initData.forAuthority(authority);
   const data = SolidInstruction.initialize(
-    clusterType,
     size,
-    initData
+    initDataWithAuthorityAndKey
   ).encode();
   return new TransactionInstruction({
     keys,
@@ -134,7 +128,6 @@ SCHEMA.set(SolidInstruction, {
 SCHEMA.set(Initialize, {
   kind: 'struct',
   fields: [
-    ['clusterType', ClusterType],
     ['size', 'u64'],
     ['initData', SolidData],
   ],

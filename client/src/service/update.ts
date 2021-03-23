@@ -15,6 +15,7 @@ export const update = async (request: UpdateRequest): Promise<void> => {
   const connection = new Connection(cluster.solanaUrl(), 'recent');
   await SolidTransaction.updateSolid(
     connection,
+    cluster,
     payer,
     id.pubkey.toPublicKey(),
     SolidData.parse(request.document),

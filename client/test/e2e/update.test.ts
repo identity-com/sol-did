@@ -31,7 +31,6 @@ describe('update', () => {
       connection,
       owner,
       owner.publicKey,
-      CLUSTER,
       DEFAULT_DOCUMENT_SIZE,
       SolidData.empty()
     );
@@ -39,7 +38,7 @@ describe('update', () => {
 
   it('adds a service to a DID', async () => {
     const identifier = 'did:solid:' + CLUSTER + ':' + solidDIDKey.toBase58();
-    const service = makeService(owner);
+    const service = await makeService(owner);
     const request: UpdateRequest = {
       payer: owner.secretKey,
       identifier,
@@ -63,7 +62,7 @@ describe('update', () => {
       1000000000
     );
     const identifier = 'did:solid:' + CLUSTER + ':' + solidDIDKey.toBase58();
-    const service = makeService(owner);
+    const service = await makeService(owner);
     const request: UpdateRequest = {
       payer: payer.secretKey,
       owner: owner.secretKey,
@@ -84,8 +83,8 @@ describe('update', () => {
   it('adds a service to a DID with an existing service', async () => {
     const identifier = 'did:solid:' + CLUSTER + ':' + solidDIDKey.toBase58();
 
-    const service1 = makeService(owner);
-    const service2 = makeService(owner);
+    const service1 = await makeService(owner);
+    const service2 = await makeService(owner);
 
     const request1: UpdateRequest = makeServiceRequest(
       owner,

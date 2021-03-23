@@ -5,8 +5,8 @@ use {
         borsh as program_borsh,
         error::SolidError,
         id,
-        instruction::{get_solid_address_with_seed, SolidInstruction},
-        state::{DecentralizedIdentifier, SolidData},
+        instruction::SolidInstruction,
+        state::{get_solid_address_with_seed, SolidData},
     },
     borsh::{BorshDeserialize, BorshSerialize},
     solana_program::{
@@ -50,11 +50,7 @@ pub fn process_instruction(
     let account_info_iter = &mut accounts.iter();
 
     match instruction {
-        SolidInstruction::Initialize {
-            cluster_type,
-            size,
-            init_data,
-        } => {
+        SolidInstruction::Initialize { size, init_data } => {
             msg!("SolidInstruction::Initialize");
 
             let funder_info = next_account_info(account_info_iter)?;
@@ -99,8 +95,7 @@ pub fn process_instruction(
                 &[&solid_signer_seeds],
             )?;
 
-            let did = DecentralizedIdentifier::new(cluster_type, *data_info.key);
-            let mut solid = SolidData::new_sparse(did, *authority_info.key);
+            let mut solid = SolidData::new_sparse(*authority_info.key);
             solid.merge(init_data);
             solid
                 .serialize(&mut *data_info.data.borrow_mut())
