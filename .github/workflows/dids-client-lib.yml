@@ -1,14 +1,22 @@
-name: CI
-on: [push]
+name: DIDS Client Library
+on:
+  push:
+    paths:
+    - 'drivers/did-io'
+  pull_request:
 jobs:
-  build:
-    name: Build, lint, and test on Node ${{ matrix.node }} and ${{ matrix.os }}
+  driver-build:
+    name: Build, lint, and test the DIDS client library on Node ${{ matrix.node }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node: ['10.x', '12.x', '14.x']
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        node: ['15.x']
+        os: [ubuntu-latest]
+
+    defaults:
+      run:
+        working-directory: ./drivers/dids
 
     steps:
       - name: Checkout repo
@@ -19,8 +27,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      - name: Install deps and build (with cache)
-        uses: bahmutov/npm-install@v1
+      - name: Install
+        run: yarn install
 
       - name: Lint
         run: yarn lint
