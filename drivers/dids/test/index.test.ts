@@ -1,6 +1,6 @@
 import { DIDs } from '../src';
 import { ClusterType, SolanaUtil } from '@identity.com/solid-did-client';
-import { Account, Connection } from '@solana/web3.js';
+import { Account, Connection, PublicKey } from '@solana/web3.js';
 import { expect } from 'chai';
 import { DIDDocument } from 'did-resolver';
 
@@ -18,7 +18,7 @@ function getKeyForCapabilityInvocation(document: DIDDocument) {
 
 describe('DIDs', () => {
   let dids: DIDs;
-  let owner;
+  let owner: PublicKey;
 
   before('Set up a payer account on Solana devnet', async function() {
     this.timeout(10000);

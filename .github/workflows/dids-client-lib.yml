@@ -2,7 +2,7 @@ name: DIDS Client Library
 on:
   push:
     paths:
-    - 'drivers/did-io'
+    - 'drivers/dids'
   pull_request:
 jobs:
   driver-build:
