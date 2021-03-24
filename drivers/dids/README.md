@@ -9,10 +9,12 @@ X25519 ECC Curve keys, that are compatible with Solana public keys.
 - [did-solid](https://identity-com.github.io/solid-did/did-method-spec.html): A Solana-native
 DID method.
   
+# Quick Start
 
 To register a DID from a Solana public key:
 
 ```js
+const DIDs = require('@identity.com/dids');
 const dids = new DIDs({ payer: payerAccount.secretKey });
 
 const owner = new Account().publicKey;
@@ -29,6 +31,8 @@ const document = await dids.get(identifier);
 
 For more examples, see tests/index.test.ts
 
+
+
 ## Testing & Development
 
 Note: Before contributing to this project, please check out the code of conduct
@@ -41,7 +45,7 @@ nvm i
 yarn
 ```
 
-## Running the tests
+### Running the tests
 
 DIDS uses the mocha and chai test libraries
 
@@ -53,3 +57,20 @@ yarn test
 
 Note: DIDS was bootstrapped and is packaged using [TSDX](https://tsdx.io/), which includes
 Jest. Jest has a bug when importing some dependencies of this project, so mocha is used instead. 
+
+### Repl
+
+To test using the repl, run
+
+```shell
+yarn repl
+```
+
+Then try:
+
+```js
+await dids.register('solid', new Account().publicKey)
+await dids.register('key', new Account().publicKey)
+
+await dids.get('<YOUR IDENTIFIER HERE>')
+```

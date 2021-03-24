@@ -3,6 +3,8 @@
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "repository": "https://github.com/identity-com/solid-did",
+  "homepage": "https://github.com/identity-com/solid-did",
   "files": [
     "dist",
     "src"
@@ -15,7 +17,8 @@
     "build": "tsdx build",
     "test": "yarn mocha",
     "lint": "tsdx lint",
-    "prepare": "tsdx build"
+    "prepare": "tsdx build",
+    "repl": "yarn build && yarn local-repl"
   },
   "prettier": {
     "printWidth": 80,
@@ -31,6 +34,7 @@
     "@types/expect": "^24.3.0",
     "@types/mocha": "^8.2.2",
     "chai": "^4.3.4",
+    "local-repl": "^4.0.0",
     "mocha": "^8.3.2",
     "ts-node": "^9.1.1",
     "tsdx": "^0.14.1",
