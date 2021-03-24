@@ -60,7 +60,7 @@ describe('DIDs', () => {
     });
   });
 
-  // Skippd until new versions of the DID program can be deployed to devnet
+  // Skipped until new versions of the DID program can be deployed to devnet
   context('did-solid', () => {
     it('should create a did-solid DID from a Solana public key', async () => {
       const did = await dids.register('solid', owner);
