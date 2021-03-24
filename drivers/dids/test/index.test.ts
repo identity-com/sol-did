@@ -21,14 +21,17 @@ describe('DIDs', () => {
   let owner: PublicKey;
 
   before('Set up a payer account on Solana devnet', async function() {
-    this.timeout(10000);
     const connection = new Connection(cluster.solanaUrl(), 'recent');
     const payerAccount = await SolanaUtil.newAccountWithLamports(
       connection,
       10000000
     );
 
-    dids = new DIDs({ payer: payerAccount.secretKey, cluster: 'devnet' });
+    dids = new DIDs({
+      payer: payerAccount.secretKey,
+      cluster: 'devnet',
+      maxDocumentSize: 100,
+    });
   });
 
   beforeEach(() => {
@@ -58,7 +61,7 @@ describe('DIDs', () => {
   });
 
   // Skippd until new versions of the DID program can be deployed to devnet
-  context.skip('did-solid', () => {
+  context('did-solid', () => {
     it('should create a did-solid DID from a Solana public key', async () => {
       const did = await dids.register('solid', owner);
 

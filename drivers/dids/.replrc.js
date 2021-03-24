@@ -2,7 +2,7 @@ const { DIDs } = require('./dist');
 const { ClusterType, SolanaUtil } = require('@identity.com/solid-did-client');
 const { Account, Connection} = require('@solana/web3.js');
 
-const clusterName = 'localnet';
+const clusterName = 'devnet';
 const cluster = ClusterType.parse(clusterName);
 
 const connection = new Connection(cluster.solanaUrl(), 'recent');
