@@ -1,0 +1,41 @@
+{
+  "version": "0.1.0",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=14"
+  },
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "test": "tsdx test",
+    "lint": "tsdx lint",
+    "prepare": "tsdx build"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "name": "did-io-driver-solid",
+  "author": "dankelleher",
+  "module": "dist/did-io-driver.esm.js",
+  "devDependencies": {
+    "did-io": "^0.8.3",
+    "did-method-key": "^0.7.0",
+    "ts-jest": "^26.5.4",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.1.0",
+    "typescript": "^4.2.3"
+  },
+  "dependencies": {
+    "@identity.com/solid-did-client": "^0.1.1",
+    "@solana/web3.js": "^1.0.0"
+  }
+}

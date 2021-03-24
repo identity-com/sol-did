@@ -18,7 +18,7 @@
     "start": "tsdx watch",
     "build": "tsdx build",
     "postbuild": "mkdir dist/api && cp src/api/openapi.yml dist/api/",
-    "pretest": "(cd ../client && yarn && yarn build && yarn link) && yarn link @identity.com/solid-did-client",
+    "pretest": "(cd ../../client && yarn && yarn build && yarn link) && yarn link @identity.com/solid-did-client",
     "test": "tsdx test",
     "lint": "tsdx lint --maxWarnings 0",
     "prepare": "yarn build",
@@ -43,7 +43,7 @@
     "typescript": "^4.1.5"
   },
   "dependencies": {
-    "@identity.com/solid-did-client": "^0.1.0",
+    "@identity.com/solid-did-client": "^0.1.1",
     "cors": "^2.8.5",
     "did-resolver": "^3.0.1",
     "oas3-tools": "^2.2.3"
