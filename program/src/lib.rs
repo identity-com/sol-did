@@ -3,7 +3,9 @@
 
 use {
     crate::{borsh as program_borsh, error::SolidError, processor::is_authority, state::SolidData},
-    solana_program::{account_info::AccountInfo, entrypoint::ProgramResult},
+    solana_program::{
+        account_info::AccountInfo, entrypoint::ProgramResult, program_error::ProgramError,
+    },
 };
 
 pub mod borsh;
@@ -22,7 +24,7 @@ solana_program::declare_id!("ide3Y2TubNMLLhiG1kDL6to4a8SjxD18YWCYC5BZqNV");
 /// account that has permissions to sign transactions using the DID.
 pub fn validate_owner(did: &AccountInfo, signers: &[AccountInfo]) -> ProgramResult {
     if did.owner.ne(&id()) {
-        return Err(SolidError::IncorrectProgram.into());
+        return Err(ProgramError::IncorrectProgramId);
     }
     let solid = program_borsh::try_from_slice_incomplete::<SolidData>(*did.data.borrow())?;
 

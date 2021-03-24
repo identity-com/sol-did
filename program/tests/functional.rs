@@ -531,7 +531,7 @@ async fn validate_owner_failed_not_did() {
     let authority_account_info = (authority_key, true, &mut empty_account).into_account_info();
 
     let validation_result = validate_owner(&solid_account_info, &[authority_account_info]);
-    assert_eq!(validation_result, Err(ProgramError::Custom(3))) // IncorrectProgram
+    assert_eq!(validation_result, Err(ProgramError::IncorrectProgramId))
 }
 
 async fn create_solid_account(authority_pubkey: Pubkey) -> (Pubkey, Account) {
