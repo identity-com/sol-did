@@ -10,5 +10,5 @@ This repository contains:
 - The [SOLID DID Method spec](https://identity-com.github.io/solid-did/did-method-spec.html)
 - The [SOLID DID solana program](/program)
 - A [Typescript client](/client) for creating, updating, resolving and deleting SOLID DIDs
-- A web-service [driver](driver), compatible with [uniresolver.io](unresolver.io) and [uniregistrar.io](uniregistrar.io) 
+- A web-service [driver](drivers/uniresolver), compatible with [uniresolver.io](unresolver.io) and [uniregistrar.io](uniregistrar.io) 
 

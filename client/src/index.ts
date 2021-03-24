@@ -1,3 +1,4 @@
+export { SolanaUtil } from './lib/solana/solana-util';
 export { ClusterType } from './lib/solana/solid-data';
 
 export { resolve } from './service/resolve';
@@ -11,4 +12,6 @@ export {
   UpdateRequest,
   MergeBehaviour,
   generateKeypair,
+  PrivateKey,
+  PublicKeyBase58,
 } from './lib/util';
