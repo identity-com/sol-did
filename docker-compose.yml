@@ -2,7 +2,7 @@ version: '3.4'
 services:
   solid-driver:
     image: identitydotcom/driver-did-solid
-    build: driver
+    build: drivers/uniresolver
     ports:
       - 8080:8080
 #    env_file:
