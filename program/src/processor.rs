@@ -23,16 +23,26 @@ use {
     },
 };
 
+/// Checks if the authority account is an authority for the DID
+/// True iff:
+/// - the key is equal to the Authority field AND
+/// - the capability_invocation property is not overridden
+/// OR
+/// - the key is listed in the verification_methods AND
+/// - the key is referred to in the capability_invocation property.
+pub fn is_authority(authority_info: &AccountInfo, solid: &SolidData) -> bool {
+    solid
+        .write_authorized_pubkeys()
+        .iter()
+        .any(|v| v == authority_info.key)
+}
+
 fn check_authority(authority_info: &AccountInfo, solid: &SolidData) -> ProgramResult {
     if !authority_info.is_signer {
         msg!("Solid authority signature missing");
         return Err(ProgramError::MissingRequiredSignature);
     }
-    if solid
-        .write_authorized_pubkeys()
-        .iter()
-        .any(|v| v == authority_info.key)
-    {
+    if is_authority(authority_info, solid) {
         Ok(())
     } else {
         msg!("Incorrect Solid authority provided");
