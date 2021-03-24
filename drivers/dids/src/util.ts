@@ -27,7 +27,7 @@ export const publicKeyBase58ToCryptoLD = async (
 };
 
 export const cryptoLDToPublicKeyBase58 = (key: LDKeyPair): PublicKeyBase58 =>
-  // trim th first character of the public key in multibase form ('z') to produce th base58 key
+  // trim the first character of the public key in multibase form ('z') to produce th base58 key
   key
     .export({ publicKey: true })
     .publicKeyMultibase.substring(1) as PublicKeyBase58;
