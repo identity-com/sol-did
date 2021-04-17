@@ -1,10 +1,10 @@
 import { makeAccount, UpdateRequest } from '../lib/util';
-import { SolidTransaction } from '../lib/solana/transaction';
+import { SolTransaction } from '../lib/solana/transaction';
 import { Connection } from '@solana/web3.js';
-import { DecentralizedIdentifier, SolidData } from '../lib/solana/solid-data';
+import { DecentralizedIdentifier, SolData } from '../lib/solana/sol-data';
 
 /**
- * Updates a SOLID DID on Solana.
+ * Updates a SOL DID on Solana.
  * @param request
  */
 export const update = async (request: UpdateRequest): Promise<void> => {
@@ -13,12 +13,12 @@ export const update = async (request: UpdateRequest): Promise<void> => {
   const owner = request.owner ? makeAccount(request.owner) : undefined;
   const cluster = id.clusterType;
   const connection = new Connection(cluster.solanaUrl(), 'recent');
-  await SolidTransaction.updateSolid(
+  await SolTransaction.updateSol(
     connection,
     cluster,
     payer,
     id.pubkey.toPublicKey(),
-    SolidData.parse(request.document),
+    SolData.parse(request.document),
     request.mergeBehaviour || 'Append',
     owner
   );

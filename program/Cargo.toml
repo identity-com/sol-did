@@ -1,9 +1,9 @@
 [package]
-name = "solid-did"
+name = "sol-did"
 version = "0.1.0"
 description = "Solana Program Library ID Program"
 authors = ["Solana Maintainers <maintainers@solana.foundation>"]
-repository = "https://github.com/identity-com/solid-did"
+repository = "https://github.com/identity-com/sol-did"
 license = "Apache-2.0"
 edition = "2018"
 

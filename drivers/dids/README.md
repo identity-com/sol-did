@@ -6,7 +6,7 @@ It supports two DID methods:
 
 - [did-key](https://w3c-ccg.github.io/did-method-key/): A static DID method based on 
 X25519 ECC Curve keys, that are compatible with Solana public keys.
-- [did-solid](https://identity-com.github.io/solid-did/did-method-spec.html): A Solana-native
+- [did-sol](https://identity-com.github.io/sol-did/did-method-spec.html): A Solana-native
 DID method.
   
 # Quick Start
@@ -19,7 +19,7 @@ const dids = new DIDs({ payer: payerAccount.secretKey });
 
 const owner = new Account().publicKey;
 const keyIdentifier = await dids.register('key', owner);
-const solidIdentifier = await dids.register('solid', owner);
+const solIdentifier = await dids.register('sol', owner);
 ```
 
 To retrieve a DID document:
@@ -69,7 +69,7 @@ yarn repl
 Then try:
 
 ```js
-await dids.register('solid', new Account().publicKey)
+await dids.register('sol', new Account().publicKey)
 await dids.register('key', new Account().publicKey)
 
 await dids.get('<YOUR IDENTIFIER HERE>')

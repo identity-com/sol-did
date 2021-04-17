@@ -1,13 +1,13 @@
 import { DIDDocument } from 'did-resolver';
 import { Connection } from '@solana/web3.js';
-import { SolidTransaction } from '../lib/solana/transaction';
-import { DecentralizedIdentifier } from '../lib/solana/solid-data';
+import { SolTransaction } from '../lib/solana/transaction';
+import { DecentralizedIdentifier } from '../lib/solana/sol-data';
 import { SOLANA_COMMITMENT } from '../lib/constants';
 
 /**
- * Resolves a SOLID DID to a document,
- * @param identifier The DID e.g. did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP
- * or did:solid:devnet:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP
+ * Resolves a SOL DID to a document,
+ * @param identifier The DID e.g. did:sol:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP
+ * or did:sol:devnet:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP
  * @throws Error if the document is not found
  */
 export const resolve = async (identifier: string): Promise<DIDDocument> => {
@@ -16,13 +16,13 @@ export const resolve = async (identifier: string): Promise<DIDDocument> => {
     id.clusterType.solanaUrl(),
     SOLANA_COMMITMENT
   );
-  const solidData = await SolidTransaction.getSolid(
+  const solData = await SolTransaction.getSol(
     connection,
     id.clusterType,
     id.pubkey.toPublicKey()
   );
-  if (solidData !== null) {
-    return solidData.toDIDDocument();
+  if (solData !== null) {
+    return solData.toDIDDocument();
   } else {
     throw new Error(`No DID found at identifier ${identifier}`);
   }

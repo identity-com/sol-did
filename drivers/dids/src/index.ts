@@ -2,9 +2,9 @@ import {
   ClusterType,
   PrivateKey,
   PublicKeyBase58,
-} from '@identity.com/solid-did-client';
+} from '@identity.com/sol-did-client';
 import DIDKey from 'did-method-key';
-import * as DIDSolid from '@identity.com/solid-did-client';
+import * as DIDSol from '@identity.com/sol-did-client';
 import { Cluster, PublicKey } from '@solana/web3.js';
 import { normalizeDidKeyDocument, publicKeyBase58ToCryptoLD } from './util';
 import { DIDDocument } from 'did-resolver';
@@ -19,7 +19,7 @@ type Properties = {
   maxDocumentSize?: number;
 };
 
-type Method = 'solid' | 'key';
+type Method = 'sol' | 'key';
 
 const isPublicKeyBase50 = (
   key: PublicKeyBase58 | PublicKey
@@ -48,8 +48,8 @@ export class DIDs {
       const document = await didKey.keyToDidDoc(cryptoLDKey);
 
       return document.id;
-    } else if (method === 'solid') {
-      return DIDSolid.register({
+    } else if (method === 'sol') {
+      return DIDSol.register({
         payer: this.payer,
         owner: normalizedKey,
         cluster: this.cluster && ClusterType.parse(this.cluster),
@@ -63,8 +63,8 @@ export class DIDs {
   async get(identifier: string): Promise<DIDDocument> {
     if (identifier.startsWith('did:key:')) {
       return didKey.get({ did: identifier }).then(normalizeDidKeyDocument);
-    } else if (identifier.startsWith('did:solid:')) {
-      return DIDSolid.resolve(identifier);
+    } else if (identifier.startsWith('did:sol:')) {
+      return DIDSol.resolve(identifier);
     }
 
     throw new Error('Unsupported method for DID ' + identifier);

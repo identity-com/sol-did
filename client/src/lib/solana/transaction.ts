@@ -1,4 +1,4 @@
-import { ClusterType, SolidData } from './solid-data';
+import { ClusterType, SolData } from './sol-data';
 import { SolanaUtil } from './solana-util';
 import {
   closeAccount,
@@ -9,45 +9,45 @@ import {
 import { Account, Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { MergeBehaviour } from '../util';
 
-export class SolidTransaction {
-  static async createSolid(
+export class SolTransaction {
+  static async createSol(
     connection: Connection,
     payer: Account,
     authority: PublicKey,
     size: number,
-    initData: SolidData
+    initData: SolData
   ): Promise<PublicKey> {
-    const solidKey = await getKeyFromAuthority(authority);
+    const solKey = await getKeyFromAuthority(authority);
 
     // Allocate memory for the account
     const transaction = new Transaction().add(
-      initialize(payer.publicKey, solidKey, authority, size, initData)
+      initialize(payer.publicKey, solKey, authority, size, initData)
     );
 
     // Send the instructions
     await SolanaUtil.sendAndConfirmTransaction(connection, transaction, payer);
-    return solidKey;
+    return solKey;
   }
 
-  static async getSolid(
+  static async getSol(
     connection: Connection,
     clusterType: ClusterType,
     recordKey: PublicKey
-  ): Promise<SolidData | null> {
+  ): Promise<SolData | null> {
     const data = await connection.getAccountInfo(recordKey);
 
     if (!data) return null;
 
-    return SolidData.fromAccount(recordKey, data.data, clusterType);
+    return SolData.fromAccount(recordKey, data.data, clusterType);
   }
 
-  static async getSolidFromAuthority(
+  static async getSolFromAuthority(
     connection: Connection,
     clusterType: ClusterType,
     authority: PublicKey
-  ): Promise<SolidData | null> {
+  ): Promise<SolData | null> {
     const recordKey = await getKeyFromAuthority(authority);
-    return SolidTransaction.getSolid(connection, clusterType, recordKey);
+    return SolTransaction.getSol(connection, clusterType, recordKey);
   }
 
   /**
@@ -57,13 +57,13 @@ export class SolidTransaction {
    * @param recordKey
    * @param owner
    */
-  static async deactivateSolid(
+  static async deactivateSol(
     connection: Connection,
     payer: Account,
     recordKey: PublicKey,
     owner: Account = payer
   ): Promise<string> {
-    // Create the transaction to close the Solid DID account
+    // Create the transaction to close the Sol DID account
     // The payer must have permissions to deactivate the DID
     // The payer receives the lamports stored in the DID account
     const transaction = new Transaction().add(
@@ -79,17 +79,17 @@ export class SolidTransaction {
     );
   }
 
-  static async updateSolid(
+  static async updateSol(
     connection: Connection,
     clusterType: ClusterType,
     payer: Account,
     recordKey: PublicKey,
-    dataToMerge: SolidData,
+    dataToMerge: SolData,
     mergeBehaviour: MergeBehaviour,
     owner: Account = payer
   ): Promise<string> {
-    // Update the solid DID
-    const existingData = await this.getSolid(
+    // Update the sol DID
+    const existingData = await this.getSol(
       connection,
       clusterType,
       recordKey

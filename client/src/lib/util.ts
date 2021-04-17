@@ -1,6 +1,6 @@
 import { DIDDocument } from 'did-resolver';
 import { Account, PublicKey } from '@solana/web3.js';
-import { ClusterType, DecentralizedIdentifier } from './solana/solid-data';
+import { ClusterType, DecentralizedIdentifier } from './solana/sol-data';
 import { decode, encode } from 'bs58';
 import { getKeyFromAuthority } from './solana/instruction';
 

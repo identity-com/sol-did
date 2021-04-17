@@ -1,6 +1,6 @@
-# SOLID DID Client
+# SOL DID Client
 
-A typescript client library for registering and resolving DIDs using the SOLID method
+A typescript client library for registering and resolving DIDs using the SOL method
 
 ## Getting Started
 
@@ -8,14 +8,14 @@ A typescript client library for registering and resolving DIDs using the SOLID m
 ### Command line tool
 
 ```shell
-yarn global add @identity.com/solid-did-client # or npm install -g @identity.com/solid-did-client
-solid did:solid:devnet:HxzSJWiK9R4bpRu2YPgg47s2x2D4zT8AK5ziqoQqkzAo
+yarn global add @identity.com/sol-did-client # or npm install -g @identity.com/sol-did-client
+sol did:sol:devnet:HxzSJWiK9R4bpRu2YPgg47s2x2D4zT8AK5ziqoQqkzAo
 ```
 
 ### Client library
 
 ```js
-import { register, resolve } from '@identity.com/solid-did-client';
+import { register, resolve } from '@identity.com/sol-did-client';
 
 // generate an X25519 key, eg using 'tweetnacl'
 import nacl from 'tweetnacl';
@@ -57,7 +57,7 @@ await deactivate({
 Note: Before contributing to this project, please check out the code of conduct
 and contributing guidelines.
 
-Solid-DID uses [nvm](https://github.com/nvm-sh/nvm) and [yarn](https://yarnpkg.com/)
+Sol-DID uses [nvm](https://github.com/nvm-sh/nvm) and [yarn](https://yarnpkg.com/)
 
 ```shell
 nvm i

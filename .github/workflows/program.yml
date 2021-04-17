@@ -6,7 +6,7 @@ on:
   pull_request:
 jobs:
   program-lint:
-    name: Format and lint the solid on-chain program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
+    name: Format and lint the sol on-chain program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -83,7 +83,7 @@ jobs:
           args: --manifest-path program/Cargo.toml
 
   program-build:
-    name: Build and test the solid on-chain program on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
+    name: Build and test the sol on-chain program on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:

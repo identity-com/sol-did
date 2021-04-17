@@ -1,4 +1,4 @@
-import * as DID from '@identity.com/solid-did-client';
+import * as DID from '@identity.com/sol-did-client';
 import { DeactivateRequest, DeactivateState } from './DefaultService';
 
 export const deactivate = async (

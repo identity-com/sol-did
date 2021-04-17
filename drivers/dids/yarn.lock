@@ -912,9 +912,9 @@
     esm "^3.2.25"
     tweetnacl "^1.0.3"
 
-"@identity.com/solid-did-client@^0.1.1":
+"@identity.com/sol-did-client@^0.1.1":
   version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@identity.com/solid-did-client/-/solid-did-client-0.1.1.tgz#4d6c34f28b29e6c7c13a56adb7f1327ac0f6fe20"
+  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-client/-/sol-did-client-0.1.1.tgz#4d6c34f28b29e6c7c13a56adb7f1327ac0f6fe20"
   integrity sha512-dTSpSTZfhb3+7JamG0axzyOdd9zUVo9sxWyJresPJqd8mVcp5g2ODLIHiz2vquFFND46V3GS7PrW/STVUr4ggA==
   dependencies:
     "@solana/web3.js" "^0.93.0"

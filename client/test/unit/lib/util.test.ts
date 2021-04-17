@@ -1,6 +1,6 @@
 import { accountAndClusterToDID, keyToIdentifier } from '../../../src/lib/util';
 import { ClusterType } from '../../../src';
-import { DecentralizedIdentifier } from '../../../src/lib/solana/solid-data';
+import { DecentralizedIdentifier } from '../../../src/lib/solana/sol-data';
 import { Account, PublicKey } from '@solana/web3.js';
 import {
   TEST_DID_ACCOUNT_PUBLIC_KEY,
@@ -12,7 +12,7 @@ describe('util', () => {
     it('should extract the method identifier from a DID', () => {
       expect(
         DecentralizedIdentifier.parse(
-          'did:solid:Bm8bvjnBCJj6nKExmZk17khkRRNXAvcv2npKbhaqNWGC'
+          'did:sol:Bm8bvjnBCJj6nKExmZk17khkRRNXAvcv2npKbhaqNWGC'
         ).pubkey.toString()
       ).toEqual('Bm8bvjnBCJj6nKExmZk17khkRRNXAvcv2npKbhaqNWGC');
     });
@@ -24,25 +24,25 @@ describe('util', () => {
     it('adds a prefix to localnet DIDs', () => {
       expect(
         accountAndClusterToDID(account, ClusterType.development())
-      ).toEqual(`did:solid:localnet:${TEST_DID_ACCOUNT_PUBLIC_KEY}`);
+      ).toEqual(`did:sol:localnet:${TEST_DID_ACCOUNT_PUBLIC_KEY}`);
     });
 
     it('adds a prefix to devnet DIDs', () => {
       expect(accountAndClusterToDID(account, ClusterType.devnet())).toEqual(
-        `did:solid:devnet:${TEST_DID_ACCOUNT_PUBLIC_KEY}`
+        `did:sol:devnet:${TEST_DID_ACCOUNT_PUBLIC_KEY}`
       );
     });
 
     it('does not add a prefix to mainnet DIDs', () => {
       expect(
         accountAndClusterToDID(account, ClusterType.mainnetBeta())
-      ).toEqual(`did:solid:${TEST_DID_ACCOUNT_PUBLIC_KEY}`);
+      ).toEqual(`did:sol:${TEST_DID_ACCOUNT_PUBLIC_KEY}`);
     });
   });
 
   describe('keyToIdentifier', () => {
     it('should generate a consistent DID identifier for a known owner public key', async () => {
-      const expected = 'did:solid:Bm8bvjnBCJj6nKExmZk17khkRRNXAvcv2npKbhaqNWGC';
+      const expected = 'did:sol:Bm8bvjnBCJj6nKExmZk17khkRRNXAvcv2npKbhaqNWGC';
       const identifier = await keyToIdentifier(
         new PublicKey(TEST_DID_ACCOUNT_PUBLIC_KEY)
       );

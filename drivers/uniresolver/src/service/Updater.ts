@@ -1,4 +1,4 @@
-import * as DID from '@identity.com/solid-did-client';
+import * as DID from '@identity.com/sol-did-client';
 import { UpdateRequest, UpdateState } from './DefaultService';
 
 export const update = async (request: UpdateRequest): Promise<UpdateState> => {

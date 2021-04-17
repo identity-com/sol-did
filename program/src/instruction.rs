@@ -3,7 +3,7 @@
 use {
     crate::{
         id,
-        state::{get_solid_address_with_seed, SolidData},
+        state::{get_sol_address_with_seed, SolData},
     },
     borsh::{BorshDeserialize, BorshSerialize},
     solana_program::{
@@ -15,29 +15,29 @@ use {
 
 /// Instructions supported by the program
 #[derive(Clone, Debug, BorshSerialize, BorshDeserialize, PartialEq)]
-pub enum SolidInstruction {
-    /// Create a new solid
+pub enum SolInstruction {
+    /// Create a new sol
     ///
     /// Accounts expected by this instruction:
     ///
     /// 0. `[writable, signer]` Funding account, must be a system account
-    /// 1. `[writable]` Unallocated Solid account, must be a program address
-    /// 2. `[]` Solid authority
+    /// 1. `[writable]` Unallocated Sol account, must be a program address
+    /// 2. `[]` Sol authority
     /// 3. `[]` Rent sysvar
     /// 4. `[]` System program
     Initialize {
         /// Size of the DID document
         size: u64,
         /// Additional data to write into the document
-        init_data: SolidData,
+        init_data: SolData,
     },
 
-    /// Write to the provided solid account
+    /// Write to the provided sol account
     ///
     /// Accounts expected by this instruction:
     ///
-    /// 0. `[writable]` Solid account, must be previously initialized
-    /// 1. `[signer]` Current solid authority
+    /// 0. `[writable]` Sol account, must be previously initialized
+    /// 1. `[signer]` Current sol authority
     Write {
         /// Offset to start writing record, expressed as `u64`.
         offset: u64,
@@ -45,30 +45,30 @@ pub enum SolidInstruction {
         data: Vec<u8>,
     },
 
-    /// Close the provided solid account, draining lamports to recipient account
+    /// Close the provided sol account, draining lamports to recipient account
     ///
     /// Accounts expected by this instruction:
     ///
-    /// 0. `[writable]` Solid account, must be previously initialized
-    /// 1. `[signer]` Solid authority
+    /// 0. `[writable]` Sol account, must be previously initialized
+    /// 1. `[signer]` Sol authority
     /// 2. `[]` Receiver of account lamports
     CloseAccount,
 }
 
-/// Create a `SolidInstruction::Initialize` instruction
+/// Create a `SolInstruction::Initialize` instruction
 pub fn initialize(
     funder_account: &Pubkey,
     authority: &Pubkey,
     size: u64,
-    init_data: SolidData,
+    init_data: SolData,
 ) -> Instruction {
-    let (solid_account, _) = get_solid_address_with_seed(authority);
+    let (sol_account, _) = get_sol_address_with_seed(authority);
     Instruction::new_with_borsh(
         id(),
-        &SolidInstruction::Initialize { size, init_data },
+        &SolInstruction::Initialize { size, init_data },
         vec![
             AccountMeta::new(*funder_account, true),
-            AccountMeta::new(solid_account, false),
+            AccountMeta::new(sol_account, false),
             AccountMeta::new_readonly(*authority, false),
             AccountMeta::new_readonly(sysvar::rent::id(), false),
             AccountMeta::new_readonly(system_program::id(), false),
@@ -76,30 +76,30 @@ pub fn initialize(
     )
 }
 
-/// Create a `SolidInstruction::Write` instruction
+/// Create a `SolInstruction::Write` instruction
 pub fn write(
-    solid_account: &Pubkey,
+    sol_account: &Pubkey,
     authority: &Pubkey,
     offset: u64,
     data: Vec<u8>,
 ) -> Instruction {
     Instruction::new_with_borsh(
         id(),
-        &SolidInstruction::Write { offset, data },
+        &SolInstruction::Write { offset, data },
         vec![
-            AccountMeta::new(*solid_account, false),
+            AccountMeta::new(*sol_account, false),
             AccountMeta::new_readonly(*authority, true),
         ],
     )
 }
 
-/// Create a `SolidInstruction::CloseAccount` instruction
-pub fn close_account(solid_account: &Pubkey, authority: &Pubkey, receiver: &Pubkey) -> Instruction {
+/// Create a `SolInstruction::CloseAccount` instruction
+pub fn close_account(sol_account: &Pubkey, authority: &Pubkey, receiver: &Pubkey) -> Instruction {
     Instruction::new_with_borsh(
         id(),
-        &SolidInstruction::CloseAccount,
+        &SolInstruction::CloseAccount,
         vec![
-            AccountMeta::new(*solid_account, false),
+            AccountMeta::new(*sol_account, false),
             AccountMeta::new_readonly(*authority, true),
             AccountMeta::new(*receiver, false),
         ],
@@ -109,29 +109,29 @@ pub fn close_account(solid_account: &Pubkey, authority: &Pubkey, receiver: &Pubk
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::tests::test_solid_data;
+    use crate::state::tests::test_sol_data;
     use solana_program::program_error::ProgramError;
 
     #[test]
     fn serialize_initialize() {
-        let size = SolidData::DEFAULT_SIZE as u64;
-        let init_data = test_solid_data();
+        let size = SolData::DEFAULT_SIZE as u64;
+        let init_data = test_sol_data();
         let mut expected = vec![0];
         expected.extend_from_slice(&size.to_le_bytes());
         expected.append(&mut init_data.try_to_vec().unwrap());
-        let instruction = SolidInstruction::Initialize { size, init_data };
+        let instruction = SolInstruction::Initialize { size, init_data };
         assert_eq!(instruction.try_to_vec().unwrap(), expected);
         assert_eq!(
-            SolidInstruction::try_from_slice(&expected).unwrap(),
+            SolInstruction::try_from_slice(&expected).unwrap(),
             instruction
         );
     }
 
     #[test]
     fn serialize_write() {
-        let data = test_solid_data().try_to_vec().unwrap();
+        let data = test_sol_data().try_to_vec().unwrap();
         let offset = 0u64;
-        let instruction = SolidInstruction::Write {
+        let instruction = SolInstruction::Write {
             offset: 0,
             data: data.clone(),
         };
@@ -140,18 +140,18 @@ mod tests {
         expected.append(&mut data.try_to_vec().unwrap());
         assert_eq!(instruction.try_to_vec().unwrap(), expected);
         assert_eq!(
-            SolidInstruction::try_from_slice(&expected).unwrap(),
+            SolInstruction::try_from_slice(&expected).unwrap(),
             instruction
         );
     }
 
     #[test]
     fn serialize_close_account() {
-        let instruction = SolidInstruction::CloseAccount;
+        let instruction = SolInstruction::CloseAccount;
         let expected = vec![2];
         assert_eq!(instruction.try_to_vec().unwrap(), expected);
         assert_eq!(
-            SolidInstruction::try_from_slice(&expected).unwrap(),
+            SolInstruction::try_from_slice(&expected).unwrap(),
             instruction
         );
     }
@@ -159,7 +159,7 @@ mod tests {
     #[test]
     fn deserialize_invalid_instruction() {
         let expected = vec![12];
-        let err: ProgramError = SolidInstruction::try_from_slice(&expected)
+        let err: ProgramError = SolInstruction::try_from_slice(&expected)
             .unwrap_err()
             .into();
         assert!(matches!(err, ProgramError::BorshIoError(_)));

@@ -2,8 +2,8 @@ import { Account } from '@solana/web3.js';
 import { ServiceEndpoint } from 'did-resolver';
 import {
   DecentralizedIdentifier,
-  SolidPublicKey,
-} from '../src/lib/solana/solid-data';
+  SolPublicKey,
+} from '../src/lib/solana/sol-data';
 import { CLUSTER } from './constants';
 import { getKeyFromAuthority } from '../src/lib/solana/instruction';
 
@@ -12,7 +12,7 @@ export const makeService = async (owner: Account): Promise<ServiceEndpoint> => {
 
   const identifier = new DecentralizedIdentifier({
     clusterType: CLUSTER,
-    pubkey: SolidPublicKey.fromPublicKey(pubkey),
+    pubkey: SolPublicKey.fromPublicKey(pubkey),
   }).toString();
 
   return {
