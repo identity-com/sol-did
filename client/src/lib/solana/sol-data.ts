@@ -56,10 +56,7 @@ export class SolData extends Assignable {
     });
   }
 
-  merge(
-    other: Partial<SolData>,
-    overwriteArrays: boolean = false
-  ): SolData {
+  merge(other: Partial<SolData>, overwriteArrays: boolean = false): SolData {
     const mergeBehaviour = (a: any, b: any): any => {
       if (a && Array.isArray(a)) {
         return overwriteArrays && b ? b : [...a, ...b];
@@ -185,12 +182,9 @@ export class SolData extends Assignable {
   // Otherwise, just return the default version.
   private static parseVersion(context: Context | undefined) {
     if (context && Array.isArray(context)) {
-      const solContext = context.find(c =>
-        c.startsWith(SOL_CONTEXT_PREFIX)
-      );
+      const solContext = context.find(c => c.startsWith(SOL_CONTEXT_PREFIX));
 
-      if (solContext)
-        return solContext.substring(SOL_CONTEXT_PREFIX.length);
+      if (solContext) return solContext.substring(SOL_CONTEXT_PREFIX.length);
     }
 
     return VERSION;

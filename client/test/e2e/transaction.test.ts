@@ -21,11 +21,7 @@ describe('transaction', () => {
       DEFAULT_DOCUMENT_SIZE,
       SolData.empty()
     );
-    const sol = await SolTransaction.getSol(
-      connection,
-      CLUSTER,
-      solKey
-    );
+    const sol = await SolTransaction.getSol(connection, CLUSTER, solKey);
     assert.notEqual(sol, null);
     const checkSol = SolData.sparse(solKey, authority.publicKey, CLUSTER);
     assert.deepEqual(sol, checkSol);

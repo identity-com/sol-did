@@ -9,19 +9,14 @@ import { makeService } from '../../../util';
 
 const pub = () => new Account().publicKey;
 
-const withoutAuthority = (solData: SolData) =>
-  omit(['authority'], solData);
+const withoutAuthority = (solData: SolData) => omit(['authority'], solData);
 
 describe('sol-data', () => {
   describe('merge', () => {
     describe('with default behaviour', () => {
       it('should merge a sparse solData object into an empty one, except the authority', () => {
         const empty = SolData.empty();
-        const sparse = SolData.sparse(
-          pub(),
-          pub(),
-          ClusterType.mainnetBeta()
-        );
+        const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
 
         const merged = empty.merge(sparse);
 
@@ -30,11 +25,7 @@ describe('sol-data', () => {
 
       it('should not change a sparse solData object when merging an empty one into it', () => {
         const empty = SolData.empty();
-        const sparse = SolData.sparse(
-          pub(),
-          pub(),
-          ClusterType.mainnetBeta()
-        );
+        const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
 
         const merged = sparse.merge(empty);
 
@@ -44,11 +35,7 @@ describe('sol-data', () => {
       it('should not change a sparse solData object when merging an empty one with no authority', () => {
         const empty = SolData.empty() as Partial<SolData>;
         delete empty.authority;
-        const sparse = SolData.sparse(
-          pub(),
-          pub(),
-          ClusterType.mainnetBeta()
-        );
+        const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
 
         const merged = sparse.merge(empty);
 
@@ -60,11 +47,7 @@ describe('sol-data', () => {
         withService.service = [
           ServiceEndpoint.parse(await makeService(new Account())),
         ];
-        const sparse = SolData.sparse(
-          pub(),
-          pub(),
-          ClusterType.mainnetBeta()
-        );
+        const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
 
         const merged = sparse.merge(withService);
 
@@ -97,11 +80,7 @@ describe('sol-data', () => {
     describe('with overwriteArrays=true', () => {
       it('should merge a sparse solData object into an empty one', () => {
         const empty = SolData.empty();
-        const sparse = SolData.sparse(
-          pub(),
-          pub(),
-          ClusterType.mainnetBeta()
-        );
+        const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
 
         const merged = empty.merge(sparse, true);
 
@@ -110,11 +89,7 @@ describe('sol-data', () => {
 
       it('should clear the contents of a solData object when merging an empty one', () => {
         const empty = SolData.empty();
-        const sparse = SolData.sparse(
-          pub(),
-          pub(),
-          ClusterType.mainnetBeta()
-        );
+        const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
 
         const merged = sparse.merge(empty, true);
 

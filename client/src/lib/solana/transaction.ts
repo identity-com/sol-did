@@ -89,11 +89,7 @@ export class SolTransaction {
     owner: Account = payer
   ): Promise<string> {
     // Update the sol DID
-    const existingData = await this.getSol(
-      connection,
-      clusterType,
-      recordKey
-    );
+    const existingData = await this.getSol(connection, clusterType, recordKey);
 
     if (!existingData) throw new Error('DID does not exist');
 

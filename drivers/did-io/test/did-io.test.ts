@@ -8,7 +8,7 @@ const cluster = ClusterType.devnet();
 
 // Creates a DID on Solana Devnet
 // Skipped until the changes to the program are pushed to Devnet
-describe.skip('did-io integration', () => {
+describe('did-io integration', () => {
   beforeAll(async () => {
     const connection = new Connection(cluster.solanaUrl(), 'recent');
     const payerAccount = await SolanaUtil.newAccountWithLamports(
@@ -35,5 +35,5 @@ describe.skip('did-io integration', () => {
     expect(document.verificationMethod[0].publicKeyBase58).toEqual(
       owner.publicKey.toBase58()
     );
-  });
+  }, 10000);
 });

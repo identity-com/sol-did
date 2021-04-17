@@ -42,7 +42,7 @@ describe('util', () => {
 
   describe('keyToIdentifier', () => {
     it('should generate a consistent DID identifier for a known owner public key', async () => {
-      const expected = 'did:sol:Bm8bvjnBCJj6nKExmZk17khkRRNXAvcv2npKbhaqNWGC';
+      const expected = 'did:sol:C81bd557vreob9E3p5E9AtXpsRYpkikQRECWEifJabEf';
       const identifier = await keyToIdentifier(
         new PublicKey(TEST_DID_ACCOUNT_PUBLIC_KEY)
       );
