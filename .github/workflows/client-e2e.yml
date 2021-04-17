@@ -7,7 +7,7 @@ on:
   pull_request:
 jobs:
   E2E:
-    name: Test the sol client against the on-chain program on Solana ${{ matrix.solana }}, Node ${{ matrix.node }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
+    name: Test the did client against the on-chain program on Solana ${{ matrix.solana }}, Node ${{ matrix.node }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:

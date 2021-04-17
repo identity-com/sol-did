@@ -6,7 +6,7 @@ on:
   pull_request:
 jobs:
   build:
-    name: Build, lint, and test the sol client on Node ${{ matrix.node }} and ${{ matrix.os }}
+    name: Build, lint, and test the did client on Node ${{ matrix.node }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -47,7 +47,7 @@ jobs:
         run: yarn build
 
   E2E:
-    name: Test the sol client against the on-chain program on Solana ${{ matrix.solana }}, Node ${{ matrix.node }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
+    name: Test the did client against the on-chain program on Solana ${{ matrix.solana }}, Node ${{ matrix.node }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
