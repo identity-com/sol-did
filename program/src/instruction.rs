@@ -77,12 +77,7 @@ pub fn initialize(
 }
 
 /// Create a `SolInstruction::Write` instruction
-pub fn write(
-    sol_account: &Pubkey,
-    authority: &Pubkey,
-    offset: u64,
-    data: Vec<u8>,
-) -> Instruction {
+pub fn write(sol_account: &Pubkey, authority: &Pubkey, offset: u64, data: Vec<u8>) -> Instruction {
     Instruction::new_with_borsh(
         id(),
         &SolInstruction::Write { offset, data },

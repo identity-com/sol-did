@@ -31,8 +31,7 @@ use {
 /// - the key is listed in the verification_methods AND
 /// - the key is referred to in the capability_invocation property.
 pub fn is_authority(authority_info: &AccountInfo, sol: &SolData) -> bool {
-    sol
-        .write_authorized_pubkeys()
+    sol.write_authorized_pubkeys()
         .iter()
         .any(|v| v == authority_info.key)
 }
@@ -82,11 +81,8 @@ pub fn process_instruction(
                 return Err(ProgramError::AccountAlreadyInitialized);
             }
 
-            let sol_signer_seeds: &[&[_]] = &[
-                &authority_info.key.to_bytes(),
-                br"sol",
-                &[sol_bump_seed],
-            ];
+            let sol_signer_seeds: &[&[_]] =
+                &[&authority_info.key.to_bytes(), br"sol", &[sol_bump_seed]];
 
             msg!("Creating data account");
             invoke_signed(
@@ -107,8 +103,7 @@ pub fn process_instruction(
 
             let mut sol = SolData::new_sparse(*authority_info.key);
             sol.merge(init_data);
-            sol
-                .serialize(&mut *data_info.data.borrow_mut())
+            sol.serialize(&mut *data_info.data.borrow_mut())
                 .map_err(|e| e.into())
         }
 

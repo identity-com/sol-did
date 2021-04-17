@@ -28,10 +28,7 @@ pub fn validate_owner(did: &AccountInfo, signers: &[AccountInfo]) -> ProgramResu
     }
     let sol = program_borsh::try_from_slice_incomplete::<SolData>(*did.data.borrow())?;
 
-    if signers
-        .iter()
-        .any(|s| s.is_signer && is_authority(s, &sol))
-    {
+    if signers.iter().any(|s| s.is_signer && is_authority(s, &sol)) {
         Ok(())
     } else {
         Err(SolError::IncorrectAuthority.into())

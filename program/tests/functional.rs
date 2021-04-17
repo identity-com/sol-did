@@ -1,11 +1,22 @@
 // Mark this test as BPF-only due to current `ProgramTest` limitations when CPIing into the system program
 #![cfg(feature = "test-bpf")]
 
+use solana_program_test::tokio;
 use solana_sdk::account::Account;
 use solana_sdk::program_error::ProgramError;
-use solana_program_test::tokio;
 use {
     borsh::BorshSerialize,
+    sol_did::{
+        borsh as program_borsh,
+        error::SolError,
+        id, instruction,
+        processor::process_instruction,
+        state::{
+            get_sol_address_with_seed, DecentralizedIdentifier, ServiceEndpoint, SolData,
+            VerificationMethod,
+        },
+        validate_owner,
+    },
     solana_program::{
         instruction::{AccountMeta, Instruction, InstructionError},
         pubkey::Pubkey,
@@ -17,17 +28,6 @@ use {
         signature::{Keypair, Signer},
         transaction::{Transaction, TransactionError},
         transport,
-    },
-    sol_did::{
-        borsh as program_borsh,
-        error::SolError,
-        id, instruction,
-        processor::process_instruction,
-        state::{
-            get_sol_address_with_seed, DecentralizedIdentifier, ServiceEndpoint, SolData,
-            VerificationMethod,
-        },
-        validate_owner,
     },
 };
 

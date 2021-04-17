@@ -18,7 +18,7 @@ describe('did-io integration', () => {
 
     didIo.use('key', didKey.driver());
     didIo.use('sol', didSol.driver({ payer: payerAccount.secretKey }));
-  });
+  }, 60000);
 
   it('creates a did on devnet', async () => {
     const owner = new Account();
@@ -35,5 +35,5 @@ describe('did-io integration', () => {
     expect(document.verificationMethod[0].publicKeyBase58).toEqual(
       owner.publicKey.toBase58()
     );
-  }, 10000);
+  }, 60000);
 });
