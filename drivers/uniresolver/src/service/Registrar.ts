@@ -1,10 +1,10 @@
-import * as DID from '@identity.com/solid-did-client';
+import * as DID from '@identity.com/sol-did-client';
 import {
   RegisterRequest,
   RegisterState,
   RegisterStateKey,
 } from './DefaultService';
-import { ClusterType } from '@identity.com/solid-did-client';
+import { ClusterType } from '@identity.com/sol-did-client';
 
 export const register = async (
   request: RegisterRequest

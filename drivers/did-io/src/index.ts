@@ -2,8 +2,8 @@ import {
   PublicKeyBase58,
   PrivateKey,
   ClusterType,
-} from '@identity.com/solid-did-client';
-import * as DID from '@identity.com/solid-did-client';
+} from '@identity.com/sol-did-client';
+import * as DID from '@identity.com/sol-did-client';
 import { Cluster } from '@solana/web3.js';
 import { DIDDocument } from 'did-resolver';
 

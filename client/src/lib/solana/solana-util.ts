@@ -30,7 +30,8 @@ export class SolanaUtil {
     await connection.requestAirdrop(account.publicKey, lamports);
     for (;;) {
       await this.sleep(500);
-      if (lamports === (await connection.getBalance(account.publicKey))) {
+      const balance = await connection.getBalance(account.publicKey);
+      if (lamports <= balance) {
         return account;
       }
       if (--retries <= 0) {

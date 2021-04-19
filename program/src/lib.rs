@@ -1,8 +1,8 @@
-//! SOLID program
+//! SOL program
 #![deny(missing_docs)]
 
 use {
-    crate::{borsh as program_borsh, error::SolidError, processor::is_authority, state::SolidData},
+    crate::{borsh as program_borsh, error::SolError, processor::is_authority, state::SolData},
     solana_program::{
         account_info::AccountInfo, entrypoint::ProgramResult, program_error::ProgramError,
     },
@@ -26,14 +26,11 @@ pub fn validate_owner(did: &AccountInfo, signers: &[AccountInfo]) -> ProgramResu
     if did.owner.ne(&id()) {
         return Err(ProgramError::IncorrectProgramId);
     }
-    let solid = program_borsh::try_from_slice_incomplete::<SolidData>(*did.data.borrow())?;
+    let sol = program_borsh::try_from_slice_incomplete::<SolData>(*did.data.borrow())?;
 
-    if signers
-        .iter()
-        .any(|s| s.is_signer && is_authority(s, &solid))
-    {
+    if signers.iter().any(|s| s.is_signer && is_authority(s, &sol)) {
         Ok(())
     } else {
-        Err(SolidError::IncorrectAuthority.into())
+        Err(SolError::IncorrectAuthority.into())
     }
 }

@@ -3,7 +3,7 @@ import { Assignable, Enum, SCHEMA } from './solana-borsh';
 import {
   DID_METHOD,
   DID_HEADER,
-  SOLID_CONTEXT_PREFIX,
+  SOL_CONTEXT_PREFIX,
   W3ID_CONTEXT,
 } from '../constants';
 import { encode } from 'bs58';
@@ -14,7 +14,7 @@ import {
   ServiceEndpoint as DIDServiceEndpoint,
 } from 'did-resolver';
 
-// The current SOLID method version
+// The current SOL method version
 export const VERSION = '1';
 
 // The identifier for a default verification method, i.e one inferred from the authority
@@ -22,13 +22,13 @@ export const DEFAULT_KEY_ID = 'default';
 
 type Context = 'https://w3id.org/did/v1' | string | string[];
 
-export class SolidData extends Assignable {
+export class SolData extends Assignable {
   // derived
-  account: SolidPublicKey;
+  account: SolPublicKey;
   cluster: ClusterType;
 
   // persisted
-  authority: SolidPublicKey;
+  authority: SolPublicKey;
   version: string;
   verificationMethod: VerificationMethod[];
   authentication: string[];
@@ -42,24 +42,21 @@ export class SolidData extends Assignable {
     accountKey: PublicKey,
     accountData: Buffer,
     cluster: ClusterType
-  ): SolidData {
-    const solidData = SolidData.decode<SolidData>(accountData);
-    solidData.cluster = cluster;
-    solidData.account = SolidPublicKey.fromPublicKey(accountKey);
-    return solidData;
+  ): SolData {
+    const solData = SolData.decode<SolData>(accountData);
+    solData.cluster = cluster;
+    solData.account = SolPublicKey.fromPublicKey(accountKey);
+    return solData;
   }
 
   forAuthority(authority: PublicKey) {
-    return new SolidData({
+    return new SolData({
       ...this,
-      authority: SolidPublicKey.fromPublicKey(authority),
+      authority: SolPublicKey.fromPublicKey(authority),
     });
   }
 
-  merge(
-    other: Partial<SolidData>,
-    overwriteArrays: boolean = false
-  ): SolidData {
+  merge(other: Partial<SolData>, overwriteArrays: boolean = false): SolData {
     const mergeBehaviour = (a: any, b: any): any => {
       if (a && Array.isArray(a)) {
         return overwriteArrays && b ? b : [...a, ...b];
@@ -71,40 +68,40 @@ export class SolidData extends Assignable {
     const dataToMerge = omit(['authority'], other);
 
     const mergedData = mergeWith(mergeBehaviour, this, dataToMerge);
-    return new SolidData(mergedData);
+    return new SolData(mergedData);
   }
 
   static size(): number {
     return 1000;
   }
 
-  static solidContext(version: string = VERSION) {
-    return SOLID_CONTEXT_PREFIX + version;
+  static solContext(version: string = VERSION) {
+    return SOL_CONTEXT_PREFIX + version;
   }
 
   static defaultContext(version: string = VERSION): string[] {
-    return [W3ID_CONTEXT, SolidData.solidContext(version)];
+    return [W3ID_CONTEXT, SolData.solContext(version)];
   }
 
   static sparse(
     account: PublicKey,
     authority: PublicKey,
     clusterType: ClusterType
-  ): SolidData {
-    const emptySolidData = SolidData.empty(authority);
+  ): SolData {
+    const emptySolData = SolData.empty(authority);
 
-    return emptySolidData.merge({
+    return emptySolData.merge({
       version: VERSION,
-      account: SolidPublicKey.fromPublicKey(account),
-      authority: SolidPublicKey.fromPublicKey(authority),
+      account: SolPublicKey.fromPublicKey(account),
+      authority: SolPublicKey.fromPublicKey(authority),
       cluster: clusterType,
     });
   }
 
-  static empty(authority?: PublicKey): SolidData {
-    return new SolidData({
+  static empty(authority?: PublicKey): SolData {
+    return new SolData({
       cluster: ClusterType.mainnetBeta(),
-      authority: SolidPublicKey.fromPublicKey(
+      authority: SolPublicKey.fromPublicKey(
         authority || new Account().publicKey
       ),
 
@@ -131,7 +128,7 @@ export class SolidData extends Assignable {
    * 1. The authority
    * 2. the explicit verification methods stored in the document
    *
-   * Should match the program function state.rs SolidData.inferred_verification_methods
+   * Should match the program function state.rs SolData.inferred_verification_methods
    */
   inferredVerificationMethods(): VerificationMethod[] {
     return [
@@ -149,7 +146,7 @@ export class SolidData extends Assignable {
    * allowing revocability of lost keys while retaining the original DID identifier (which is
    * derived from the authority)
    *
-   * Should match the program function state.rs SolidData.inferred_capability_invocation
+   * Should match the program function state.rs SolData.inferred_capability_invocation
    */
   inferredCapabilityInvocation(): string[] {
     return this.capabilityInvocation && this.capabilityInvocation.length
@@ -167,7 +164,7 @@ export class SolidData extends Assignable {
       v.toDID(this.identifier())
     );
     return {
-      '@context': SolidData.defaultContext(this.version),
+      '@context': SolData.defaultContext(this.version),
       id: this.identifier().toString(),
       verificationMethod: verificationMethods,
       authentication: this.authentication.map(deriveDID),
@@ -181,25 +178,22 @@ export class SolidData extends Assignable {
   }
 
   // extract the version from a DID JSON-LD context, if the context is an array
-  // and includes the Solid Context Prefix.
+  // and includes the Sol Context Prefix.
   // Otherwise, just return the default version.
   private static parseVersion(context: Context | undefined) {
     if (context && Array.isArray(context)) {
-      const solidContext = context.find(c =>
-        c.startsWith(SOLID_CONTEXT_PREFIX)
-      );
+      const solContext = context.find(c => c.startsWith(SOL_CONTEXT_PREFIX));
 
-      if (solidContext)
-        return solidContext.substring(SOLID_CONTEXT_PREFIX.length);
+      if (solContext) return solContext.substring(SOL_CONTEXT_PREFIX.length);
     }
 
     return VERSION;
   }
 
-  static parse(document: Partial<DIDDocument> | undefined): SolidData {
+  static parse(document: Partial<DIDDocument> | undefined): SolData {
     if (document) {
-      return new SolidData({
-        version: SolidData.parseVersion(document['@context']),
+      return new SolData({
+        version: SolData.parseVersion(document['@context']),
         did: document.id
           ? DecentralizedIdentifier.parse(document.id)
           : DecentralizedIdentifier.empty(),
@@ -226,7 +220,7 @@ export class SolidData extends Assignable {
           : [],
       });
     } else {
-      return SolidData.empty();
+      return SolData.empty();
     }
   }
 }
@@ -235,7 +229,7 @@ export class VerificationMethod extends Assignable {
   id: string;
   verificationType: string;
   controller: DecentralizedIdentifier;
-  pubkey: SolidPublicKey;
+  pubkey: SolPublicKey;
 
   static defaultVerificationType(): string {
     return 'Ed25519VerificationKey2018';
@@ -246,7 +240,7 @@ export class VerificationMethod extends Assignable {
     id = DEFAULT_KEY_ID
   ): VerificationMethod {
     const verificationType = VerificationMethod.defaultVerificationType();
-    const pubkey = SolidPublicKey.fromPublicKey(authority);
+    const pubkey = SolPublicKey.fromPublicKey(authority);
     return new VerificationMethod({ id, verificationType, pubkey });
   }
 
@@ -269,7 +263,7 @@ export class VerificationMethod extends Assignable {
         didVerificationMethod.controller
       ),
       pubkey: didVerificationMethod.publicKeyBase58
-        ? SolidPublicKey.parse(didVerificationMethod.publicKeyBase58)
+        ? SolPublicKey.parse(didVerificationMethod.publicKeyBase58)
         : undefined,
     });
   }
@@ -302,7 +296,7 @@ export class ServiceEndpoint extends Assignable {
 
 export class DecentralizedIdentifier extends Assignable {
   clusterType: ClusterType;
-  pubkey: SolidPublicKey;
+  pubkey: SolPublicKey;
   urlField: string;
 
   clone(): DecentralizedIdentifier {
@@ -338,7 +332,7 @@ export class DecentralizedIdentifier extends Assignable {
       if (!matches) throw new Error('Invalid DID');
       return new DecentralizedIdentifier({
         clusterType: ClusterType.parse(matches[1]),
-        pubkey: SolidPublicKey.parse(matches[2]),
+        pubkey: SolPublicKey.parse(matches[2]),
         urlField: matches[3],
       });
     } else {
@@ -358,7 +352,7 @@ export class DecentralizedIdentifier extends Assignable {
   static empty(): DecentralizedIdentifier {
     return new DecentralizedIdentifier({
       clusterType: ClusterType.mainnetBeta(),
-      pubkey: SolidPublicKey.empty(),
+      pubkey: SolPublicKey.empty(),
       identifier: '',
     });
   }
@@ -375,14 +369,14 @@ export class DecentralizedIdentifier extends Assignable {
     identifier: string = ''
   ): DecentralizedIdentifier {
     return new DecentralizedIdentifier({
-      pubkey: SolidPublicKey.fromPublicKey(pubkey),
+      pubkey: SolPublicKey.fromPublicKey(pubkey),
       clusterType,
       identifier,
     });
   }
 }
 
-export class SolidPublicKey extends Assignable {
+export class SolPublicKey extends Assignable {
   // The public key bytes
   bytes: number[];
 
@@ -394,18 +388,18 @@ export class SolidPublicKey extends Assignable {
     return encode(this.bytes);
   }
 
-  static parse(pubkey: string): SolidPublicKey {
-    return SolidPublicKey.fromPublicKey(new PublicKey(pubkey));
+  static parse(pubkey: string): SolPublicKey {
+    return SolPublicKey.fromPublicKey(new PublicKey(pubkey));
   }
 
-  static fromPublicKey(publicKey: PublicKey): SolidPublicKey {
-    return new SolidPublicKey({ bytes: Uint8Array.from(publicKey.toBuffer()) });
+  static fromPublicKey(publicKey: PublicKey): SolPublicKey {
+    return new SolPublicKey({ bytes: Uint8Array.from(publicKey.toBuffer()) });
   }
 
-  static empty(): SolidPublicKey {
+  static empty(): SolPublicKey {
     const bytes = new Array(32);
     bytes.fill(0);
-    return new SolidPublicKey({ bytes });
+    return new SolPublicKey({ bytes });
   }
 }
 
@@ -476,10 +470,10 @@ export class MainnetBeta extends Assignable {}
 export class Devnet extends Assignable {}
 export class Development extends Assignable {}
 
-SCHEMA.set(SolidData, {
+SCHEMA.set(SolData, {
   kind: 'struct',
   fields: [
-    ['authority', SolidPublicKey],
+    ['authority', SolPublicKey],
     ['version', 'string'],
     ['verificationMethod', [VerificationMethod]],
     ['authentication', ['string']],
@@ -495,13 +489,13 @@ SCHEMA.set(VerificationMethod, {
   fields: [
     ['id', 'string'],
     ['verificationType', 'string'],
-    ['pubkey', SolidPublicKey],
+    ['pubkey', SolPublicKey],
   ],
 });
 SCHEMA.set(DecentralizedIdentifier, {
   kind: 'struct',
   fields: [
-    ['solidData', SolidData],
+    ['solData', SolData],
     ['identifier', 'string'],
   ],
 });
@@ -514,7 +508,7 @@ SCHEMA.set(ServiceEndpoint, {
     ['description', 'string'],
   ],
 });
-SCHEMA.set(SolidPublicKey, {
+SCHEMA.set(SolPublicKey, {
   kind: 'struct',
   fields: [['bytes', [32]]],
 });

@@ -1,15 +1,15 @@
 import { getPublicKey, makeAccount, RegisterRequest } from '../lib/util';
-import { SolidTransaction } from '../lib/solana/transaction';
+import { SolTransaction } from '../lib/solana/transaction';
 import { Connection, PublicKey } from '@solana/web3.js';
 import {
   ClusterType,
   DecentralizedIdentifier,
-  SolidData,
-} from '../lib/solana/solid-data';
+  SolData,
+} from '../lib/solana/sol-data';
 import { DEFAULT_DOCUMENT_SIZE, SOLANA_COMMITMENT } from '../lib/constants';
 
 /**
- * Registers a SOLID DID on Solana.
+ * Registers a SOL DID on Solana.
  * @param request
  */
 export const register = async (request: RegisterRequest): Promise<string> => {
@@ -20,13 +20,13 @@ export const register = async (request: RegisterRequest): Promise<string> => {
   const cluster = request.cluster || ClusterType.mainnetBeta();
   const size = request.size || DEFAULT_DOCUMENT_SIZE;
   const connection = new Connection(cluster.solanaUrl(), SOLANA_COMMITMENT);
-  const solidKey = await SolidTransaction.createSolid(
+  const solKey = await SolTransaction.createSol(
     connection,
     payer,
     owner,
     size,
-    SolidData.parse(request.document)
+    SolData.parse(request.document)
   );
 
-  return DecentralizedIdentifier.create(solidKey, cluster).toString();
+  return DecentralizedIdentifier.create(solKey, cluster).toString();
 };

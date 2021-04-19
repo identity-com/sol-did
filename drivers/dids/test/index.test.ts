@@ -1,5 +1,5 @@
 import { DIDs } from '../src';
-import { ClusterType, SolanaUtil } from '@identity.com/solid-did-client';
+import { ClusterType, SolanaUtil } from '@identity.com/sol-did-client';
 import { Account, Connection, PublicKey } from '@solana/web3.js';
 import { expect } from 'chai';
 import { DIDDocument } from 'did-resolver';
@@ -61,15 +61,15 @@ describe('DIDs', () => {
   });
 
   // Skipped until new versions of the DID program can be deployed to devnet
-  context('did-solid', () => {
-    it('should create a did-solid DID from a Solana public key', async () => {
-      const did = await dids.register('solid', owner);
+  context('did-sol', () => {
+    it('should create a did-sol DID from a Solana public key', async () => {
+      const did = await dids.register('sol', owner);
 
-      expect(did).to.match(/^did:solid:/);
+      expect(did).to.match(/^did:sol:/);
     });
 
-    it('should contain the solana public key as the capabilityInvocation key in a did-solid DID', async () => {
-      const did = await dids.register('solid', owner);
+    it('should contain the solana public key as the capabilityInvocation key in a did-sol DID', async () => {
+      const did = await dids.register('sol', owner);
 
       const document = await dids.get(did);
 

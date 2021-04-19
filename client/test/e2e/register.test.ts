@@ -2,9 +2,9 @@ import { register, resolve, RegisterRequest } from '../../src';
 import { SolanaUtil } from '../../src/lib/solana/solana-util';
 import { Account, Connection } from '@solana/web3.js';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
-import { DecentralizedIdentifier } from '../../src/lib/solana/solid-data';
+import { DecentralizedIdentifier } from '../../src/lib/solana/sol-data';
 import { makeService } from '../util';
-import { SOLID_CONTEXT_PREFIX, W3ID_CONTEXT } from '../../src/lib/constants';
+import { SOL_CONTEXT_PREFIX, W3ID_CONTEXT } from '../../src/lib/constants';
 
 describe('register', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');
@@ -61,7 +61,7 @@ describe('register', () => {
       cluster: CLUSTER,
       owner: owner.publicKey.toBase58(),
       document: {
-        '@context': [W3ID_CONTEXT, SOLID_CONTEXT_PREFIX + version],
+        '@context': [W3ID_CONTEXT, SOL_CONTEXT_PREFIX + version],
       },
     };
     const identifier = await register(registerRequest);
@@ -72,7 +72,7 @@ describe('register', () => {
 
     // ensure the doc contains the correct version in the context field
     const context = doc['@context'];
-    expect(context).toEqual([W3ID_CONTEXT, SOLID_CONTEXT_PREFIX + version]);
+    expect(context).toEqual([W3ID_CONTEXT, SOL_CONTEXT_PREFIX + version]);
   }, 30000);
 
   it('registers a DID with a size', async () => {

@@ -1,14 +1,14 @@
 import didIo from 'did-io';
 import didKey from 'did-method-key';
-import didSolid from '../src/';
+import didSol from '../src/';
 import { Account, Connection } from '@solana/web3.js';
-import { ClusterType, SolanaUtil } from '@identity.com/solid-did-client';
+import { ClusterType, SolanaUtil } from '@identity.com/sol-did-client';
 
 const cluster = ClusterType.devnet();
 
 // Creates a DID on Solana Devnet
 // Skipped until the changes to the program are pushed to Devnet
-describe.skip('did-io integration', () => {
+describe('did-io integration', () => {
   beforeAll(async () => {
     const connection = new Connection(cluster.solanaUrl(), 'recent');
     const payerAccount = await SolanaUtil.newAccountWithLamports(
@@ -17,15 +17,15 @@ describe.skip('did-io integration', () => {
     );
 
     didIo.use('key', didKey.driver());
-    didIo.use('solid', didSolid.driver({ payer: payerAccount.secretKey }));
-  });
+    didIo.use('sol', didSol.driver({ payer: payerAccount.secretKey }));
+  }, 60000);
 
   it('creates a did on devnet', async () => {
     const owner = new Account();
 
     const did = await didIo.register({
       key: owner.publicKey.toBase58(),
-      didDocument: { did: 'did:solid:' },
+      didDocument: { did: 'did:sol:' },
       cluster: cluster.toString(),
     });
 
@@ -35,5 +35,5 @@ describe.skip('did-io integration', () => {
     expect(document.verificationMethod[0].publicKeyBase58).toEqual(
       owner.publicKey.toBase58()
     );
-  });
+  }, 60000);
 });

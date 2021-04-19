@@ -1,7 +1,7 @@
 import { Account, Connection } from '@solana/web3.js';
 import { DEFAULT_DOCUMENT_SIZE } from '../../src/lib/constants';
-import { SolidTransaction } from '../../src/lib/solana/transaction';
-import { SolidData } from '../../src/lib/solana/solid-data';
+import { SolTransaction } from '../../src/lib/solana/transaction';
+import { SolData } from '../../src/lib/solana/sol-data';
 import { SolanaUtil } from '../../src/lib/solana/solana-util';
 import { strict as assert } from 'assert';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
@@ -14,26 +14,22 @@ describe('transaction', () => {
       1000000000
     );
     const authority = new Account();
-    const solidKey = await SolidTransaction.createSolid(
+    const solKey = await SolTransaction.createSol(
       connection,
       payer,
       authority.publicKey,
       DEFAULT_DOCUMENT_SIZE,
-      SolidData.empty()
+      SolData.empty()
     );
-    const solid = await SolidTransaction.getSolid(
-      connection,
-      CLUSTER,
-      solidKey
-    );
-    assert.notEqual(solid, null);
-    const checkSolid = SolidData.sparse(solidKey, authority.publicKey, CLUSTER);
-    assert.deepEqual(solid, checkSolid);
-    const solidFromAuthority = await SolidTransaction.getSolidFromAuthority(
+    const sol = await SolTransaction.getSol(connection, CLUSTER, solKey);
+    assert.notEqual(sol, null);
+    const checkSol = SolData.sparse(solKey, authority.publicKey, CLUSTER);
+    assert.deepEqual(sol, checkSol);
+    const solFromAuthority = await SolTransaction.getSolFromAuthority(
       connection,
       CLUSTER,
       authority.publicKey
     );
-    assert.deepEqual(solidFromAuthority, checkSolid);
+    assert.deepEqual(solFromAuthority, checkSol);
   });
 });

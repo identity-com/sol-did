@@ -1,15 +1,15 @@
-## SOLID Onchain Program
+## SOL Onchain Program
 
-The following is an overall design document for the on-chain SOLID program.
+The following is an overall design document for the on-chain SOL program.
 
 ### State
 
 #### DID Fields
 
 * @context: `Array<string>`
-  - example `[ "https://w3id.org/did/v1.0", "https://w3id.org/solid/v1" ]`
-* id: did uri string in the form "did:solid:account_pubkey"
-  - example: `"did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH"`
+  - example `[ "https://w3id.org/did/v1.0", "https://w3id.org/sol/v1" ]`
+* id: did uri string in the form "did:sol:account_pubkey"
+  - example: `"did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH"`
 * publicKey: `Array<VerificationMethod>`
 * authentication: `Array<DID>`
 * capabilityInvocation: `Array<DID>`
@@ -34,7 +34,7 @@ The following is an overall design document for the on-chain SOLID program.
 * type: string
   - examples "AgentService" "MessagingService"
 * serviceEndpoint: string
-  - example: `"https://hub.civic.com/did:solid:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH/agent"`
+  - example: `"https://hub.civic.com/did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH/agent"`
 
 ### Instructions
 

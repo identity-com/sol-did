@@ -1,5 +1,5 @@
 export { SolanaUtil } from './lib/solana/solana-util';
-export { ClusterType } from './lib/solana/solid-data';
+export { ClusterType } from './lib/solana/sol-data';
 
 export { resolve } from './service/resolve';
 export { register } from './service/register';

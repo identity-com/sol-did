@@ -1,6 +1,6 @@
 //! Program state
 use {
-    crate::{error::SolidError, id},
+    crate::{error::SolError, id},
     borsh::{BorshDeserialize, BorshSchema, BorshSerialize},
     solana_program::{program_pack::IsInitialized, pubkey::Pubkey},
     std::str::FromStr,
@@ -16,13 +16,13 @@ fn merge_vecs<T: PartialEq>(lhs: &mut Vec<T>, rhs: Vec<T>) {
 
 /// Struct wrapping data and providing metadata
 #[derive(Clone, Debug, Default, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
-pub struct SolidData {
-    /// The public key of the solidData account - used to derive the identifier
+pub struct SolData {
+    /// The public key of the solData account - used to derive the identifier
     /// and first verification method
     pub authority: Pubkey,
 
     /// DecentralizedIdentifier version - used to generate the DID JSON-LD context:
-    /// ["https://w3id.org/did/v1.0", "https://w3id.org/solid/v" +  version]
+    /// ["https://w3id.org/did/v1.0", "https://w3id.org/sol/v" +  version]
     pub version: String,
 
     /// All of the public keys related to the DecentralizedIdentifier
@@ -41,21 +41,21 @@ pub struct SolidData {
     pub service: Vec<ServiceEndpoint>,
 }
 
-impl SolidData {
+impl SolData {
     /// Default size of struct
     pub const DEFAULT_SIZE: usize = 1_000;
-    /// The SOLID DID method version
+    /// The SOL DID method version
     pub const DEFAULT_VERSION: &'static str = "1";
 
     /// Create a DID for this DIDDocument
     pub fn did(&self) -> DecentralizedIdentifier {
         DecentralizedIdentifier {
-            solid_data: self,
+            sol_data: self,
             url_field: "".to_string(),
         }
     }
 
-    /// Create a new SOLID for testing write capabilities
+    /// Create a new SOL for testing write capabilities
     /// The verification methods and capability invocation arrays
     /// are inferred from the authority
     pub fn new_sparse(authority: Pubkey) -> Self {
@@ -109,7 +109,7 @@ impl SolidData {
             .collect()
     }
     /// Merge one DID into another.  The ID does not change, exact copies
-    pub fn merge(&mut self, other: SolidData) {
+    pub fn merge(&mut self, other: SolData) {
         if !other.version.is_empty() {
             self.version = other.version
         }
@@ -144,7 +144,7 @@ impl Default for ClusterType {
 }
 
 impl ClusterType {
-    /// Return the DID-compatible identifier, added after "did:solid:"
+    /// Return the DID-compatible identifier, added after "did:sol:"
     pub fn did_identifier(&self) -> &str {
         match self {
             ClusterType::Testnet => "testnet",
@@ -156,7 +156,7 @@ impl ClusterType {
 }
 
 impl FromStr for ClusterType {
-    type Err = SolidError;
+    type Err = SolError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -164,30 +164,30 @@ impl FromStr for ClusterType {
             "" => Ok(ClusterType::MainnetBeta),
             "devnet" => Ok(ClusterType::Devnet),
             "localnet" => Ok(ClusterType::Development),
-            _ => Err(SolidError::InvalidString),
+            _ => Err(SolError::InvalidString),
         }
     }
 }
 
-/// Get program-derived solid address for the authority
-pub fn get_solid_address_with_seed(authority: &Pubkey) -> (Pubkey, u8) {
-    Pubkey::find_program_address(&[&authority.to_bytes(), br"solid"], &id())
+/// Get program-derived sol address for the authority
+pub fn get_sol_address_with_seed(authority: &Pubkey) -> (Pubkey, u8) {
+    Pubkey::find_program_address(&[&authority.to_bytes(), br"sol"], &id())
 }
 
 /// Typed representation of a DecentralizedIdentifier
 #[derive(Clone, Debug, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
 pub struct DecentralizedIdentifier<'a> {
     /// A reference to the DID Document that this identifier belongs to
-    pub solid_data: &'a SolidData,
+    pub sol_data: &'a SolData,
     /// Additional url information
     pub url_field: String,
 }
 
 impl<'a> DecentralizedIdentifier<'a> {
     /// Create new DID when no additional identifier is specified
-    pub fn new(solid_data: &'a SolidData) -> Self {
+    pub fn new(sol_data: &'a SolData) -> Self {
         Self {
-            solid_data,
+            sol_data,
             url_field: "".to_string(),
         }
     }
@@ -198,7 +198,7 @@ impl<'a> DecentralizedIdentifier<'a> {
 pub struct ServiceEndpoint {
     /// Id related to the endpoint
     /// When the DID document is resolved, this is concatenated to the DID to produce
-    /// did:solid:<identifier>#<id>
+    /// did:sol:<identifier>#<id>
     pub id: String,
     /// Endpoint type
     pub endpoint_type: String,
@@ -213,7 +213,7 @@ pub struct ServiceEndpoint {
 pub struct VerificationMethod {
     /// Unique id for the verification method, and how to find it
     /// When the DID document is resolved, this is concatenated to the DID to produce
-    /// did:solid:<identifier>#<id>
+    /// did:sol:<identifier>#<id>
     pub id: String,
     /// What kind of key this is. TODO use an enum?
     pub verification_type: String,
@@ -246,7 +246,7 @@ impl VerificationMethod {
     }
 }
 
-impl IsInitialized for SolidData {
+impl IsInitialized for SolData {
     /// Is initialized
     fn is_initialized(&self) -> bool {
         !self.version.is_empty()
@@ -261,12 +261,12 @@ pub mod tests {
     /// Pubkey for tests
     pub const TEST_PUBKEY: Pubkey = Pubkey::new_from_array([100; 32]);
     /// DID for tests
-    pub const TEST_KEY_ID: &str = "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP#key1";
+    pub const TEST_KEY_ID: &str = "did:sol:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP#key1";
     /// Controller for tests
-    pub const TEST_DID: &str = "did:solid:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP";
+    pub const TEST_DID: &str = "did:sol:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP";
 
-    pub fn test_did(solid_data: &'static SolidData) -> DecentralizedIdentifier {
-        DecentralizedIdentifier::new(solid_data)
+    pub fn test_did(sol_data: &'static SolData) -> DecentralizedIdentifier {
+        DecentralizedIdentifier::new(sol_data)
     }
 
     pub fn test_verification_method() -> VerificationMethod {
@@ -277,10 +277,10 @@ pub mod tests {
         }
     }
 
-    pub fn test_solid_data() -> SolidData {
-        SolidData {
+    pub fn test_sol_data() -> SolData {
+        SolData {
             authority: TEST_PUBKEY,
-            version: SolidData::DEFAULT_VERSION.to_string(),
+            version: SolData::DEFAULT_VERSION.to_string(),
             verification_method: vec![test_verification_method()],
             authentication: vec![VerificationMethod::DEFAULT_KEY_ID.to_string()],
             capability_invocation: vec![VerificationMethod::DEFAULT_KEY_ID.to_string()],
@@ -293,16 +293,16 @@ pub mod tests {
 
     #[test]
     fn serialize_data() {
-        let data = test_solid_data();
+        let data = test_sol_data();
         let serialized = data.try_to_vec().unwrap();
-        let deserialized = SolidData::try_from_slice(&serialized).unwrap();
+        let deserialized = SolData::try_from_slice(&serialized).unwrap();
         assert_eq!(data, deserialized);
     }
 
     #[test]
     fn deserialize_empty() {
-        let data = [0u8; SolidData::DEFAULT_SIZE];
-        let deserialized = program_borsh::try_from_slice_incomplete::<SolidData>(&data).unwrap();
+        let data = [0u8; SolData::DEFAULT_SIZE];
+        let deserialized = program_borsh::try_from_slice_incomplete::<SolData>(&data).unwrap();
         assert_eq!(deserialized.version, "");
         assert_eq!(deserialized.verification_method, vec![]);
         assert_eq!(deserialized.authentication, vec![] as Vec<String>);

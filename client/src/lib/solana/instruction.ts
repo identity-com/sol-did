@@ -1,5 +1,5 @@
 import { Enum, Assignable, SCHEMA } from './solana-borsh';
-import { SolidData } from './solid-data';
+import { SolData } from './sol-data';
 import { DID_METHOD, PROGRAM_ID } from '../constants';
 import {
   AccountMeta,
@@ -11,7 +11,7 @@ import {
 
 export class Initialize extends Assignable {
   size: number;
-  initData: SolidData;
+  initData: SolData;
 }
 
 export class Write extends Assignable {
@@ -21,23 +21,23 @@ export class Write extends Assignable {
 
 export class CloseAccount extends Assignable {}
 
-export class SolidInstruction extends Enum {
+export class SolInstruction extends Enum {
   initialize: Initialize;
   write: Write;
   closeAccount: CloseAccount;
 
-  static initialize(size: number, initData: SolidData): SolidInstruction {
-    return new SolidInstruction({
+  static initialize(size: number, initData: SolData): SolInstruction {
+    return new SolInstruction({
       initialize: new Initialize({ size, initData }),
     });
   }
 
-  static write(offset: number, data: Uint8Array): SolidInstruction {
-    return new SolidInstruction({ write: new Write({ offset, data }) });
+  static write(offset: number, data: Uint8Array): SolInstruction {
+    return new SolInstruction({ write: new Write({ offset, data }) });
   }
 
-  static closeAccount(): SolidInstruction {
-    return new SolidInstruction({ closeAccount: new CloseAccount({}) });
+  static closeAccount(): SolInstruction {
+    return new SolInstruction({ closeAccount: new CloseAccount({}) });
   }
 }
 
@@ -53,20 +53,20 @@ export async function getKeyFromAuthority(
 
 export function initialize(
   payer: PublicKey,
-  solidKey: PublicKey,
+  solKey: PublicKey,
   authority: PublicKey,
   size: number,
-  initData: SolidData
+  initData: SolData
 ): TransactionInstruction {
   const keys: AccountMeta[] = [
     { pubkey: payer, isSigner: true, isWritable: true },
-    { pubkey: solidKey, isSigner: false, isWritable: true },
+    { pubkey: solKey, isSigner: false, isWritable: true },
     { pubkey: authority, isSigner: false, isWritable: false },
     { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
     { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
   ];
   const initDataWithAuthorityAndKey = initData.forAuthority(authority);
-  const data = SolidInstruction.initialize(
+  const data = SolInstruction.initialize(
     size,
     initDataWithAuthorityAndKey
   ).encode();
@@ -78,16 +78,16 @@ export function initialize(
 }
 
 export function write(
-  solidAccount: PublicKey,
+  solAccount: PublicKey,
   authority: PublicKey,
   offset: number,
-  solidData: Uint8Array
+  solData: Uint8Array
 ): TransactionInstruction {
   const keys: AccountMeta[] = [
-    { pubkey: solidAccount, isSigner: false, isWritable: true },
+    { pubkey: solAccount, isSigner: false, isWritable: true },
     { pubkey: authority, isSigner: true, isWritable: false },
   ];
-  const data = SolidInstruction.write(offset, solidData).encode();
+  const data = SolInstruction.write(offset, solData).encode();
   return new TransactionInstruction({
     keys,
     programId: PROGRAM_ID,
@@ -96,19 +96,19 @@ export function write(
 }
 
 export function closeAccount(
-  solidAccount: PublicKey,
+  solAccount: PublicKey,
   authority: PublicKey,
   receiver: PublicKey
 ): TransactionInstruction {
   const keys: AccountMeta[] = [
     // the DID account
-    { pubkey: solidAccount, isSigner: false, isWritable: true },
+    { pubkey: solAccount, isSigner: false, isWritable: true },
     // a key with close permissions on the DID
     { pubkey: authority, isSigner: true, isWritable: false },
     // the account to receive the lamports
     { pubkey: receiver, isSigner: false, isWritable: false },
   ];
-  const data = SolidInstruction.closeAccount().encode();
+  const data = SolInstruction.closeAccount().encode();
   return new TransactionInstruction({
     keys,
     programId: PROGRAM_ID,
@@ -116,7 +116,7 @@ export function closeAccount(
   });
 }
 
-SCHEMA.set(SolidInstruction, {
+SCHEMA.set(SolInstruction, {
   kind: 'enum',
   field: 'enum',
   values: [
@@ -129,7 +129,7 @@ SCHEMA.set(Initialize, {
   kind: 'struct',
   fields: [
     ['size', 'u64'],
-    ['initData', SolidData],
+    ['initData', SolData],
   ],
 });
 SCHEMA.set(Write, {

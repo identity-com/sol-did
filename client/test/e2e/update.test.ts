@@ -1,8 +1,8 @@
 import { resolve, update, UpdateRequest } from '../../src';
 import { DEFAULT_DOCUMENT_SIZE } from '../../src/lib/constants';
-import { SolidData } from '../../src/lib/solana/solid-data';
+import { SolData } from '../../src/lib/solana/sol-data';
 import { SolanaUtil } from '../../src/lib/solana/solana-util';
-import { SolidTransaction } from '../../src/lib/solana/transaction';
+import { SolTransaction } from '../../src/lib/solana/transaction';
 import { Account, Connection, PublicKey } from '@solana/web3.js';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
 import { makeService } from '../util';
@@ -22,22 +22,22 @@ const makeServiceRequest = (
 
 describe('update', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');
-  let solidDIDKey: PublicKey;
+  let solDIDKey: PublicKey;
   let owner: Account;
 
   beforeEach(async () => {
     owner = await SolanaUtil.newAccountWithLamports(connection, 1000000000);
-    solidDIDKey = await SolidTransaction.createSolid(
+    solDIDKey = await SolTransaction.createSol(
       connection,
       owner,
       owner.publicKey,
       DEFAULT_DOCUMENT_SIZE,
-      SolidData.empty()
+      SolData.empty()
     );
   }, 60000);
 
   it('adds a service to a DID', async () => {
-    const identifier = 'did:solid:' + CLUSTER + ':' + solidDIDKey.toBase58();
+    const identifier = 'did:sol:' + CLUSTER + ':' + solDIDKey.toBase58();
     const service = await makeService(owner);
     const request: UpdateRequest = {
       payer: owner.secretKey,
@@ -61,7 +61,7 @@ describe('update', () => {
       connection,
       1000000000
     );
-    const identifier = 'did:solid:' + CLUSTER + ':' + solidDIDKey.toBase58();
+    const identifier = 'did:sol:' + CLUSTER + ':' + solDIDKey.toBase58();
     const service = await makeService(owner);
     const request: UpdateRequest = {
       payer: payer.secretKey,
@@ -81,7 +81,7 @@ describe('update', () => {
   });
 
   it('adds a service to a DID with an existing service', async () => {
-    const identifier = 'did:solid:' + CLUSTER + ':' + solidDIDKey.toBase58();
+    const identifier = 'did:sol:' + CLUSTER + ':' + solDIDKey.toBase58();
 
     const service1 = await makeService(owner);
     const service2 = await makeService(owner);

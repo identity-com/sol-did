@@ -1,5 +1,5 @@
 const { DIDs } = require('./dist');
-const { ClusterType, SolanaUtil } = require('@identity.com/solid-did-client');
+const { ClusterType, SolanaUtil } = require('@identity.com/sol-did-client');
 const { Account, Connection} = require('@solana/web3.js');
 
 const clusterName = 'devnet';
