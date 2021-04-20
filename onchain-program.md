@@ -9,7 +9,7 @@ The following is an overall design document for the on-chain SOL program.
 * @context: `Array<string>`
   - example `[ "https://w3id.org/did/v1.0", "https://w3id.org/sol/v1" ]`
 * id: did uri string in the form "did:sol:account_pubkey"
-  - example: `"did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH"`
+  - example: `"did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa"`
 * publicKey: `Array<VerificationMethod>`
 * authentication: `Array<DID>`
 * capabilityInvocation: `Array<DID>`
@@ -34,7 +34,7 @@ The following is an overall design document for the on-chain SOL program.
 * type: string
   - examples "AgentService" "MessagingService"
 * serviceEndpoint: string
-  - example: `"https://hub.civic.com/did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH/agent"`
+  - example: `"https://hub.civic.com/did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa/agent"`
 
 ### Instructions
 

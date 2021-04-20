@@ -6,8 +6,8 @@ import { SOLANA_COMMITMENT } from '../lib/constants';
 
 /**
  * Resolves a SOL DID to a document,
- * @param identifier The DID e.g. did:sol:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP
- * or did:sol:devnet:FcFhBFRf6smQ48p7jFcE35uNuE9ScuUu6R2rdFtWjWhP
+ * @param identifier The DID e.g. did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
+ * or did:sol:devnet:6Na3uiqyRGZZQdd19RLCb6kJHR51reFdhXzAuc6Y8Yef
  * @throws Error if the document is not found
  */
 export const resolve = async (identifier: string): Promise<DIDDocument> => {

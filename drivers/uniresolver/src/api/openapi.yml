@@ -23,7 +23,7 @@ paths:
         explode: false
         schema:
           type: string
-        example: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+        example: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
       - name: Accept
         in: header
         description: The requested MIME type of the DID document or DID resolution
@@ -52,9 +52,9 @@ paths:
                 type: object
                 description: The DID document (JSON representation).
                 example:
-                  id: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+                  id: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
                   publicKey:
-                  - id: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key-1
+                  - id: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key-1
                     type: Ed25519VerificationKey2018
                     publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
                 x-content-type: application/did+json
@@ -64,34 +64,34 @@ paths:
                 description: The DID document (JSON-LD representation).
                 example:
                   "@context": https://w3id.org/did/v1
-                  id: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+                  id: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
                   publicKey:
                     - publicKeyBase58: jAwzBRYFBsY8PhTyjcMFxD9qRhwcPLxPP4fuxk15HjcH
-                      id: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1
+                      id: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key1
                       usage: signing
                       type: Secp256k1VerificationKey2018
-                      controller: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+                      controller: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
                     - publicKeyBase58: DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
-                      id: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2
+                      id: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key2
                       usage: encryption
                       type: X25519KeyAgreementKey2019
-                      controller: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+                      controller: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
                   authentication:
-                    - did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1
-                    - did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2
+                    - did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key1
+                    - did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key2
                   capabilityInvocation:
-                    - did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2
+                    - did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key2
                   keyAgreement:
-                    - did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2
+                    - did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key2
                   assertion:
-                    - did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1
+                    - did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key1
                   service:
-                    - id: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#agent
+                    - id: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#agent
                       type: AgentService
-                      serviceEndpoint: https://hub.civic.com/did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH/agent
-                    - id: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#messages
+                      serviceEndpoint: https://hub.civic.com/did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa/agent
+                    - id: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#messages
                       type: MessagingService
-                      serviceEndpoint: https://hub.civic.com/did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH/messages
+                      serviceEndpoint: https://hub.civic.com/did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa/messages
             application/ld+json;profile=\"https://w3c-ccg.github.io/did-resolution/\":
               schema:
                 $ref: '#/components/schemas/ResolutionResult'
@@ -229,7 +229,7 @@ components:
           example: 6d85bcd0-2ea3-4288-ab00-15afadd8a156
         identifier:
           type: string
-          example: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+          example: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
         options:
           type: object
           properties:
@@ -265,7 +265,7 @@ components:
           example: 6d85bcd0-2ea3-4288-ab00-15afadd8a156
         identifier:
           type: string
-          example: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+          example: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
         options:
           type: object
         secret:
@@ -300,13 +300,13 @@ components:
       example:
         jobId: 6d85bcd0-2ea3-4288-ab00-15afadd8a156
         didState:
-          identifier: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+          identifier: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
           state: finished
           secret:
             keys:
-              - id: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1
+              - id: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key1
                 type: Ed25519VerificationKey2018
-                controller: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+                controller: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
                 publicKeyBase58: DDtm5fECmvUBA74hAtqLduEPnL4nnatjtWkAcdzBit1N
                 privateKeyBase58: 5YKbjHVPPszfNmRz2ULcXY6LAR2UxWVAi3pJ255WsqAo5415r4tyaGrmRUsQdrVTdmtMzXwsxyF8octa8qDsLKWx
         methodMetadata: {}
@@ -364,9 +364,9 @@ components:
           example: finished
         identifier:
           type: string
-          example: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+          example: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
       example:
-        identifier: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+        identifier: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
         state: finished
     UpdateState_didState:
       type: object
@@ -392,34 +392,34 @@ components:
           type: object
           example:
             "@context": https://w3id.org/did/v1
-            id: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+            id: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
             publicKey:
               - publicKeyBase58: jAwzBRYFBsY8PhTyjcMFxD9qRhwcPLxPP4fuxk15HjcH
-                id: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1
+                id: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key1
                 usage: signing
                 type: Secp256k1VerificationKey2018
-                controller: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+                controller: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
               - publicKeyBase58: DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
-                id: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2
+                id: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key2
                 usage: encryption
                 type: X25519KeyAgreementKey2019
-                controller: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+                controller: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
             authentication:
-              - did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1
-              - did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2
+              - did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key1
+              - did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key2
             capabilityInvocation:
-              - did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2
+              - did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key2
             keyAgreement:
-              - did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2
+              - did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key2
             assertion:
-              - did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1
+              - did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key1
             service:
-              - id: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#agent
+              - id: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#agent
                 type: AgentService
-                serviceEndpoint: https://hub.civic.com/did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH/agent
-              - id: did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#messages
+                serviceEndpoint: https://hub.civic.com/did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa/agent
+              - id: did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#messages
                 type: MessagingService
-                serviceEndpoint: https://hub.civic.com/did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH/messages
+                serviceEndpoint: https://hub.civic.com/did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa/messages
         resolverMetadata:
           type: object
         methodMetadata:

@@ -9,7 +9,7 @@ Documentation is published at https://app.swaggerhub.com/apis/identity.com/sol-r
 
 ```shell
 docker-compose up -d
-curl http://localhost:8080/1.0/identifiers/did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH
+curl http://localhost:8080/1.0/identifiers/did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
 ```
 
 ## Running locally in dev mode

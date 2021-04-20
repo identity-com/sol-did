@@ -9,7 +9,7 @@ A typescript client library for registering and resolving DIDs using the SOL met
 
 ```shell
 yarn global add @identity.com/sol-did-client # or npm install -g @identity.com/sol-did-client
-sol did:sol:devnet:HxzSJWiK9R4bpRu2YPgg47s2x2D4zT8AK5ziqoQqkzAo
+sol did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
 ```
 
 ### Client library

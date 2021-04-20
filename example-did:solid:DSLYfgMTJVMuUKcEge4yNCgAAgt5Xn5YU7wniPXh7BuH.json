@@ -1,44 +1,44 @@
 {
   "@context": "https://w3id.org/did/v1",
-  "id": "did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH",
+  "id": "did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa",
   "publicKey": [
     {
       "publicKeyBase58": "jAwzBRYFBsY8PhTyjcMFxD9qRhwcPLxPP4fuxk15HjcH",
-      "id": "did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1",
+      "id": "did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key1",
       "usage": "signing",
       "type": "Secp256k1VerificationKey2018",
-      "controller": "did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH"
+      "controller": "did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa"
     },
     {
       "publicKeyBase58": "DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH",
-      "id": "did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2",
+      "id": "did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key2",
       "usage": "encryption",
       "type": "X25519KeyAgreementKey2019",
-      "controller": "did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH"
+      "controller": "did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa"
     }
   ],
   "authentication": [
-    "did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1",
-    "did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2"
+    "did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key1",
+    "did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key2"
   ],
   "capabilityInvocation": [
-    "did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2"
+    "did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key2"
   ],
   "keyAgreement": [
-    "did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key2"
+    "did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key2"
   ],
   "assertion": [
-    "did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#key1"
+    "did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#key1"
   ],
   "service": [
     {
-      "id": "did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#agent",
+      "id": "did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#agent",
       "type": "AgentService",
-      "serviceEndpoint": "https://hub.civic.com/did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH/agent"
+      "serviceEndpoint": "https://hub.civic.com/did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa/agent"
     }, {
-      "id": "did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH#messages",
+      "id": "did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#messages",
       "type": "MessagingService",
-      "serviceEndpoint": "https://hub.civic.com/did:sol:DSLYfgMTJVMuUKcEge4yNCgAAgt5Xn5YU7wniPXh7BuH/messages"
+      "serviceEndpoint": "https://hub.civic.com/did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa/messages"
     }
   ]
 }
