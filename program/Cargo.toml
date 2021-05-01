@@ -5,6 +5,7 @@ description = "Solana Decentralized ID Program"
 authors = ["Solana Maintainers <maintainers@solana.foundation>, Identity.com <daniel@identity.com>"]
 repository = "https://github.com/identity-com/sol-did"
 license = "MIT"
+edition = "2018"
 
 [features]
 no-entrypoint = []
