@@ -14,5 +14,5 @@ export {
   generateKeypair,
   PrivateKey,
   PublicKeyBase58,
-  keyToIdentifier
+  keyToIdentifier,
 } from './lib/util';
