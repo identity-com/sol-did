@@ -1,5 +1,5 @@
 export { SolanaUtil } from './lib/solana/solana-util';
-export { ClusterType } from './lib/solana/sol-data';
+export { ClusterType, DecentralizedIdentifier } from './lib/solana/sol-data';
 
 export { resolve } from './service/resolve';
 export { register } from './service/register';
@@ -14,4 +14,5 @@ export {
   generateKeypair,
   PrivateKey,
   PublicKeyBase58,
+  keyToIdentifier
 } from './lib/util';

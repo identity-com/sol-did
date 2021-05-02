@@ -10,7 +10,7 @@ import { SOLANA_COMMITMENT } from '../lib/constants';
  * or did:sol:devnet:6Na3uiqyRGZZQdd19RLCb6kJHR51reFdhXzAuc6Y8Yef
  * @throws Error if the document is not found
  */
-export const resolve = async (identifier: string): Promise<DIDDocument> => {
+export const resolve = async (identifier: string): Promise<DIDDocument> => { // TODO replace with Promise<DIDDocument | null> ?
   const id = DecentralizedIdentifier.parse(identifier);
   const connection = new Connection(
     id.clusterType.solanaUrl(),
