@@ -190,6 +190,14 @@ export class SolData extends Assignable {
     return VERSION;
   }
 
+  static parseDIDReferenceArray(
+    dids: (string | DIDVerificationMethod)[] | undefined
+  ) {
+    return DecentralizedIdentifier.parseMaybeArray(dids).map(
+      did => did.urlField
+    );
+  }
+
   static parse(document: Partial<DIDDocument> | undefined): SolData {
     if (document) {
       return new SolData({
@@ -200,19 +208,15 @@ export class SolData extends Assignable {
         verificationMethod: document.verificationMethod
           ? document.verificationMethod.map(v => VerificationMethod.parse(v))
           : [],
-        authentication: DecentralizedIdentifier.parseMaybeArray(
-          document.authentication
-        ),
-        capabilityInvocation: DecentralizedIdentifier.parseMaybeArray(
+        authentication: SolData.parseDIDReferenceArray(document.authentication),
+        capabilityInvocation: SolData.parseDIDReferenceArray(
           document.capabilityInvocation
         ),
-        capabilityDelegation: DecentralizedIdentifier.parseMaybeArray(
+        capabilityDelegation: SolData.parseDIDReferenceArray(
           document.capabilityDelegation
         ),
-        keyAgreement: DecentralizedIdentifier.parseMaybeArray(
-          document.keyAgreement
-        ),
-        assertionMethod: DecentralizedIdentifier.parseMaybeArray(
+        keyAgreement: SolData.parseDIDReferenceArray(document.keyAgreement),
+        assertionMethod: SolData.parseDIDReferenceArray(
           document.assertionMethod
         ),
         service: document.service

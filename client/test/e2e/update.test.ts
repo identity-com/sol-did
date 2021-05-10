@@ -64,6 +64,7 @@ describe('update', () => {
       identifier,
       document: {
         verificationMethod: [key],
+        capabilityInvocation: [key.id],
       },
     };
 
