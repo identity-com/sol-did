@@ -257,7 +257,7 @@ export class VerificationMethod extends Assignable {
     didVerificationMethod: DIDVerificationMethod
   ): VerificationMethod {
     return new VerificationMethod({
-      id: DecentralizedIdentifier.parse(didVerificationMethod.id),
+      id: DecentralizedIdentifier.parse(didVerificationMethod.id).urlField,
       verificationType: didVerificationMethod.type,
       controller: DecentralizedIdentifier.parse(
         didVerificationMethod.controller

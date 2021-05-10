@@ -19,7 +19,7 @@ use {
         pubkey::Pubkey,
         rent::Rent,
     },
-    solana_program_test::{processor, ProgramTest, ProgramTestContext, tokio},
+    solana_program_test::{processor, tokio, ProgramTest, ProgramTestContext},
     solana_sdk::{
         account::Account,
         account_info::IntoAccountInfo,
@@ -27,7 +27,7 @@ use {
         signature::{Keypair, Signer},
         transaction::{Transaction, TransactionError},
         transport,
-    }
+    },
 };
 
 fn program_test() -> ProgramTest {

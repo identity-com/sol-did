@@ -5,7 +5,7 @@ import { SolanaUtil } from '../../src/lib/solana/solana-util';
 import { SolTransaction } from '../../src/lib/solana/transaction';
 import { Account, Connection, PublicKey } from '@solana/web3.js';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
-import { makeService } from '../util';
+import { makeService, makeVerificationMethod } from '../util';
 import { ServiceEndpoint } from 'did-resolver';
 
 const makeServiceRequest = (
@@ -53,6 +53,26 @@ describe('update', () => {
 
     // ensure the doc contains the service
     expect(doc.service).toEqual([service]);
+    expect(doc.id).toEqual(identifier);
+  });
+
+  it('adds a key to a DID', async () => {
+    const identifier = 'did:sol:' + CLUSTER + ':' + solDIDKey.toBase58();
+    const key = await makeVerificationMethod(owner);
+    const request: UpdateRequest = {
+      payer: owner.secretKey,
+      identifier,
+      document: {
+        verificationMethod: [key],
+      },
+    };
+
+    await update(request);
+
+    const doc = await resolve(identifier);
+
+    // ensure the doc contains the key
+    expect(doc.verificationMethod?.length).toEqual(2);
     expect(doc.id).toEqual(identifier);
   });
 
