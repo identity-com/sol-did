@@ -1,5 +1,5 @@
 import { Account } from '@solana/web3.js';
-import { ServiceEndpoint } from 'did-resolver';
+import { ServiceEndpoint, VerificationMethod } from 'did-resolver';
 import {
   DecentralizedIdentifier,
   SolPublicKey,
@@ -20,5 +20,25 @@ export const makeService = async (owner: Account): Promise<ServiceEndpoint> => {
     id: `${identifier}#service1`,
     serviceEndpoint: `https://dummmy.dummy/${identifier}`,
     type: 'Messaging',
+  };
+};
+
+export const makeVerificationMethod = async (
+  owner: Account
+): Promise<VerificationMethod> => {
+  const pubkey = await getKeyFromAuthority(owner.publicKey);
+
+  const identifier = new DecentralizedIdentifier({
+    clusterType: CLUSTER,
+    pubkey: SolPublicKey.fromPublicKey(pubkey),
+  }).toString();
+
+  const newKey = new Account().publicKey.toBase58();
+
+  return {
+    id: `${identifier}#key2`,
+    publicKeyBase58: newKey,
+    type: 'Ed25519VerificationKey2018',
+    controller: identifier,
   };
 };
