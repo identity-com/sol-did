@@ -7,7 +7,6 @@ import { ClusterType, SolanaUtil } from '@identity.com/sol-did-client';
 const cluster = ClusterType.devnet();
 
 // Creates a DID on Solana Devnet
-// Skipped until the changes to the program are pushed to Devnet
 describe('did-io integration', () => {
   beforeAll(async () => {
     const connection = new Connection(cluster.solanaUrl(), 'recent');
