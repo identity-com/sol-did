@@ -17,7 +17,7 @@ describe('resolve', () => {
       1000000000
     );
     authority = new Account();
-    solDIDKey = await SolTransaction.createSol(
+    solDIDKey = await SolTransaction.createDID(
       connection,
       payer,
       authority.publicKey,

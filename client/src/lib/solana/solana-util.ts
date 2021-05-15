@@ -22,7 +22,7 @@ export class SolanaUtil {
 
   static async newAccountWithLamports(
     connection: Connection,
-    lamports: number = 1000000
+    lamports = 1000000
   ): Promise<Account> {
     const account = new Account();
 
@@ -42,6 +42,6 @@ export class SolanaUtil {
   }
 
   static sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

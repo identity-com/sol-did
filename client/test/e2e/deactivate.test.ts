@@ -13,7 +13,7 @@ describe('deactivate', () => {
 
   beforeEach(async () => {
     owner = await SolanaUtil.newAccountWithLamports(connection, 1000000000);
-    solDIDKey = await SolTransaction.createSol(
+    solDIDKey = await SolTransaction.createDID(
       connection,
       owner,
       owner.publicKey,

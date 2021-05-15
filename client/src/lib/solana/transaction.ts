@@ -6,11 +6,27 @@ import {
   initialize,
   write,
 } from './instruction';
-import { Account, Connection, PublicKey, Transaction } from '@solana/web3.js';
+import {
+  Account,
+  Connection,
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+} from '@solana/web3.js';
 import { MergeBehaviour } from '../util';
 
 export class SolTransaction {
-  static async createSol(
+  static async createDIDInstruction(
+    payer: PublicKey,
+    authority: PublicKey,
+    size: number,
+    initData: SolData
+  ): Promise<[TransactionInstruction, PublicKey]> {
+    const solKey = await getKeyFromAuthority(authority);
+    return [initialize(payer, solKey, authority, size, initData), solKey];
+  }
+
+  static async createDID(
     connection: Connection,
     payer: Account,
     authority: PublicKey,
@@ -79,16 +95,21 @@ export class SolTransaction {
     );
   }
 
-  static async updateSol(
+  static async deactivateDIDInstruction(
+    recordKey: PublicKey,
+    authority: PublicKey
+  ): Promise<TransactionInstruction> {
+    return closeAccount(recordKey, authority, authority);
+  }
+
+  static async updateDIDInstruction(
     connection: Connection,
     clusterType: ClusterType,
-    payer: Account,
     recordKey: PublicKey,
+    authority: PublicKey,
     dataToMerge: SolData,
-    mergeBehaviour: MergeBehaviour,
-    owner: Account = payer
-  ): Promise<string> {
-    // Update the sol DID
+    mergeBehaviour: MergeBehaviour
+  ): Promise<TransactionInstruction> {
     const existingData = await this.getSol(connection, clusterType, recordKey);
 
     if (!existingData) throw new Error('DID does not exist');
@@ -98,9 +119,27 @@ export class SolTransaction {
       mergeBehaviour === 'Overwrite'
     );
 
-    const transaction = new Transaction().add(
-      write(recordKey, owner.publicKey, 0, mergedData.encode())
+    return write(recordKey, authority, 0, mergedData.encode());
+  }
+
+  static async updateDID(
+    connection: Connection,
+    clusterType: ClusterType,
+    payer: Account,
+    recordKey: PublicKey,
+    dataToMerge: SolData,
+    mergeBehaviour: MergeBehaviour,
+    owner: Account = payer
+  ): Promise<string> {
+    const instruction = await this.updateDIDInstruction(
+      connection,
+      clusterType,
+      recordKey,
+      owner.publicKey,
+      dataToMerge,
+      mergeBehaviour
     );
+    const transaction = new Transaction().add(instruction);
 
     // Send the instructions
     return SolanaUtil.sendAndConfirmTransaction(
