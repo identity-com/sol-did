@@ -4,6 +4,7 @@ import {
   SolPublicKey,
   SolData,
 } from '../../../../src/lib/solana/sol-data';
+import { Assignable } from '../../../../src/lib/solana/solana-borsh';
 import { SolInstruction } from '../../../../src/lib/solana/instruction';
 import { strict as assert } from 'assert';
 
@@ -54,7 +55,7 @@ describe('(de)serialize operations', () => {
   });
 });
 
-function testSerialization(type: any, obj: any) {
+function testSerialization(type: typeof Assignable, obj: Assignable) {
   const serialized = obj.encode();
   const deserialized = type.decode(serialized);
   const reserialized = deserialized.encode();

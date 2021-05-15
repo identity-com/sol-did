@@ -17,16 +17,35 @@ export type RegisterRequest = {
   size?: number;
 };
 
+export type RegisterInstructionRequest = {
+  payer: PublicKey;
+  authority: PublicKey;
+  size?: number;
+  document?: Partial<DIDDocument>;
+};
+
 export type DeactivateRequest = {
   identifier: string;
   payer: PrivateKey;
   owner?: PrivateKey; // optional different authority (DID owner) to the payer
 };
 
+export type DeactivateInstructionRequest = {
+  identifier: string;
+  authority: PublicKey;
+};
+
 export type UpdateRequest = {
   identifier: string;
   payer: PrivateKey;
   owner?: PrivateKey; // optional different authority (DID owner) to the payer
+  document: Partial<DIDDocument>;
+  mergeBehaviour?: MergeBehaviour;
+};
+
+export type UpdateInstructionRequest = {
+  identifier: string;
+  authority: PublicKey;
   document: Partial<DIDDocument>;
   mergeBehaviour?: MergeBehaviour;
 };
@@ -75,7 +94,8 @@ export const getPublicKey = (privateKey: PrivateKey): PublicKey =>
 export const accountAndClusterToDID = (
   account: Account,
   cluster: ClusterType = ClusterType.mainnetBeta()
-) => DecentralizedIdentifier.create(account.publicKey, cluster).toString();
+): string =>
+  DecentralizedIdentifier.create(account.publicKey, cluster).toString();
 
 type EncodedKeyPair = {
   secretKey: string;
@@ -92,7 +112,8 @@ export const generateKeypair = (): EncodedKeyPair => {
 export const keyToIdentifier = async (
   key: PublicKey,
   clusterType: ClusterType = ClusterType.mainnetBeta()
-) => {
+): Promise<string> => {
+  console.log('KEY ', key);
   const didKey = await getKeyFromAuthority(key);
   return DecentralizedIdentifier.create(didKey, clusterType).toString();
 };

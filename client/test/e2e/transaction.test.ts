@@ -14,7 +14,7 @@ describe('transaction', () => {
       1000000000
     );
     const authority = new Account();
-    const solKey = await SolTransaction.createSol(
+    const solKey = await SolTransaction.createDID(
       connection,
       payer,
       authority.publicKey,

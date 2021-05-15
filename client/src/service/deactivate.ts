@@ -1,6 +1,10 @@
-import { DeactivateRequest, makeAccount } from '../lib/util';
+import {
+  DeactivateInstructionRequest,
+  DeactivateRequest,
+  makeAccount,
+} from '../lib/util';
 import { SolTransaction } from '../lib/solana/transaction';
-import { Connection } from '@solana/web3.js';
+import { Connection, TransactionInstruction } from '@solana/web3.js';
 import { DecentralizedIdentifier } from '../lib/solana/sol-data';
 import { SOLANA_COMMITMENT } from '../lib/constants';
 
@@ -19,5 +23,16 @@ export const deactivate = async (request: DeactivateRequest): Promise<void> => {
     payer,
     id.pubkey.toPublicKey(),
     owner
+  );
+};
+
+export const createDeactivateInstruction = async ({
+  identifier,
+  authority,
+}: DeactivateInstructionRequest): Promise<TransactionInstruction> => {
+  const id = DecentralizedIdentifier.parse(identifier);
+  return SolTransaction.deactivateDIDInstruction(
+    id.pubkey.toPublicKey(),
+    authority
   );
 };

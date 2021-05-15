@@ -1,6 +1,10 @@
-import { makeAccount, UpdateRequest } from '../lib/util';
+import {
+  makeAccount,
+  UpdateInstructionRequest,
+  UpdateRequest,
+} from '../lib/util';
 import { SolTransaction } from '../lib/solana/transaction';
-import { Connection } from '@solana/web3.js';
+import { Connection, TransactionInstruction } from '@solana/web3.js';
 import { DecentralizedIdentifier, SolData } from '../lib/solana/sol-data';
 
 /**
@@ -13,7 +17,7 @@ export const update = async (request: UpdateRequest): Promise<void> => {
   const owner = request.owner ? makeAccount(request.owner) : undefined;
   const cluster = id.clusterType;
   const connection = new Connection(cluster.solanaUrl(), 'recent');
-  await SolTransaction.updateSol(
+  await SolTransaction.updateDID(
     connection,
     cluster,
     payer,
@@ -21,5 +25,24 @@ export const update = async (request: UpdateRequest): Promise<void> => {
     SolData.parse(request.document),
     request.mergeBehaviour || 'Append',
     owner
+  );
+};
+
+export const createUpdateInstruction = async ({
+  identifier,
+  authority,
+  document,
+  mergeBehaviour,
+}: UpdateInstructionRequest): Promise<TransactionInstruction> => {
+  const id = DecentralizedIdentifier.parse(identifier);
+  const cluster = id.clusterType;
+  const connection = new Connection(cluster.solanaUrl(), 'recent');
+  return SolTransaction.updateDIDInstruction(
+    connection,
+    cluster,
+    id.pubkey.toPublicKey(),
+    authority,
+    SolData.parse(document),
+    mergeBehaviour || 'Append'
   );
 };

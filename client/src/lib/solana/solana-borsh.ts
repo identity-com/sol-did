@@ -2,6 +2,7 @@ import { serialize, BinaryReader, Schema, BorshError } from 'borsh';
 
 // Class wrapping a plain object
 export abstract class Assignable {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(properties: { [key: string]: any }) {
     Object.keys(properties).forEach((key: string) => {
       this[key] = properties[key];
@@ -21,13 +22,14 @@ export abstract class Assignable {
 // numbers in pure JS
 export abstract class Enum extends Assignable {
   enum: string;
-  constructor(properties: any) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(properties: Record<string, any>) {
     super(properties);
     if (Object.keys(properties).length !== 1) {
       throw new Error('Enum can only take single value');
     }
     this.enum = '';
-    Object.keys(properties).forEach(key => {
+    Object.keys(properties).forEach((key) => {
       this.enum = key;
     });
   }
@@ -45,8 +47,10 @@ function capitalizeFirstLetter(string) {
 function deserializeField(
   schema: Schema,
   fieldName: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fieldType: any,
   reader: BinaryReader
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): any {
   try {
     if (typeof fieldType === 'string') {
@@ -72,11 +76,12 @@ function deserializeField(
   }
 }
 
-function deserializeStruct(
+function deserializeStruct<T>(
   schema: Schema,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   classType: any,
   reader: BinaryReader
-) {
+): T {
   const structSchema = schema.get(classType);
   if (!structSchema) {
     throw new BorshError(`Class ${classType.name} is missing in schema`);
@@ -113,6 +118,7 @@ function deserializeStruct(
 /// Deserializes object from bytes using schema.
 export function deserializeExtraBytes<T extends Assignable>(
   schema: Schema,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/explicit-module-boundary-types
   classType: any,
   buffer: Buffer
 ): T {

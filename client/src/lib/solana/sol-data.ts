@@ -49,14 +49,15 @@ export class SolData extends Assignable {
     return solData;
   }
 
-  forAuthority(authority: PublicKey) {
+  forAuthority(authority: PublicKey): SolData {
     return new SolData({
       ...this,
       authority: SolPublicKey.fromPublicKey(authority),
     });
   }
 
-  merge(other: Partial<SolData>, overwriteArrays: boolean = false): SolData {
+  merge(other: Partial<SolData>, overwriteArrays = false): SolData {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mergeBehaviour = (a: any, b: any): any => {
       if (a && Array.isArray(a)) {
         return overwriteArrays && b ? b : [...a, ...b];
@@ -75,7 +76,7 @@ export class SolData extends Assignable {
     return 1000;
   }
 
-  static solContext(version: string = VERSION) {
+  static solContext(version: string = VERSION): string {
     return SOL_CONTEXT_PREFIX + version;
   }
 
@@ -156,11 +157,9 @@ export class SolData extends Assignable {
 
   toDIDDocument(): DIDDocument {
     const deriveDID = (urlField: string) =>
-      this.identifier()
-        .withUrl(urlField)
-        .toString();
+      this.identifier().withUrl(urlField).toString();
 
-    const verificationMethods = this.inferredVerificationMethods().map(v =>
+    const verificationMethods = this.inferredVerificationMethods().map((v) =>
       v.toDID(this.identifier())
     );
     return {
@@ -172,7 +171,7 @@ export class SolData extends Assignable {
       keyAgreement: this.keyAgreement.map(deriveDID),
       capabilityInvocation: this.inferredCapabilityInvocation().map(deriveDID),
       capabilityDelegation: this.capabilityDelegation.map(deriveDID),
-      service: this.service.map(v => v.toDID(this.identifier())),
+      service: this.service.map((v) => v.toDID(this.identifier())),
       publicKey: verificationMethods,
     };
   }
@@ -182,7 +181,7 @@ export class SolData extends Assignable {
   // Otherwise, just return the default version.
   private static parseVersion(context: Context | undefined) {
     if (context && Array.isArray(context)) {
-      const solContext = context.find(c => c.startsWith(SOL_CONTEXT_PREFIX));
+      const solContext = context.find((c) => c.startsWith(SOL_CONTEXT_PREFIX));
 
       if (solContext) return solContext.substring(SOL_CONTEXT_PREFIX.length);
     }
@@ -192,9 +191,9 @@ export class SolData extends Assignable {
 
   static parseDIDReferenceArray(
     dids: (string | DIDVerificationMethod)[] | undefined
-  ) {
+  ): string[] {
     return DecentralizedIdentifier.parseMaybeArray(dids).map(
-      did => did.urlField
+      (did) => did.urlField
     );
   }
 
@@ -206,7 +205,7 @@ export class SolData extends Assignable {
           ? DecentralizedIdentifier.parse(document.id)
           : DecentralizedIdentifier.empty(),
         verificationMethod: document.verificationMethod
-          ? document.verificationMethod.map(v => VerificationMethod.parse(v))
+          ? document.verificationMethod.map((v) => VerificationMethod.parse(v))
           : [],
         authentication: SolData.parseDIDReferenceArray(document.authentication),
         capabilityInvocation: SolData.parseDIDReferenceArray(
@@ -220,7 +219,7 @@ export class SolData extends Assignable {
           document.assertionMethod
         ),
         service: document.service
-          ? document.service.map(v => ServiceEndpoint.parse(v))
+          ? document.service.map((v) => ServiceEndpoint.parse(v))
           : [],
       });
     } else {
@@ -311,7 +310,7 @@ export class DecentralizedIdentifier extends Assignable {
     });
   }
 
-  withUrl(urlField: string) {
+  withUrl(urlField: string): DecentralizedIdentifier {
     return new DecentralizedIdentifier({
       ...this,
       urlField,
@@ -364,13 +363,13 @@ export class DecentralizedIdentifier extends Assignable {
   static parseMaybeArray(
     dids: (string | DIDVerificationMethod)[] | undefined
   ): DecentralizedIdentifier[] {
-    return dids ? dids.map(v => DecentralizedIdentifier.parse(v)) : [];
+    return dids ? dids.map((v) => DecentralizedIdentifier.parse(v)) : [];
   }
 
   static create(
     pubkey: PublicKey,
     clusterType: ClusterType,
-    identifier: string = ''
+    identifier = ''
   ): DecentralizedIdentifier {
     return new DecentralizedIdentifier({
       pubkey: SolPublicKey.fromPublicKey(pubkey),

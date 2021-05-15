@@ -18,7 +18,7 @@ for developing Rust programs.
 
 ### Deploying:
 
-    solana program deploy <REPO_HOME>/sol-did/program>/target/deploy/sol_did.so
+    solana program deploy <REPO_HOME>/sol-did/program/target/deploy/sol_did.so
 
 The program is deployed on Mainnet at address:
 
@@ -29,7 +29,7 @@ The program is deployed on Mainnet at address:
 Given an arbitrary account `acc`, owned by a DID,
 Check if a signer is a valid owner of A using:
 
-```rusts
+```rust
 use sol_did::validate_owner;
 
 fn check_authority(authority_info: &AccountInfo, did: &AccountInfo, acc: &MyAccount) -> ProgramResult {
