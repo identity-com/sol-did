@@ -1,9 +1,9 @@
 import {
-  Account,
   Connection,
   Transaction,
   TransactionSignature,
   sendAndConfirmTransaction,
+  Keypair,
 } from '@solana/web3.js';
 import { SOLANA_COMMITMENT } from '../constants';
 
@@ -11,7 +11,7 @@ export class SolanaUtil {
   static sendAndConfirmTransaction(
     connection: Connection,
     transaction: Transaction,
-    ...signers: Array<Account>
+    ...signers: Array<Keypair>
   ): Promise<TransactionSignature> {
     return sendAndConfirmTransaction(connection, transaction, signers, {
       skipPreflight: false,
@@ -23,8 +23,8 @@ export class SolanaUtil {
   static async newAccountWithLamports(
     connection: Connection,
     lamports = 1000000
-  ): Promise<Account> {
-    const account = new Account();
+  ): Promise<Keypair> {
+    const account = Keypair.generate();
 
     let retries = 30;
     await connection.requestAirdrop(account.publicKey, lamports);

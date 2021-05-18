@@ -1,6 +1,6 @@
 const { DIDs } = require('./dist');
 const { ClusterType, SolanaUtil } = require('@identity.com/sol-did-client');
-const { Account, Connection} = require('@solana/web3.js');
+const { Keypair, Connection} = require('@solana/web3.js');
 
 const clusterName = 'devnet';
 const cluster = ClusterType.parse(clusterName);
@@ -16,6 +16,6 @@ const didsPromise = payerAccountPromise
 
 module.exports = {
   enableAwait: true,
-  context: { dids: didsPromise, Account },
+  context: { dids: didsPromise, Keypair },
   prompt: 'DID $ '
 }

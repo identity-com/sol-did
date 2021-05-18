@@ -1,6 +1,6 @@
 import {
   getPublicKey,
-  makeAccount,
+  makeKeypair,
   RegisterInstructionRequest,
   RegisterRequest,
 } from '../lib/util';
@@ -18,7 +18,7 @@ import { DEFAULT_DOCUMENT_SIZE, SOLANA_COMMITMENT } from '../lib/constants';
  * @param request
  */
 export const register = async (request: RegisterRequest): Promise<string> => {
-  const payer = makeAccount(request.payer);
+  const payer = makeKeypair(request.payer);
   const owner = request.owner
     ? new PublicKey(request.owner)
     : getPublicKey(request.payer);

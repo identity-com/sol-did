@@ -1,7 +1,7 @@
 import didIo from 'did-io';
 import didKey from 'did-method-key';
 import didSol from '../src/';
-import { Account, Connection } from '@solana/web3.js';
+import { Keypair, Connection } from '@solana/web3.js';
 import { ClusterType, SolanaUtil } from '@identity.com/sol-did-client';
 
 const cluster = ClusterType.devnet();
@@ -20,7 +20,7 @@ describe('did-io integration', () => {
   }, 60000);
 
   it('creates a did on devnet', async () => {
-    const owner = new Account();
+    const owner = Keypair.generate();
 
     const did = await didIo.register({
       key: owner.publicKey.toBase58(),

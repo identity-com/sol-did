@@ -17,7 +17,7 @@ To register a DID from a Solana public key:
 const DIDs = require('@identity.com/dids');
 const dids = new DIDs({ payer: payerAccount.secretKey });
 
-const owner = new Account().publicKey;
+const owner = Keypair.generate().publicKey;
 const keyIdentifier = await dids.register('key', owner);
 const solIdentifier = await dids.register('sol', owner);
 ```
@@ -69,8 +69,8 @@ yarn repl
 Then try:
 
 ```js
-await dids.register('sol', new Account().publicKey)
-await dids.register('key', new Account().publicKey)
+await dids.register('sol', Keypair.generate().publicKey)
+await dids.register('key', Keypair.generate().publicKey)
 
 await dids.get('<YOUR IDENTIFIER HERE>')
 ```

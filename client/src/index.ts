@@ -1,3 +1,5 @@
+export { DIDDocument } from 'did-resolver';
+
 export { SolanaUtil } from './lib/solana/solana-util';
 export { ClusterType, DecentralizedIdentifier } from './lib/solana/sol-data';
 

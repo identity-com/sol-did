@@ -1,7 +1,7 @@
-import { accountAndClusterToDID, keyToIdentifier } from '../../../src/lib/util';
+import { keypairAndClusterToDID, keyToIdentifier } from '../../../src/lib/util';
 import { ClusterType } from '../../../src';
 import { DecentralizedIdentifier } from '../../../src/lib/solana/sol-data';
-import { Account, PublicKey } from '@solana/web3.js';
+import { Keypair, PublicKey } from '@solana/web3.js';
 import {
   TEST_DID_ACCOUNT_PUBLIC_KEY,
   TEST_DID_ACCOUNT_SECRET_KEY,
@@ -19,23 +19,25 @@ describe('util', () => {
   });
 
   describe('accountAndClusterToDID', () => {
-    const account = new Account(TEST_DID_ACCOUNT_SECRET_KEY);
+    const account = Keypair.fromSecretKey(
+      Buffer.from(TEST_DID_ACCOUNT_SECRET_KEY)
+    );
 
     it('adds a prefix to localnet DIDs', () => {
       expect(
-        accountAndClusterToDID(account, ClusterType.development())
+        keypairAndClusterToDID(account, ClusterType.development())
       ).toEqual(`did:sol:localnet:${TEST_DID_ACCOUNT_PUBLIC_KEY}`);
     });
 
     it('adds a prefix to devnet DIDs', () => {
-      expect(accountAndClusterToDID(account, ClusterType.devnet())).toEqual(
+      expect(keypairAndClusterToDID(account, ClusterType.devnet())).toEqual(
         `did:sol:devnet:${TEST_DID_ACCOUNT_PUBLIC_KEY}`
       );
     });
 
     it('does not add a prefix to mainnet DIDs', () => {
       expect(
-        accountAndClusterToDID(account, ClusterType.mainnetBeta())
+        keypairAndClusterToDID(account, ClusterType.mainnetBeta())
       ).toEqual(`did:sol:${TEST_DID_ACCOUNT_PUBLIC_KEY}`);
     });
   });

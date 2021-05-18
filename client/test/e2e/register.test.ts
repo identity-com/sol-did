@@ -1,6 +1,6 @@
 import { register, resolve, RegisterRequest } from '../../src';
 import { SolanaUtil } from '../../src/lib/solana/solana-util';
-import { Account, Connection } from '@solana/web3.js';
+import { Keypair, Connection } from '@solana/web3.js';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
 import { DecentralizedIdentifier } from '../../src/lib/solana/sol-data';
 import { makeService } from '../util';
@@ -8,15 +8,15 @@ import { SOL_CONTEXT_PREFIX, W3ID_CONTEXT } from '../../src/lib/constants';
 
 describe('register', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');
-  let payer: Account;
-  let owner: Account;
+  let payer: Keypair;
+  let owner: Keypair;
 
   beforeAll(async () => {
     payer = await SolanaUtil.newAccountWithLamports(connection, 1000000000);
   }, 60000);
 
   beforeEach(() => {
-    owner = new Account();
+    owner = Keypair.generate();
   });
 
   it('registers a sparse DID on the blockchain', async () => {

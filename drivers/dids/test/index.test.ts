@@ -1,6 +1,6 @@
 import { DIDs } from '../src';
 import { ClusterType, SolanaUtil } from '@identity.com/sol-did-client';
-import { Account, Connection, PublicKey } from '@solana/web3.js';
+import { Keypair, Connection, PublicKey } from '@solana/web3.js';
 import { expect } from 'chai';
 import { DIDDocument } from 'did-resolver';
 
@@ -35,7 +35,7 @@ describe('DIDs', () => {
   });
 
   beforeEach(() => {
-    owner = new Account().publicKey;
+    owner = Keypair.generate().publicKey;
   });
 
   context('did-key', () => {

@@ -1,4 +1,4 @@
-import { Account, Connection } from '@solana/web3.js';
+import { Keypair, Connection } from '@solana/web3.js';
 import { DEFAULT_DOCUMENT_SIZE } from '../../src/lib/constants';
 import { SolTransaction } from '../../src/lib/solana/transaction';
 import { SolData } from '../../src/lib/solana/sol-data';
@@ -13,7 +13,7 @@ describe('transaction', () => {
       connection,
       1000000000
     );
-    const authority = new Account();
+    const authority = Keypair.generate();
     const solKey = await SolTransaction.createDID(
       connection,
       payer,

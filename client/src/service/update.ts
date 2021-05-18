@@ -1,5 +1,5 @@
 import {
-  makeAccount,
+  makeKeypair,
   UpdateInstructionRequest,
   UpdateRequest,
 } from '../lib/util';
@@ -13,8 +13,8 @@ import { DecentralizedIdentifier, SolData } from '../lib/solana/sol-data';
  */
 export const update = async (request: UpdateRequest): Promise<void> => {
   const id = DecentralizedIdentifier.parse(request.identifier);
-  const payer = makeAccount(request.payer);
-  const owner = request.owner ? makeAccount(request.owner) : undefined;
+  const payer = makeKeypair(request.payer);
+  const owner = request.owner ? makeKeypair(request.owner) : undefined;
   const cluster = id.clusterType;
   const connection = new Connection(cluster.solanaUrl(), 'recent');
   await SolTransaction.updateDID(

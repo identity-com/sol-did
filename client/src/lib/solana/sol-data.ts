@@ -1,4 +1,4 @@
-import { clusterApiUrl, Cluster, PublicKey, Account } from '@solana/web3.js';
+import { clusterApiUrl, Cluster, PublicKey, Keypair } from '@solana/web3.js';
 import { Assignable, Enum, SCHEMA } from './solana-borsh';
 import {
   DID_METHOD,
@@ -103,7 +103,7 @@ export class SolData extends Assignable {
     return new SolData({
       cluster: ClusterType.mainnetBeta(),
       authority: SolPublicKey.fromPublicKey(
-        authority || new Account().publicKey
+        authority || Keypair.generate().publicKey
       ),
 
       version: VERSION,

@@ -1,5 +1,5 @@
 import { DIDDocument } from 'did-resolver';
-import { Account, PublicKey } from '@solana/web3.js';
+import { Keypair, PublicKey } from '@solana/web3.js';
 import { ClusterType, DecentralizedIdentifier } from './solana/sol-data';
 import { decode, encode } from 'bs58';
 import { getKeyFromAuthority } from './solana/instruction';
@@ -69,16 +69,15 @@ export const privateKeyIsUint8Array = (
  * Create a Solana account object from an x25519 private key
  * @param privateKey
  */
-export const makeAccount = (privateKey: PrivateKey): Account => {
-  if (
-    privateKeyIsArray(privateKey) ||
-    privateKeyIsBuffer(privateKey) ||
-    privateKeyIsUint8Array(privateKey)
-  )
-    return new Account(privateKey);
+export const makeKeypair = (privateKey: PrivateKey): Keypair => {
+  if (privateKeyIsArray(privateKey)) {
+    return Keypair.fromSecretKey(Buffer.from(privateKey));
+  }
+  if (privateKeyIsBuffer(privateKey) || privateKeyIsUint8Array(privateKey))
+    return Keypair.fromSecretKey(privateKey);
   if (privateKeyIsString(privateKey)) {
     const privateKeyHex = decode(privateKey);
-    return new Account(privateKeyHex);
+    return Keypair.fromSecretKey(privateKeyHex);
   }
 
   throw new Error('Incompatible private key format');
@@ -89,20 +88,20 @@ export const makeAccount = (privateKey: PrivateKey): Account => {
  * @param privateKey
  */
 export const getPublicKey = (privateKey: PrivateKey): PublicKey =>
-  makeAccount(privateKey).publicKey;
+  makeKeypair(privateKey).publicKey;
 
-export const accountAndClusterToDID = (
-  account: Account,
+export const keypairAndClusterToDID = (
+  keypair: Keypair,
   cluster: ClusterType = ClusterType.mainnetBeta()
 ): string =>
-  DecentralizedIdentifier.create(account.publicKey, cluster).toString();
+  DecentralizedIdentifier.create(keypair.publicKey, cluster).toString();
 
 type EncodedKeyPair = {
   secretKey: string;
   publicKey: string;
 };
 export const generateKeypair = (): EncodedKeyPair => {
-  const account = new Account();
+  const account = Keypair.generate();
   return {
     secretKey: encode(account.secretKey),
     publicKey: account.publicKey.toBase58(),

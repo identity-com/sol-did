@@ -1,4 +1,4 @@
-import { Account } from '@solana/web3.js';
+import { Keypair } from '@solana/web3.js';
 import {
   ClusterType,
   SolPublicKey,
@@ -10,8 +10,8 @@ import { strict as assert } from 'assert';
 
 describe('(de)serialize operations', () => {
   it('works for SolData', () => {
-    const authority = new Account();
-    const solAccount = new Account();
+    const authority = Keypair.generate();
+    const solAccount = Keypair.generate();
     const sol = SolData.sparse(
       solAccount.publicKey,
       authority.publicKey,
@@ -21,7 +21,7 @@ describe('(de)serialize operations', () => {
   });
 
   it('works for PublicKey', () => {
-    const keypair = new Account();
+    const keypair = Keypair.generate();
     const publicKey = keypair.publicKey;
     const solanaBuffer = publicKey.toBuffer();
     const recordKey = SolPublicKey.fromPublicKey(publicKey);
@@ -31,8 +31,8 @@ describe('(de)serialize operations', () => {
   });
 
   it('works for SolInstruction.initialize', () => {
-    const authority = new Account();
-    const solAccount = new Account();
+    const authority = Keypair.generate();
+    const solAccount = Keypair.generate();
     const solData = SolData.sparse(
       solAccount.publicKey,
       authority.publicKey,

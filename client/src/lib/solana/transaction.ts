@@ -7,7 +7,7 @@ import {
   write,
 } from './instruction';
 import {
-  Account,
+  Keypair,
   Connection,
   PublicKey,
   Transaction,
@@ -28,7 +28,7 @@ export class SolTransaction {
 
   static async createDID(
     connection: Connection,
-    payer: Account,
+    payer: Keypair,
     authority: PublicKey,
     size: number,
     initData: SolData
@@ -75,9 +75,9 @@ export class SolTransaction {
    */
   static async deactivateSol(
     connection: Connection,
-    payer: Account,
+    payer: Keypair,
     recordKey: PublicKey,
-    owner: Account = payer
+    owner: Keypair = payer
   ): Promise<string> {
     // Create the transaction to close the Sol DID account
     // The payer must have permissions to deactivate the DID
@@ -125,11 +125,11 @@ export class SolTransaction {
   static async updateDID(
     connection: Connection,
     clusterType: ClusterType,
-    payer: Account,
+    payer: Keypair,
     recordKey: PublicKey,
     dataToMerge: SolData,
     mergeBehaviour: MergeBehaviour,
-    owner: Account = payer
+    owner: Keypair = payer
   ): Promise<string> {
     const instruction = await this.updateDIDInstruction(
       connection,
