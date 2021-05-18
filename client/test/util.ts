@@ -1,4 +1,4 @@
-import { Account } from '@solana/web3.js';
+import { Keypair } from '@solana/web3.js';
 import { ServiceEndpoint, VerificationMethod } from 'did-resolver';
 import {
   DecentralizedIdentifier,
@@ -7,7 +7,7 @@ import {
 import { CLUSTER } from './constants';
 import { getKeyFromAuthority } from '../src/lib/solana/instruction';
 
-export const makeService = async (owner: Account): Promise<ServiceEndpoint> => {
+export const makeService = async (owner: Keypair): Promise<ServiceEndpoint> => {
   const pubkey = await getKeyFromAuthority(owner.publicKey);
 
   const identifier = new DecentralizedIdentifier({
@@ -24,7 +24,7 @@ export const makeService = async (owner: Account): Promise<ServiceEndpoint> => {
 };
 
 export const makeVerificationMethod = async (
-  owner: Account
+  owner: Keypair
 ): Promise<VerificationMethod> => {
   const pubkey = await getKeyFromAuthority(owner.publicKey);
 
@@ -33,7 +33,7 @@ export const makeVerificationMethod = async (
     pubkey: SolPublicKey.fromPublicKey(pubkey),
   }).toString();
 
-  const newKey = new Account().publicKey.toBase58();
+  const newKey = Keypair.generate().publicKey.toBase58();
 
   return {
     id: `${identifier}#key2`,

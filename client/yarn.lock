@@ -1293,10 +1293,10 @@
     webpack "^4.44.1"
     webpack-bundle-analyzer "^4.4.0"
 
-"@solana/web3.js@^0.93.0":
-  version "0.93.0"
-  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-0.93.0.tgz#6292efbacdc39c98411669d0c27889c5765b971d"
-  integrity sha512-4OcenII2+VJlJaPwk4yiQAurY4Xk/RX13cYRFsvaVfSay8ZuJ3bnL7kzPO2GKOwrwTZmNqroCUTAYxJETuXouA==
+"@solana/web3.js@^1.11.0":
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.11.0.tgz#1cc9a25381687c82e444ad0633f028e050a06753"
+  integrity sha512-kmngWxntzp0HNhWInd7/3g2uqxdOrahvaHOyjilcRe+WCiC777gERz3+eIAbxIYx2zAZPjy02MZzLgoRHccZoQ==
   dependencies:
     "@babel/runtime" "^7.12.5"
     bn.js "^5.0.0"

@@ -3,13 +3,13 @@ import { DEFAULT_DOCUMENT_SIZE } from '../../src/lib/constants';
 import { SolData } from '../../src/lib/solana/sol-data';
 import { SolanaUtil } from '../../src/lib/solana/solana-util';
 import { SolTransaction } from '../../src/lib/solana/transaction';
-import { Account, Connection, PublicKey } from '@solana/web3.js';
+import { Keypair, Connection, PublicKey } from '@solana/web3.js';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
 
 describe('deactivate', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');
   let solDIDKey: PublicKey;
-  let owner: Account;
+  let owner: Keypair;
 
   beforeEach(async () => {
     owner = await SolanaUtil.newAccountWithLamports(connection, 1000000000);

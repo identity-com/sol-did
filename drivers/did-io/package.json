@@ -36,6 +36,6 @@
   },
   "dependencies": {
     "@identity.com/sol-did-client": "^0.1.6",
-    "@solana/web3.js": "^1.0.0"
+    "@solana/web3.js": "^1.11.0"
   }
 }

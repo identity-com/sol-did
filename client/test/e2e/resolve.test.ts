@@ -3,20 +3,20 @@ import { DEFAULT_DOCUMENT_SIZE } from '../../src/lib/constants';
 import { SolData } from '../../src/lib/solana/sol-data';
 import { SolanaUtil } from '../../src/lib/solana/solana-util';
 import { SolTransaction } from '../../src/lib/solana/transaction';
-import { Account, Connection, PublicKey } from '@solana/web3.js';
+import { Keypair, Connection, PublicKey } from '@solana/web3.js';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
 
 describe('resolve', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');
   let solDIDKey: PublicKey;
-  let authority: Account;
+  let authority: Keypair;
 
   beforeAll(async () => {
     const payer = await SolanaUtil.newAccountWithLamports(
       connection,
       1000000000
     );
-    authority = new Account();
+    authority = Keypair.generate();
     solDIDKey = await SolTransaction.createDID(
       connection,
       payer,

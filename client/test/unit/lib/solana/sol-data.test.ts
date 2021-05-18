@@ -3,11 +3,11 @@ import {
   ServiceEndpoint,
   SolData,
 } from '../../../../src/lib/solana/sol-data';
-import { Account } from '@solana/web3.js';
+import { Keypair } from '@solana/web3.js';
 import { omit } from 'ramda';
 import { makeService } from '../../../util';
 
-const pub = () => new Account().publicKey;
+const pub = () => Keypair.generate().publicKey;
 
 const withoutAuthority = (solData: SolData) => omit(['authority'], solData);
 
@@ -45,7 +45,7 @@ describe('sol-data', () => {
       it('should allow properties to be added to empty arrays', async () => {
         const withService = SolData.empty();
         withService.service = [
-          ServiceEndpoint.parse(await makeService(new Account())),
+          ServiceEndpoint.parse(await makeService(Keypair.generate())),
         ];
         const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
 
@@ -61,11 +61,13 @@ describe('sol-data', () => {
           ClusterType.mainnetBeta()
         );
         sparseWithService.service = [
-          ServiceEndpoint.parse(await makeService(new Account())),
+          ServiceEndpoint.parse(await makeService(Keypair.generate())),
         ];
 
         const justService = new SolData({
-          service: [ServiceEndpoint.parse(await makeService(new Account()))],
+          service: [
+            ServiceEndpoint.parse(await makeService(Keypair.generate())),
+          ],
         });
 
         const merged = sparseWithService.merge(justService);
@@ -106,11 +108,13 @@ describe('sol-data', () => {
           ClusterType.mainnetBeta()
         );
         sparseWithService.service = [
-          ServiceEndpoint.parse(await makeService(new Account())),
+          ServiceEndpoint.parse(await makeService(Keypair.generate())),
         ];
 
         const justService = new SolData({
-          service: [ServiceEndpoint.parse(await makeService(new Account()))],
+          service: [
+            ServiceEndpoint.parse(await makeService(Keypair.generate())),
+          ],
         });
 
         const merged = sparseWithService.merge(justService, true);

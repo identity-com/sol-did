@@ -1,7 +1,7 @@
 import {
   DeactivateInstructionRequest,
   DeactivateRequest,
-  makeAccount,
+  makeKeypair,
 } from '../lib/util';
 import { SolTransaction } from '../lib/solana/transaction';
 import { Connection, TransactionInstruction } from '@solana/web3.js';
@@ -14,8 +14,8 @@ import { SOLANA_COMMITMENT } from '../lib/constants';
  */
 export const deactivate = async (request: DeactivateRequest): Promise<void> => {
   const id = DecentralizedIdentifier.parse(request.identifier);
-  const payer = makeAccount(request.payer);
-  const owner = request.owner ? makeAccount(request.owner) : undefined;
+  const payer = makeKeypair(request.payer);
+  const owner = request.owner ? makeKeypair(request.owner) : undefined;
   const cluster = id.clusterType;
   const connection = new Connection(cluster.solanaUrl(), SOLANA_COMMITMENT);
   await SolTransaction.deactivateSol(
