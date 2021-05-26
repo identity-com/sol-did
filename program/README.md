@@ -1,4 +1,4 @@
-# SOL-DID Solana Progra
+# SOL-DID Solana Program
 
 Register DID documents on the Solana blockchain using the SOL DID method
 

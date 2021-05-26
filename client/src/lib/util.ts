@@ -112,7 +112,6 @@ export const keyToIdentifier = async (
   key: PublicKey,
   clusterType: ClusterType = ClusterType.mainnetBeta()
 ): Promise<string> => {
-  console.log('KEY ', key);
   const didKey = await getKeyFromAuthority(key);
   return DecentralizedIdentifier.create(didKey, clusterType).toString();
 };
