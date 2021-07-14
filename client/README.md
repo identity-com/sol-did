@@ -80,7 +80,7 @@ In one shell, run:
 
 ```shell
 yarn build-program
-yarn start-test-validator
+yarn start-validator
 ```
 
 In another shell:
