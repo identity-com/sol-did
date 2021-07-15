@@ -910,12 +910,12 @@
     esm "^3.2.25"
     tweetnacl "^1.0.3"
 
-"@identity.com/sol-did-client@^0.1.6":
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-client/-/sol-did-client-0.1.6.tgz#a47790b626d37468e96c7c9f2557c684759d58a9"
-  integrity sha512-lIB9AYdzURJkBklS3uSTOGC5l33/Mcnxd9/vHPgOygBKHkL/dRAgpEw20xZx9MIUbLCJimDYmB7do0Dl45LfBg==
+"@identity.com/sol-did-client@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-client/-/sol-did-client-0.1.10.tgz#478d4227a1e8428a119dc9d43280d11e2a741a40"
+  integrity sha512-Xk8kW9iLOhcnRoKJwUU7ynCXuM/AJd2HT4seQjH7XWDyQWDYFQIaIxzkyS7HAhM18YXWi4khHaxIMl6mnJLp9Q==
   dependencies:
-    "@solana/web3.js" "^0.93.0"
+    "@solana/web3.js" "^1.21.0"
     bn.js "^4.12.0"
     borsh "^0.3.1"
     bs58 "^4.0.1"
@@ -1187,25 +1187,6 @@
   integrity sha512-MVdgAKKL39tEs0l8je0hKaXLQFb7Rdfb0Xg2LjFZd8Lfdazkg6xiS98uAZrEKvaoF3i4M95ei9RydkGIDMeo3w==
   dependencies:
     buffer "~6.0.3"
-
-"@solana/web3.js@^0.93.0":
-  version "0.93.0"
-  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-0.93.0.tgz#6292efbacdc39c98411669d0c27889c5765b971d"
-  integrity sha512-4OcenII2+VJlJaPwk4yiQAurY4Xk/RX13cYRFsvaVfSay8ZuJ3bnL7kzPO2GKOwrwTZmNqroCUTAYxJETuXouA==
-  dependencies:
-    "@babel/runtime" "^7.12.5"
-    bn.js "^5.0.0"
-    bs58 "^4.0.1"
-    buffer "6.0.1"
-    buffer-layout "^1.2.0"
-    crypto-hash "^1.2.2"
-    jayson "^3.4.4"
-    js-sha3 "^0.8.0"
-    node-fetch "^2.6.1"
-    rpc-websockets "^7.4.2"
-    secp256k1 "^4.0.2"
-    superstruct "^0.14.2"
-    tweetnacl "^1.0.0"
 
 "@solana/web3.js@^1.21.0":
   version "1.21.0"
@@ -2142,11 +2123,6 @@ buffer-from@1.x, buffer-from@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.1.1.tgz#32713bc028f75c02fdb710d7c7bcec1f2c6070ef"
   integrity sha512-MQcXEUbCKtEo7bhqEs6560Hyd4XaovZlO/k9V3hjVUF/zwW7KBVdSK4gIt/bzwS9MbR5qob+F5jusZsb0YQK2A==
-
-buffer-layout@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/buffer-layout/-/buffer-layout-1.2.0.tgz#ee1f5ef05a8afd5db6b3a8fe2056c111bc69c737"
-  integrity sha512-iiyRoho/ERzBUv6kFvfsrLNgTlVwOkqQcSQN7WrO3Y+c5SeuEhCn6+y1KwhM0V3ndptF5mI/RI44zkw0qcR5Jg==
 
 buffer@6.0.1:
   version "6.0.1"
