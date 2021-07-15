@@ -1307,7 +1307,7 @@
   dependencies:
     buffer "~6.0.3"
 
-"@solana/web3.js@^1.11.0":
+"@solana/web3.js@^1.21.0":
   version "1.21.0"
   resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.21.0.tgz#4f98edea38d4cb3ae4d2ea49a050b0ec09508023"
   integrity sha512-x1NXlF92tEjxuTxS0u4n9JV17UKk0Dn2L+qSWGvKOb4iWhzApDj6wicJsrGdSbGdxnZ7eciQ/SNn3zB4ydUllA==
