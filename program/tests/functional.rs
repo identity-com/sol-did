@@ -183,7 +183,7 @@ async fn initialize_too_small_fail() {
         .unwrap();
     assert_eq!(
         err,
-        TransactionError::InstructionError(0, InstructionError::InvalidError)
+        TransactionError::InstructionError(0, InstructionError::BorshIoError("Unkown".to_string())),
     );
 }
 
