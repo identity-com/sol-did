@@ -181,21 +181,8 @@ version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18dda7dc709193c0d86a1a51050a926dc3df1cf262ec46a23a25dba421ea1924"
 dependencies = [
- "borsh-derive 0.9.1",
+ "borsh-derive",
  "hashbrown",
-]
-
-[[package]]
-name = "borsh-derive"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "307f3740906bac2c118a8122fe22681232b244f1369273e45f1156b45c43d2dd"
-dependencies = [
- "borsh-derive-internal 0.8.2",
- "borsh-schema-derive-internal 0.8.2",
- "proc-macro-crate",
- "proc-macro2 1.0.26",
- "syn 1.0.69",
 ]
 
 [[package]]
@@ -204,21 +191,10 @@ version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "684155372435f578c0fa1acd13ebbb182cc19d6b38b64ae7901da4393217d264"
 dependencies = [
- "borsh-derive-internal 0.9.1",
- "borsh-schema-derive-internal 0.9.1",
+ "borsh-derive-internal",
+ "borsh-schema-derive-internal",
  "proc-macro-crate",
  "proc-macro2 1.0.26",
- "syn 1.0.69",
-]
-
-[[package]]
-name = "borsh-derive-internal"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2104c73179359431cc98e016998f2f23bc7a05bc53e79741bcba705f30047bc"
-dependencies = [
- "proc-macro2 1.0.26",
- "quote 1.0.9",
  "syn 1.0.69",
 ]
 
@@ -227,17 +203,6 @@ name = "borsh-derive-internal"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2102f62f8b6d3edeab871830782285b64cc1830168094db05c8e458f209bc5c3"
-dependencies = [
- "proc-macro2 1.0.26",
- "quote 1.0.9",
- "syn 1.0.69",
-]
-
-[[package]]
-name = "borsh-schema-derive-internal"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae29eb8418fcd46f723f8691a2ac06857d31179d33d2f2d91eb13967de97c728"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
@@ -2214,7 +2179,6 @@ name = "sol-did"
 version = "0.2.0"
 dependencies = [
  "borsh",
- "borsh-derive 0.8.2",
  "num-derive",
  "num-traits",
  "solana-program",
@@ -2231,7 +2195,7 @@ checksum = "c047dde312e3eb0e9f8fb734f1836b3ced9482b49a9f892131df6a31c48c6ef3"
 dependencies = [
  "bincode",
  "borsh",
- "borsh-derive 0.9.1",
+ "borsh-derive",
  "futures 0.3.14",
  "mio 0.7.11",
  "solana-banks-interface",
@@ -2412,7 +2376,7 @@ dependencies = [
  "bincode",
  "blake3",
  "borsh",
- "borsh-derive 0.9.1",
+ "borsh-derive",
  "bs58",
  "bv",
  "curve25519-dalek 2.1.2",
