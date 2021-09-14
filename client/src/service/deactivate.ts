@@ -13,7 +13,7 @@ import { SOLANA_COMMITMENT } from '../lib/constants';
  * @param request
  */
 export const deactivate = async (request: DeactivateRequest): Promise<void> => {
-  const id = DecentralizedIdentifier.parse(request.identifier);
+  const id = await DecentralizedIdentifier.parse(request.identifier);
   const payer = makeKeypair(request.payer);
   const owner = request.owner ? makeKeypair(request.owner) : undefined;
   const cluster = id.clusterType;
@@ -21,7 +21,7 @@ export const deactivate = async (request: DeactivateRequest): Promise<void> => {
   await SolTransaction.deactivateSol(
     connection,
     payer,
-    id.pubkey.toPublicKey(),
+    id.pdaPubkey.toPublicKey(),
     owner
   );
 };
@@ -30,9 +30,9 @@ export const createDeactivateInstruction = async ({
   identifier,
   authority,
 }: DeactivateInstructionRequest): Promise<TransactionInstruction> => {
-  const id = DecentralizedIdentifier.parse(identifier);
+  const id = await DecentralizedIdentifier.parse(identifier);
   return SolTransaction.deactivateDIDInstruction(
-    id.pubkey.toPublicKey(),
+    id.pdaPubkey.toPublicKey(),
     authority
   );
 };

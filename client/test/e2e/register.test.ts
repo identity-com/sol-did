@@ -1,8 +1,8 @@
 import { register, resolve, RegisterRequest } from '../../src';
-import { SolanaUtil } from '../../src/lib/solana/solana-util';
+import { SolanaUtil } from '../../src';
 import { Keypair, Connection } from '@solana/web3.js';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
-import { DecentralizedIdentifier } from '../../src/lib/solana/sol-data';
+import { DecentralizedIdentifier } from '../../src';
 import { makeService } from '../util';
 import { SOL_CONTEXT_PREFIX, W3ID_CONTEXT } from '../../src/lib/constants';
 

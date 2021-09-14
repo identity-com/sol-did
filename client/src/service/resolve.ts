@@ -12,7 +12,7 @@ import { SOLANA_COMMITMENT } from '../lib/constants';
  */
 export const resolve = async (identifier: string): Promise<DIDDocument> => {
   // TODO replace with Promise<DIDDocument | null> ?
-  const id = DecentralizedIdentifier.parse(identifier);
+  const id = await DecentralizedIdentifier.parse(identifier);
   const connection = new Connection(
     id.clusterType.solanaUrl(),
     SOLANA_COMMITMENT
@@ -20,7 +20,7 @@ export const resolve = async (identifier: string): Promise<DIDDocument> => {
   const solData = await SolTransaction.getSol(
     connection,
     id.clusterType,
-    id.pubkey.toPublicKey()
+    id.pdaPubkey.toPublicKey()
   );
   if (solData !== null) {
     return solData.toDIDDocument();

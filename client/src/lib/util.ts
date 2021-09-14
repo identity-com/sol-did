@@ -2,7 +2,6 @@ import { DIDDocument } from 'did-resolver';
 import { Keypair, PublicKey } from '@solana/web3.js';
 import { ClusterType, DecentralizedIdentifier } from './solana/sol-data';
 import { decode, encode } from 'bs58';
-import { getKeyFromAuthority } from './solana/instruction';
 
 // a 64-byte private key on the X25519 curve.
 // In string form it is base58-encoded
@@ -90,11 +89,11 @@ export const makeKeypair = (privateKey: PrivateKey): Keypair => {
 export const getPublicKey = (privateKey: PrivateKey): PublicKey =>
   makeKeypair(privateKey).publicKey;
 
-export const keypairAndClusterToDID = (
+export const keypairAndClusterToDID = async (
   keypair: Keypair,
   cluster: ClusterType = ClusterType.mainnetBeta()
-): string =>
-  DecentralizedIdentifier.create(keypair.publicKey, cluster).toString();
+): Promise<string> =>
+  (await DecentralizedIdentifier.create(keypair.publicKey, cluster)).toString();
 
 type EncodedKeyPair = {
   secretKey: string;
@@ -112,6 +111,5 @@ export const keyToIdentifier = async (
   key: PublicKey,
   clusterType: ClusterType = ClusterType.mainnetBeta()
 ): Promise<string> => {
-  const didKey = await getKeyFromAuthority(key);
-  return DecentralizedIdentifier.create(didKey, clusterType).toString();
+  return (await DecentralizedIdentifier.create(key, clusterType)).toString();
 };

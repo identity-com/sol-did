@@ -41,7 +41,7 @@ export class SolInstruction extends Enum {
   }
 }
 
-export async function getKeyFromAuthority(
+export async function getPDAKeyFromAuthority(
   authority: PublicKey
 ): Promise<PublicKey> {
   const publicKeyNonce = await PublicKey.findProgramAddress(

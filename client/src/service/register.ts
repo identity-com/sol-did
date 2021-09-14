@@ -25,7 +25,7 @@ export const register = async (request: RegisterRequest): Promise<string> => {
   const cluster = request.cluster || ClusterType.mainnetBeta();
   const size = request.size || DEFAULT_DOCUMENT_SIZE;
   const connection = new Connection(cluster.solanaUrl(), SOLANA_COMMITMENT);
-  const solKey = await SolTransaction.createDID(
+  await SolTransaction.createDID(
     connection,
     payer,
     owner,
@@ -33,7 +33,7 @@ export const register = async (request: RegisterRequest): Promise<string> => {
     SolData.parse(request.document)
   );
 
-  return DecentralizedIdentifier.create(solKey, cluster).toString();
+  return DecentralizedIdentifier.create(owner, cluster).toString();
 };
 
 export const createRegisterInstruction = async ({

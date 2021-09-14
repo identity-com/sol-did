@@ -1,6 +1,6 @@
 import { keypairAndClusterToDID, keyToIdentifier } from '../../../src/lib/util';
 import { ClusterType } from '../../../src';
-import { DecentralizedIdentifier } from '../../../src/lib/solana/sol-data';
+import { DecentralizedIdentifier } from '../../../src';
 import { Keypair, PublicKey } from '@solana/web3.js';
 import {
   TEST_DID_ACCOUNT_PUBLIC_KEY,
@@ -9,11 +9,13 @@ import {
 
 describe('util', () => {
   describe('extractMethodIdentifierFromDID', () => {
-    it('should extract the method identifier from a DID', () => {
+    it('should extract the method identifier from a DID', async () => {
       expect(
-        DecentralizedIdentifier.parse(
-          'did:sol:Bm8bvjnBCJj6nKExmZk17khkRRNXAvcv2npKbhaqNWGC'
-        ).pubkey.toString()
+        (
+          await DecentralizedIdentifier.parse(
+            'did:sol:Bm8bvjnBCJj6nKExmZk17khkRRNXAvcv2npKbhaqNWGC'
+          )
+        ).authorityPubkey.toString()
       ).toEqual('Bm8bvjnBCJj6nKExmZk17khkRRNXAvcv2npKbhaqNWGC');
     });
   });
@@ -23,32 +25,31 @@ describe('util', () => {
       Buffer.from(TEST_DID_ACCOUNT_SECRET_KEY)
     );
 
-    it('adds a prefix to localnet DIDs', () => {
+    it('adds a prefix to localnet DIDs', async () => {
       expect(
-        keypairAndClusterToDID(account, ClusterType.development())
+        await keypairAndClusterToDID(account, ClusterType.development())
       ).toEqual(`did:sol:localnet:${TEST_DID_ACCOUNT_PUBLIC_KEY}`);
     });
 
-    it('adds a prefix to devnet DIDs', () => {
-      expect(keypairAndClusterToDID(account, ClusterType.devnet())).toEqual(
-        `did:sol:devnet:${TEST_DID_ACCOUNT_PUBLIC_KEY}`
-      );
+    it('adds a prefix to devnet DIDs', async () => {
+      expect(
+        await keypairAndClusterToDID(account, ClusterType.devnet())
+      ).toEqual(`did:sol:devnet:${TEST_DID_ACCOUNT_PUBLIC_KEY}`);
     });
 
-    it('does not add a prefix to mainnet DIDs', () => {
+    it('does not add a prefix to mainnet DIDs', async () => {
       expect(
-        keypairAndClusterToDID(account, ClusterType.mainnetBeta())
+        await keypairAndClusterToDID(account, ClusterType.mainnetBeta())
       ).toEqual(`did:sol:${TEST_DID_ACCOUNT_PUBLIC_KEY}`);
     });
   });
 
   describe('keyToIdentifier', () => {
     it('should generate a consistent DID identifier for a known owner public key', async () => {
-      const expected = 'did:sol:C81bd557vreob9E3p5E9AtXpsRYpkikQRECWEifJabEf';
       const identifier = await keyToIdentifier(
         new PublicKey(TEST_DID_ACCOUNT_PUBLIC_KEY)
       );
-      expect(identifier).toEqual(expected);
+      expect(identifier).toEqual('did:sol:' + TEST_DID_ACCOUNT_PUBLIC_KEY);
     });
   });
 });

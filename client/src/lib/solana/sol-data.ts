@@ -13,6 +13,7 @@ import {
   VerificationMethod as DIDVerificationMethod,
   ServiceEndpoint as DIDServiceEndpoint,
 } from 'did-resolver';
+import { getPDAKeyFromAuthority } from './instruction';
 
 // The current SOL method version
 export const VERSION = '1';
@@ -25,10 +26,10 @@ type Context = 'https://w3id.org/did/v1' | string | string[];
 export class SolData extends Assignable {
   // derived
   account: SolPublicKey;
+  authority: SolPublicKey;
   cluster: ClusterType;
 
   // persisted
-  authority: SolPublicKey;
   version: string;
   verificationMethod: VerificationMethod[];
   authentication: string[];
@@ -120,7 +121,8 @@ export class SolData extends Assignable {
   identifier(): DecentralizedIdentifier {
     return new DecentralizedIdentifier({
       clusterType: this.cluster,
-      pubkey: this.account,
+      authorityPubkey: this.authority,
+      pdaPubkey: this.account,
     });
   }
 
@@ -189,10 +191,10 @@ export class SolData extends Assignable {
     return VERSION;
   }
 
-  static parseDIDReferenceArray(
+  static async parseDIDReferenceArray(
     dids: (string | DIDVerificationMethod)[] | undefined
-  ): string[] {
-    return DecentralizedIdentifier.parseMaybeArray(dids).map(
+  ): Promise<(string | undefined)[]> {
+    return (await DecentralizedIdentifier.parseMaybeArray(dids)).map(
       (did) => did.urlField
     );
   }
@@ -256,11 +258,12 @@ export class VerificationMethod extends Assignable {
     };
   }
 
-  static parse(
+  static async parse(
     didVerificationMethod: DIDVerificationMethod
-  ): VerificationMethod {
+  ): Promise<VerificationMethod> {
     return new VerificationMethod({
-      id: DecentralizedIdentifier.parse(didVerificationMethod.id).urlField,
+      id: (await DecentralizedIdentifier.parse(didVerificationMethod.id))
+        .urlField,
       verificationType: didVerificationMethod.type,
       controller: DecentralizedIdentifier.parse(
         didVerificationMethod.controller
@@ -287,9 +290,9 @@ export class ServiceEndpoint extends Assignable {
     };
   }
 
-  static parse(service: DIDServiceEndpoint): ServiceEndpoint {
+  static async parse(service: DIDServiceEndpoint): Promise<ServiceEndpoint> {
     return new ServiceEndpoint({
-      id: DecentralizedIdentifier.parse(service.id).urlField,
+      id: (await DecentralizedIdentifier.parse(service.id)).urlField,
       endpointType: service.type,
       endpoint: service.serviceEndpoint,
       description: service.description,
@@ -297,19 +300,72 @@ export class ServiceEndpoint extends Assignable {
   }
 }
 
+/**
+ * A class representing a SOL Did
+ */
 export class DecentralizedIdentifier extends Assignable {
+  /**
+   * The cluster the DID points to
+   */
   clusterType: ClusterType;
-  pubkey: SolPublicKey;
-  urlField: string;
+  /**
+   * The address of the DID
+   */
+  authorityPubkey: SolPublicKey;
+  /**
+   * The key to the DID data
+   */
+  pdaPubkey: SolPublicKey;
+  /**
+   * The optional field following the DID address and `#`
+   */
+  urlField?: string;
 
+  /**
+   * Creates a new `DecentralizedIdentifier` from its requisite parts.
+   *
+   * Use `DecentralizedIdentifier::parse` to obtain this from a direct did address.
+   *
+   * @param clusterType
+   * @param authorityPubkey
+   * @param urlField
+   * @param pdaPubkey
+   */
+  constructor({
+    clusterType,
+    authorityPubkey,
+    urlField,
+    pdaPubkey,
+  }: {
+    clusterType: ClusterType;
+    authorityPubkey: SolPublicKey;
+    urlField?: string;
+    pdaPubkey: SolPublicKey;
+  }) {
+    super({
+      clusterType,
+      authorityPubkey,
+      urlField,
+      pdaPubkey,
+    });
+  }
+
+  /**
+   * Clones this
+   */
   clone(): DecentralizedIdentifier {
     return new DecentralizedIdentifier({
       clusterType: this.clusterType,
-      pubkey: this.pubkey,
+      authorityPubkey: this.authorityPubkey,
+      pdaPubkey: this.pdaPubkey,
       urlField: this.urlField,
     });
   }
 
+  /**
+   * Returns a new `DecentralizedIdentifier` but with `urlField` swapped to the parameter
+   * @param urlField The new url field
+   */
   withUrl(urlField: string): DecentralizedIdentifier {
     return new DecentralizedIdentifier({
       ...this,
@@ -323,19 +379,31 @@ export class DecentralizedIdentifier extends Assignable {
       : `${this.clusterType.toString()}:`;
     const urlField =
       !this.urlField || this.urlField === '' ? '' : `#${this.urlField}`; // TODO add support for / urls
-    return `${DID_HEADER}:${DID_METHOD}:${cluster}${this.pubkey.toString()}${urlField}`;
+    return `${DID_HEADER}:${DID_METHOD}:${cluster}${this.authorityPubkey.toString()}${urlField}`;
   }
 
   static REGEX = new RegExp('^did:' + DID_METHOD + ':?(\\w*):(\\w+)#?(\\w*)$');
 
-  static parse(did: string | DIDVerificationMethod): DecentralizedIdentifier {
-    if (typeof did === 'string') {
+  /**
+   * Parses a given did string
+   * @param did the did string
+   */
+  static async parse(
+    did: string | DIDVerificationMethod
+  ): Promise<DecentralizedIdentifier> {
+    if (typeof did == 'string') {
       const matches = DecentralizedIdentifier.REGEX.exec(did);
 
       if (!matches) throw new Error('Invalid DID');
+
+      const authorityPubkey = SolPublicKey.parse(matches[2]);
+
       return new DecentralizedIdentifier({
         clusterType: ClusterType.parse(matches[1]),
-        pubkey: SolPublicKey.parse(matches[2]),
+        authorityPubkey,
+        pdaPubkey: SolPublicKey.fromPublicKey(
+          await getPDAKeyFromAuthority(authorityPubkey.toPublicKey())
+        ),
         urlField: matches[3],
       });
     } else {
@@ -343,38 +411,61 @@ export class DecentralizedIdentifier extends Assignable {
     }
   }
 
-  static valid(did: string): boolean {
+  /**
+   * Returns true if the did is valid
+   * @param did The did string to check
+   */
+  static async valid(did: string): Promise<boolean> {
     try {
-      DecentralizedIdentifier.parse(did);
+      await DecentralizedIdentifier.parse(did);
       return true;
     } catch {
       return false;
     }
   }
 
+  /**
+   * Returns an empty did
+   */
   static empty(): DecentralizedIdentifier {
     return new DecentralizedIdentifier({
       clusterType: ClusterType.mainnetBeta(),
-      pubkey: SolPublicKey.empty(),
-      identifier: '',
+      authorityPubkey: SolPublicKey.empty(),
+      pdaPubkey: SolPublicKey.empty(),
+      urlField: '',
     });
   }
 
-  static parseMaybeArray(
-    dids: (string | DIDVerificationMethod)[] | undefined
-  ): DecentralizedIdentifier[] {
-    return dids ? dids.map((v) => DecentralizedIdentifier.parse(v)) : [];
+  /**
+   * Parses an array of did strings
+   * @param dids The did strings to parse
+   */
+  static async parseMaybeArray(
+    dids?: (string | DIDVerificationMethod)[]
+  ): Promise<DecentralizedIdentifier[]> {
+    return dids
+      ? await Promise.all(dids.map((v) => DecentralizedIdentifier.parse(v)))
+      : [];
   }
 
-  static create(
-    pubkey: PublicKey,
+  /**
+   * Creates a new did
+   * @param authorityPubkey The authority and key of the did
+   * @param clusterType The cluster the did points to
+   * @param urlField An optional extra field
+   */
+  static async create(
+    authorityPubkey: PublicKey,
     clusterType: ClusterType,
-    identifier = ''
-  ): DecentralizedIdentifier {
+    urlField?: string
+  ): Promise<DecentralizedIdentifier> {
     return new DecentralizedIdentifier({
-      pubkey: SolPublicKey.fromPublicKey(pubkey),
+      authorityPubkey: SolPublicKey.fromPublicKey(authorityPubkey),
+      pdaPubkey: SolPublicKey.fromPublicKey(
+        await getPDAKeyFromAuthority(authorityPubkey)
+      ),
       clusterType,
-      identifier,
+      urlField,
     });
   }
 }
@@ -420,6 +511,22 @@ export class ClusterType extends Enum {
 
   toString(): string {
     return this.development ? 'localnet' : this.toCluster();
+  }
+
+  /**
+   * Returns this as the portion of the DID string
+   */
+  toDIDString(): string {
+    if (this.testnet) {
+      return ':testnet';
+    } else if (this.mainnetBeta) {
+      return '';
+    } else if (this.devnet) {
+      return ':devnet';
+    } else if (this.development) {
+      return ':localnet';
+    }
+    throw new Error('Unknown `ClusterType`: ' + this);
   }
 
   toCluster(): Cluster {

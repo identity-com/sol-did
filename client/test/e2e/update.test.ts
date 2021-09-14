@@ -1,9 +1,9 @@
 import { resolve, update, UpdateRequest } from '../../src';
 import { DEFAULT_DOCUMENT_SIZE } from '../../src/lib/constants';
 import { SolData } from '../../src/lib/solana/sol-data';
-import { SolanaUtil } from '../../src/lib/solana/solana-util';
+import { SolanaUtil } from '../../src';
 import { SolTransaction } from '../../src/lib/solana/transaction';
-import { Keypair, Connection, PublicKey } from '@solana/web3.js';
+import { Keypair, Connection } from '@solana/web3.js';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
 import { makeService, makeVerificationMethod } from '../util';
 import { ServiceEndpoint } from 'did-resolver';
@@ -22,12 +22,11 @@ const makeServiceRequest = (
 
 describe('update', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');
-  let solDIDKey: PublicKey;
   let owner: Keypair;
 
   beforeEach(async () => {
     owner = await SolanaUtil.newAccountWithLamports(connection, 1000000000);
-    solDIDKey = await SolTransaction.createDID(
+    await SolTransaction.createDID(
       connection,
       owner,
       owner.publicKey,
@@ -37,7 +36,7 @@ describe('update', () => {
   }, 60000);
 
   it('adds a service to a DID', async () => {
-    const identifier = 'did:sol:' + CLUSTER + ':' + solDIDKey.toBase58();
+    const identifier = 'did:sol:' + CLUSTER + ':' + owner.publicKey.toBase58();
     const service = await makeService(owner);
     const request: UpdateRequest = {
       payer: owner.secretKey,
@@ -57,7 +56,7 @@ describe('update', () => {
   });
 
   it('adds a key to a DID', async () => {
-    const identifier = 'did:sol:' + CLUSTER + ':' + solDIDKey.toBase58();
+    const identifier = 'did:sol:' + CLUSTER + ':' + owner.publicKey.toBase58();
     const key = await makeVerificationMethod(owner);
     const request: UpdateRequest = {
       payer: owner.secretKey,
@@ -82,7 +81,7 @@ describe('update', () => {
       connection,
       1000000000
     );
-    const identifier = 'did:sol:' + CLUSTER + ':' + solDIDKey.toBase58();
+    const identifier = 'did:sol:' + CLUSTER + ':' + owner.publicKey.toBase58();
     const service = await makeService(owner);
     const request: UpdateRequest = {
       payer: payer.secretKey,
@@ -102,7 +101,7 @@ describe('update', () => {
   });
 
   it('adds a service to a DID with an existing service', async () => {
-    const identifier = 'did:sol:' + CLUSTER + ':' + solDIDKey.toBase58();
+    const identifier = 'did:sol:' + CLUSTER + ':' + owner.publicKey.toBase58();
 
     const service1 = await makeService(owner);
     const service2 = await makeService(owner);

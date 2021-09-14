@@ -1,31 +1,33 @@
 import { resolve, deactivate, DeactivateRequest } from '../../src';
 import { DEFAULT_DOCUMENT_SIZE } from '../../src/lib/constants';
 import { SolData } from '../../src/lib/solana/sol-data';
-import { SolanaUtil } from '../../src/lib/solana/solana-util';
+import { SolanaUtil } from '../../src';
 import { SolTransaction } from '../../src/lib/solana/transaction';
-import { Keypair, Connection, PublicKey } from '@solana/web3.js';
+import { Keypair, Connection } from '@solana/web3.js';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
 
 describe('deactivate', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');
-  let solDIDKey: PublicKey;
-  let owner: Keypair;
+  let didAddress: Keypair;
 
   beforeEach(async () => {
-    owner = await SolanaUtil.newAccountWithLamports(connection, 1000000000);
-    solDIDKey = await SolTransaction.createDID(
+    didAddress = await SolanaUtil.newAccountWithLamports(
       connection,
-      owner,
-      owner.publicKey,
+      1000000000
+    );
+    await SolTransaction.createDID(
+      connection,
+      didAddress,
+      didAddress.publicKey,
       DEFAULT_DOCUMENT_SIZE,
       SolData.empty()
     );
   }, 60000);
 
   it('deactivates a DID', async () => {
-    const did = 'did:sol:' + CLUSTER + ':' + solDIDKey.toBase58();
+    const did = 'did:sol:' + CLUSTER + ':' + didAddress.publicKey.toBase58();
     const deactivateRequest: DeactivateRequest = {
-      payer: owner.secretKey,
+      payer: didAddress.secretKey,
       identifier: did,
     };
 
@@ -44,9 +46,9 @@ describe('deactivate', () => {
       connection,
       1000000000
     );
-    const did = 'did:sol:' + CLUSTER + ':' + solDIDKey.toBase58();
+    const did = 'did:sol:' + CLUSTER + ':' + didAddress.publicKey.toBase58();
     const deactivateRequest: DeactivateRequest = {
-      owner: owner.secretKey,
+      owner: didAddress.secretKey,
       payer: payer.secretKey,
       identifier: did,
     };
