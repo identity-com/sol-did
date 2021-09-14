@@ -4,7 +4,7 @@ import {
   DID_METHOD,
   DID_HEADER,
   SOL_CONTEXT_PREFIX,
-  W3ID_CONTEXT,
+  W3ID_CONTEXT, PROGRAM_ID,
 } from '../constants';
 import { encode } from 'bs58';
 import { mergeWith, omit } from 'ramda';
@@ -13,7 +13,16 @@ import {
   VerificationMethod as DIDVerificationMethod,
   ServiceEndpoint as DIDServiceEndpoint,
 } from 'did-resolver';
-import { getPDAKeyFromAuthority } from './instruction';
+
+export async function getPDAKeyFromAuthority(
+  authority: PublicKey
+): Promise<PublicKey> {
+  const publicKeyNonce = await PublicKey.findProgramAddress(
+    [authority.toBuffer(), Buffer.from(DID_METHOD, 'utf8')],
+    PROGRAM_ID
+  );
+  return publicKeyNonce[0];
+}
 
 // The current SOL method version
 export const VERSION = '1';

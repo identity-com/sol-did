@@ -1,11 +1,10 @@
 import { resolve } from '../../src';
 import { DEFAULT_DOCUMENT_SIZE } from '../../src/lib/constants';
-import { SolData } from '../../src/lib/solana/sol-data';
+import { SolData, getPDAKeyFromAuthority } from '../../src/lib/solana/sol-data';
 import { SolanaUtil } from '../../src';
 import { SolTransaction } from '../../src/lib/solana/transaction';
 import { Keypair, Connection, PublicKey } from '@solana/web3.js';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
-import { getPDAKeyFromAuthority } from '../../src/lib/solana/instruction';
 
 describe('resolve', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');

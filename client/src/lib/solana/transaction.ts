@@ -1,8 +1,7 @@
-import { ClusterType, SolData } from './sol-data';
+import { ClusterType, SolData, getPDAKeyFromAuthority } from './sol-data';
 import { SolanaUtil } from './solana-util';
 import {
   closeAccount,
-  getPDAKeyFromAuthority,
   initialize,
   write,
 } from './instruction';

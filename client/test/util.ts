@@ -3,9 +3,9 @@ import { ServiceEndpoint, VerificationMethod } from 'did-resolver';
 import {
   DecentralizedIdentifier,
   SolPublicKey,
+  getPDAKeyFromAuthority,
 } from '../src/lib/solana/sol-data';
 import { CLUSTER } from './constants';
-import { getPDAKeyFromAuthority } from '../src/lib/solana/instruction';
 
 export const makeService = async (owner: Keypair): Promise<ServiceEndpoint> => {
   const pubkey = await getPDAKeyFromAuthority(owner.publicKey);

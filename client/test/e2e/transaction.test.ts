@@ -1,11 +1,10 @@
 import { Keypair, Connection } from '@solana/web3.js';
 import { DEFAULT_DOCUMENT_SIZE } from '../../src/lib/constants';
 import { SolTransaction } from '../../src/lib/solana/transaction';
-import { SolData } from '../../src/lib/solana/sol-data';
+import { SolData, getPDAKeyFromAuthority } from '../../src/lib/solana/sol-data';
 import { SolanaUtil } from '../../src';
 import { strict as assert } from 'assert';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
-import { getPDAKeyFromAuthority } from '../../src/lib/solana/instruction';
 
 describe('transaction', () => {
   it('create works', async () => {
