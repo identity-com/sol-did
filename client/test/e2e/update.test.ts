@@ -1,6 +1,6 @@
 import { resolve, update, UpdateRequest } from '../../src';
 import { DEFAULT_DOCUMENT_SIZE } from '../../src/lib/constants';
-import { SolData } from '../../src/lib/solana/sol-data';
+import { getPDAKeyFromAuthority, SolData } from '../../src/lib/solana/sol-data';
 import { SolanaUtil } from '../../src';
 import { SolTransaction } from '../../src/lib/solana/transaction';
 import { Keypair, Connection } from '@solana/web3.js';
@@ -31,7 +31,11 @@ describe('update', () => {
       owner,
       owner.publicKey,
       DEFAULT_DOCUMENT_SIZE,
-      await SolData.empty()
+      await SolData.sparse(
+        await getPDAKeyFromAuthority(owner.publicKey),
+        owner.publicKey,
+        CLUSTER
+      )
     );
   }, 60000);
 

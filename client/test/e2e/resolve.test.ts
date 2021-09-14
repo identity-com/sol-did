@@ -17,14 +17,14 @@ describe('resolve', () => {
       1000000000
     );
     authority = Keypair.generate();
+    pdaAccount = await getPDAKeyFromAuthority(authority.publicKey);
     await SolTransaction.createDID(
       connection,
       payer,
       authority.publicKey,
       DEFAULT_DOCUMENT_SIZE,
-      await SolData.empty()
+      await SolData.sparse(pdaAccount, authority.publicKey, CLUSTER)
     );
-    pdaAccount = await getPDAKeyFromAuthority(authority.publicKey);
   }, 60000);
 
   it('looks up a DID from the blockchain', async () => {
