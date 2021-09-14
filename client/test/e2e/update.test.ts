@@ -31,7 +31,7 @@ describe('update', () => {
       owner,
       owner.publicKey,
       DEFAULT_DOCUMENT_SIZE,
-      SolData.empty()
+      await SolData.empty()
     );
   }, 60000);
 

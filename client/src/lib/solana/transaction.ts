@@ -1,10 +1,6 @@
 import { ClusterType, SolData, getPDAKeyFromAuthority } from './sol-data';
 import { SolanaUtil } from './solana-util';
-import {
-  closeAccount,
-  initialize,
-  write,
-} from './instruction';
+import { closeAccount, initialize, write } from './instruction';
 import {
   Keypair,
   Connection,
@@ -116,7 +112,6 @@ export class SolTransaction {
       dataToMerge,
       mergeBehaviour === 'Overwrite'
     );
-
     return write(recordKey, authority, 0, mergedData.encode());
   }
 

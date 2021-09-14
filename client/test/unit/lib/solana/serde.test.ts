@@ -12,10 +12,10 @@ import {
 import { strict as assert } from 'assert';
 
 describe('(de)serialize operations', () => {
-  it('works for SolData', () => {
+  it('works for SolData', async () => {
     const authority = Keypair.generate();
     const solAccount = Keypair.generate();
-    const sol = SolData.sparse(
+    const sol = await SolData.sparse(
       solAccount.publicKey,
       authority.publicKey,
       ClusterType.development()
@@ -33,10 +33,10 @@ describe('(de)serialize operations', () => {
     assert.deepEqual(publicKey, recordKey.toPublicKey());
   });
 
-  it('works for SolInstruction.initialize', () => {
+  it('works for SolInstruction.initialize', async () => {
     const authority = Keypair.generate();
     const solAccount = Keypair.generate();
-    const solData = SolData.sparse(
+    const solData = await SolData.sparse(
       solAccount.publicKey,
       authority.publicKey,
       ClusterType.mainnetBeta()

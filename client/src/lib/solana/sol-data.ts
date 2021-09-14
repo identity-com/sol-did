@@ -4,7 +4,8 @@ import {
   DID_METHOD,
   DID_HEADER,
   SOL_CONTEXT_PREFIX,
-  W3ID_CONTEXT, PROGRAM_ID,
+  W3ID_CONTEXT,
+  PROGRAM_ID,
 } from '../constants';
 import { encode } from 'bs58';
 import { mergeWith, omit } from 'ramda';
@@ -48,6 +49,46 @@ export class SolData extends Assignable {
   assertionMethod: string[];
   service: ServiceEndpoint[];
 
+  constructor({
+    account = SolPublicKey.empty(),
+    authority = SolPublicKey.empty(),
+    cluster = ClusterType.mainnetBeta(),
+    version = VERSION,
+    verificationMethod = [],
+    authentication = [],
+    capabilityInvocation = [],
+    capabilityDelegation = [],
+    keyAgreement = [],
+    assertionMethod = [],
+    service = [],
+  }: {
+    account?: SolPublicKey;
+    authority?: SolPublicKey;
+    cluster?: ClusterType;
+    version?: string;
+    verificationMethod?: VerificationMethod[];
+    authentication?: string[];
+    capabilityInvocation?: string[];
+    capabilityDelegation?: string[];
+    keyAgreement?: string[];
+    assertionMethod?: string[];
+    service?: ServiceEndpoint[];
+  }) {
+    super({
+      account,
+      authority,
+      cluster,
+      version,
+      verificationMethod,
+      authentication,
+      capabilityInvocation,
+      capabilityDelegation,
+      keyAgreement,
+      assertionMethod,
+      service,
+    });
+  }
+
   static fromAccount(
     accountKey: PublicKey,
     accountData: Buffer,
@@ -76,7 +117,7 @@ export class SolData extends Assignable {
     };
 
     // merging data into a DID Document should not change its identifier (derived from the authority)
-    const dataToMerge = omit(['authority'], other);
+    const dataToMerge = omit(['authority', 'account'], other);
 
     const mergedData = mergeWith(mergeBehaviour, this, dataToMerge);
     return new SolData(mergedData);
@@ -94,28 +135,15 @@ export class SolData extends Assignable {
     return [W3ID_CONTEXT, SolData.solContext(version)];
   }
 
-  static sparse(
+  static async sparse(
     account: PublicKey,
     authority: PublicKey,
     clusterType: ClusterType
-  ): SolData {
-    const emptySolData = SolData.empty(authority);
-
-    return emptySolData.merge({
-      version: VERSION,
-      account: SolPublicKey.fromPublicKey(account),
-      authority: SolPublicKey.fromPublicKey(authority),
-      cluster: clusterType,
-    });
-  }
-
-  static empty(authority?: PublicKey): SolData {
+  ): Promise<SolData> {
     return new SolData({
-      cluster: ClusterType.mainnetBeta(),
-      authority: SolPublicKey.fromPublicKey(
-        authority || Keypair.generate().publicKey
-      ),
-
+      cluster: clusterType,
+      authority: SolPublicKey.fromPublicKey(authority),
+      account: SolPublicKey.fromPublicKey(account),
       version: VERSION,
       verificationMethod: [],
       authentication: [],
@@ -125,6 +153,26 @@ export class SolData extends Assignable {
       assertionMethod: [],
       service: [],
     });
+  }
+
+  static async empty(authority?: PublicKey): Promise<Partial<SolData>> {
+    const [authorityKey, pdaAccount] = authority
+      ? [authority, await getPDAKeyFromAuthority(authority)]
+      : [Keypair.generate().publicKey, Keypair.generate().publicKey];
+    const out = (await this.sparse(
+      pdaAccount,
+      authorityKey,
+      ClusterType.mainnetBeta()
+    )) as Partial<SolData>;
+
+    out.cluster = undefined;
+    out.version = undefined;
+    if (!authority) {
+      out.authority = undefined;
+      out.account = undefined;
+    }
+
+    return out;
   }
 
   identifier(): DecentralizedIdentifier {
@@ -208,34 +256,44 @@ export class SolData extends Assignable {
     );
   }
 
-  static parse(document: Partial<DIDDocument> | undefined): SolData {
-    if (document) {
-      return new SolData({
-        version: SolData.parseVersion(document['@context']),
-        did: document.id
-          ? DecentralizedIdentifier.parse(document.id)
-          : DecentralizedIdentifier.empty(),
-        verificationMethod: document.verificationMethod
-          ? document.verificationMethod.map((v) => VerificationMethod.parse(v))
-          : [],
-        authentication: SolData.parseDIDReferenceArray(document.authentication),
-        capabilityInvocation: SolData.parseDIDReferenceArray(
-          document.capabilityInvocation
-        ),
-        capabilityDelegation: SolData.parseDIDReferenceArray(
-          document.capabilityDelegation
-        ),
-        keyAgreement: SolData.parseDIDReferenceArray(document.keyAgreement),
-        assertionMethod: SolData.parseDIDReferenceArray(
-          document.assertionMethod
-        ),
-        service: document.service
-          ? document.service.map((v) => ServiceEndpoint.parse(v))
-          : [],
-      });
-    } else {
-      return SolData.empty();
-    }
+  static async parse(document: Partial<DIDDocument>): Promise<SolData> {
+    const did = document.id
+      ? await DecentralizedIdentifier.parse(document.id)
+      : DecentralizedIdentifier.empty();
+
+    return new SolData({
+      account: did.pdaPubkey,
+      authority: did.authorityPubkey,
+      cluster: did.clusterType,
+      version: SolData.parseVersion(document['@context']),
+      verificationMethod: document.verificationMethod
+        ? await Promise.all(
+            document.verificationMethod.map(
+              async (v) => await VerificationMethod.parse(v)
+            )
+          )
+        : [],
+      authentication: (
+        await SolData.parseDIDReferenceArray(document.authentication)
+      ).filter((val): val is string => val !== undefined),
+      capabilityInvocation: (
+        await SolData.parseDIDReferenceArray(document.capabilityInvocation)
+      ).filter((val): val is string => val !== undefined),
+      capabilityDelegation: (
+        await SolData.parseDIDReferenceArray(document.capabilityDelegation)
+      ).filter((val): val is string => val !== undefined),
+      keyAgreement: (
+        await SolData.parseDIDReferenceArray(document.keyAgreement)
+      ).filter((val): val is string => val !== undefined),
+      assertionMethod: (
+        await SolData.parseDIDReferenceArray(document.assertionMethod)
+      ).filter((val): val is string => val !== undefined),
+      service: document.service
+        ? await Promise.all(
+            document.service.map(async (v) => await ServiceEndpoint.parse(v))
+          )
+        : [],
+    });
   }
 }
 

@@ -35,18 +35,7 @@ export abstract class Enum extends Assignable {
   }
 }
 
-export const SCHEMA: Map<
-  Function,
-  | {
-      kind: 'struct';
-      fields: [string, string | Function | [string] | [Function] | [number]][];
-    }
-  | {
-      kind: 'enum';
-      field: 'enum';
-      values: [string, Function][];
-    }
-> = new Map();
+export const SCHEMA: Schema = new Map();
 
 // TODO PR for leaving extra bytes, a lot of code copied from
 // https://github.com/near/borsh-js/blob/master/borsh-ts/index.ts
