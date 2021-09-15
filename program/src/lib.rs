@@ -46,7 +46,7 @@ pub fn validate_owner(did: &AccountInfo, signers: &[&AccountInfo]) -> ProgramRes
         }
         // Find an account within `signers` that is the authority (the key that generates the did)
         match signers
-            .into_iter()
+            .iter()
             .find(|signer| &get_sol_address_with_seed(signer.key).0 == did.key)
         {
             None => Err(ProgramError::InvalidArgument),
