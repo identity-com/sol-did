@@ -24,12 +24,10 @@ export const resolve = async (identifier: string): Promise<DIDDocument> => {
   if (solData !== null) {
     return solData.toDIDDocument();
   } else {
-    return (
-      await SolData.sparse(
-        id.pdaPubkey.toPublicKey(),
-        id.authorityPubkey.toPublicKey(),
-        id.clusterType
-      )
+    return SolData.sparse(
+      id.pdaPubkey.toPublicKey(),
+      id.authorityPubkey.toPublicKey(),
+      id.clusterType
     ).toDIDDocument();
   }
 };

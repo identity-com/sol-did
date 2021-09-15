@@ -20,7 +20,7 @@ describe('deactivate', () => {
       didAuthorityAddress,
       didAuthorityAddress.publicKey,
       DEFAULT_DOCUMENT_SIZE,
-      await SolData.sparse(
+      SolData.sparse(
         await getPDAKeyFromAuthority(didAuthorityAddress.publicKey),
         didAuthorityAddress.publicKey,
         CLUSTER
@@ -44,12 +44,10 @@ describe('deactivate', () => {
 
     // expect the DID no longer to be registered
     return expect(await resolve(did)).toEqual(
-      (
-        await SolData.sparse(
-          await getPDAKeyFromAuthority(didAuthorityAddress.publicKey),
-          didAuthorityAddress.publicKey,
-          CLUSTER
-        )
+      SolData.sparse(
+        await getPDAKeyFromAuthority(didAuthorityAddress.publicKey),
+        didAuthorityAddress.publicKey,
+        CLUSTER
       ).toDIDDocument()
     );
   });
@@ -75,12 +73,10 @@ describe('deactivate', () => {
 
     // expect the DID no longer to be registered
     return expect(await resolve(did)).toEqual(
-      (
-        await SolData.sparse(
-          await getPDAKeyFromAuthority(didAuthorityAddress.publicKey),
-          didAuthorityAddress.publicKey,
-          CLUSTER
-        )
+      SolData.sparse(
+        await getPDAKeyFromAuthority(didAuthorityAddress.publicKey),
+        didAuthorityAddress.publicKey,
+        CLUSTER
       ).toDIDDocument()
     );
   });

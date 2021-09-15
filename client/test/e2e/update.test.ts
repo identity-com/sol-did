@@ -31,7 +31,7 @@ describe('update', () => {
       owner,
       owner.publicKey,
       DEFAULT_DOCUMENT_SIZE,
-      await SolData.sparse(
+      SolData.sparse(
         await getPDAKeyFromAuthority(owner.publicKey),
         owner.publicKey,
         CLUSTER

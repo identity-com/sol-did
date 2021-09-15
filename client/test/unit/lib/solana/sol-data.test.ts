@@ -17,11 +17,7 @@ describe('sol-data', () => {
     describe('with default behaviour', () => {
       it('should not change a sparse solData object when merging an empty one into it', async () => {
         const empty = await SolData.empty();
-        const sparse = await SolData.sparse(
-          pub(),
-          pub(),
-          ClusterType.mainnetBeta()
-        );
+        const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
 
         const merged = sparse.merge(empty);
 
@@ -31,11 +27,7 @@ describe('sol-data', () => {
       it('should not change a sparse solData object when merging an empty one with no authority', async () => {
         const empty = (await SolData.empty()) as Partial<SolData>;
         delete empty.authority;
-        const sparse = await SolData.sparse(
-          pub(),
-          pub(),
-          ClusterType.mainnetBeta()
-        );
+        const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
 
         const merged = sparse.merge(empty);
 
@@ -47,11 +39,7 @@ describe('sol-data', () => {
         withService.service = [
           await ServiceEndpoint.parse(await makeService(Keypair.generate())),
         ];
-        const sparse = await SolData.sparse(
-          pub(),
-          pub(),
-          ClusterType.mainnetBeta()
-        );
+        const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
 
         const merged = sparse.merge(withService);
 
@@ -59,7 +47,7 @@ describe('sol-data', () => {
       });
 
       it('should allow properties to be added to existing arrays', async () => {
-        const sparseWithService = await SolData.sparse(
+        const sparseWithService = SolData.sparse(
           pub(),
           pub(),
           ClusterType.mainnetBeta()
@@ -86,11 +74,7 @@ describe('sol-data', () => {
     describe('with overwriteArrays=true', () => {
       it('should clear the contents of a solData object when merging an empty one', async () => {
         const empty = await SolData.empty();
-        const sparse = await SolData.sparse(
-          pub(),
-          pub(),
-          ClusterType.mainnetBeta()
-        );
+        const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
 
         const merged = sparse.merge(empty, true);
 
@@ -98,7 +82,7 @@ describe('sol-data', () => {
       });
 
       it('should allow properties to be replaced', async () => {
-        const sparseWithService = await SolData.sparse(
+        const sparseWithService = SolData.sparse(
           pub(),
           pub(),
           ClusterType.mainnetBeta()

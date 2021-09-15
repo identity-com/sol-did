@@ -15,7 +15,7 @@ describe('(de)serialize operations', () => {
   it('works for SolData', async () => {
     const authority = Keypair.generate();
     const solAccount = Keypair.generate();
-    const sol = await SolData.sparse(
+    const sol = SolData.sparse(
       solAccount.publicKey,
       authority.publicKey,
       ClusterType.development()
@@ -36,7 +36,7 @@ describe('(de)serialize operations', () => {
   it('works for SolInstruction.initialize', async () => {
     const authority = Keypair.generate();
     const solAccount = Keypair.generate();
-    const solData = await SolData.sparse(
+    const solData = SolData.sparse(
       solAccount.publicKey,
       authority.publicKey,
       ClusterType.mainnetBeta()

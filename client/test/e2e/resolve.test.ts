@@ -23,7 +23,7 @@ describe('resolve', () => {
       payer,
       authority.publicKey,
       DEFAULT_DOCUMENT_SIZE,
-      await SolData.sparse(pdaAccount, authority.publicKey, CLUSTER)
+      SolData.sparse(pdaAccount, authority.publicKey, CLUSTER)
     );
   }, 60000);
 
@@ -32,8 +32,10 @@ describe('resolve', () => {
     const document = await resolve(did);
 
     console.log(document);
-    const expectedDocument = (
-      await SolData.sparse(pdaAccount, authority.publicKey, CLUSTER)
+    const expectedDocument = SolData.sparse(
+      pdaAccount,
+      authority.publicKey,
+      CLUSTER
     ).toDIDDocument();
     return expect(document).toMatchObject(expectedDocument);
   });

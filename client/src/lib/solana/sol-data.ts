@@ -135,11 +135,11 @@ export class SolData extends Assignable {
     return [W3ID_CONTEXT, SolData.solContext(version)];
   }
 
-  static async sparse(
+  static sparse(
     account: PublicKey,
     authority: PublicKey,
     clusterType: ClusterType
-  ): Promise<SolData> {
+  ): SolData {
     return new SolData({
       cluster: clusterType,
       authority: SolPublicKey.fromPublicKey(authority),

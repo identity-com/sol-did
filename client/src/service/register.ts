@@ -33,11 +33,7 @@ export const register = async (request: RegisterRequest): Promise<string> => {
     size,
     request.document
       ? await SolData.parse(request.document)
-      : await SolData.sparse(
-          await getPDAKeyFromAuthority(owner),
-          owner,
-          cluster
-        )
+      : SolData.sparse(await getPDAKeyFromAuthority(owner), owner, cluster)
   );
 
   return (await DecentralizedIdentifier.create(owner, cluster)).toString();
@@ -53,7 +49,7 @@ export const createRegisterInstruction = async ({
 > => {
   const initData = document
     ? await SolData.parse(document)
-    : await SolData.sparse(
+    : SolData.sparse(
         await getPDAKeyFromAuthority(authority),
         authority,
         ClusterType.mainnetBeta()
