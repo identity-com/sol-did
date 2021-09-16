@@ -8,12 +8,9 @@ import {
 import { CLUSTER } from './constants';
 
 export const makeService = async (owner: Keypair): Promise<ServiceEndpoint> => {
-  const pubkey = await getPDAKeyFromAuthority(owner.publicKey);
-
   const identifier = new DecentralizedIdentifier({
     clusterType: CLUSTER,
     authorityPubkey: SolPublicKey.fromPublicKey(owner.publicKey),
-    pdaPubkey: SolPublicKey.fromPublicKey(pubkey),
   }).toString();
 
   return {
@@ -32,7 +29,6 @@ export const makeVerificationMethod = async (
   const identifier = new DecentralizedIdentifier({
     clusterType: CLUSTER,
     authorityPubkey: SolPublicKey.fromPublicKey(pubkey),
-    pdaPubkey: SolPublicKey.fromPublicKey(pubkey),
   }).toString();
 
   const newKey = Keypair.generate().publicKey.toBase58();
