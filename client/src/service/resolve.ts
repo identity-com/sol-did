@@ -11,7 +11,7 @@ import { SOLANA_COMMITMENT } from '../lib/constants';
  * @throws Error if the document is not found
  */
 export const resolve = async (identifier: string): Promise<DIDDocument> => {
-  const id = await DecentralizedIdentifier.parse(identifier);
+  const id = DecentralizedIdentifier.parse(identifier);
   const connection = new Connection(
     id.clusterType.solanaUrl(),
     SOLANA_COMMITMENT
@@ -19,13 +19,13 @@ export const resolve = async (identifier: string): Promise<DIDDocument> => {
   const solData = await SolTransaction.getSol(
     connection,
     id.clusterType,
-    id.pdaPubkey.toPublicKey()
+    await id.pdaSolanaPubkey()
   );
   if (solData !== null) {
     return solData.toDIDDocument();
   } else {
     return SolData.sparse(
-      id.pdaPubkey.toPublicKey(),
+      await id.pdaSolanaPubkey(),
       id.authorityPubkey.toPublicKey(),
       id.clusterType
     ).toDIDDocument();

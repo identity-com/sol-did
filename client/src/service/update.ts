@@ -12,7 +12,7 @@ import { DecentralizedIdentifier, SolData } from '../lib/solana/sol-data';
  * @param request
  */
 export const update = async (request: UpdateRequest): Promise<void> => {
-  const id = await DecentralizedIdentifier.parse(request.identifier);
+  const id = DecentralizedIdentifier.parse(request.identifier);
   const payer = makeKeypair(request.payer);
   const owner = request.owner ? makeKeypair(request.owner) : undefined;
   const cluster = id.clusterType;
@@ -21,7 +21,7 @@ export const update = async (request: UpdateRequest): Promise<void> => {
     connection,
     cluster,
     payer,
-    id.pdaPubkey.toPublicKey(),
+    await id.pdaSolanaPubkey(),
     await SolData.parse(request.document),
     request.mergeBehaviour || 'Append',
     owner
@@ -34,13 +34,13 @@ export const createUpdateInstruction = async ({
   document,
   mergeBehaviour,
 }: UpdateInstructionRequest): Promise<TransactionInstruction> => {
-  const id = await DecentralizedIdentifier.parse(identifier);
+  const id = DecentralizedIdentifier.parse(identifier);
   const cluster = id.clusterType;
   const connection = new Connection(cluster.solanaUrl(), 'recent');
   return SolTransaction.updateDIDInstruction(
     connection,
     cluster,
-    id.pdaPubkey.toPublicKey(),
+    await id.pdaSolanaPubkey(),
     authority,
     await SolData.parse(document),
     mergeBehaviour || 'Append'

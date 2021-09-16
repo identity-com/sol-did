@@ -36,7 +36,7 @@ export const register = async (request: RegisterRequest): Promise<string> => {
       : SolData.sparse(await getPDAKeyFromAuthority(owner), owner, cluster)
   );
 
-  return (await DecentralizedIdentifier.create(owner, cluster)).toString();
+  return DecentralizedIdentifier.create(owner, cluster).toString();
 };
 
 export const createRegisterInstruction = async ({

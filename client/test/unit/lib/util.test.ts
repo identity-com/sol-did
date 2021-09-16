@@ -10,13 +10,13 @@ import {
 describe('util', () => {
   describe('extractMethodIdentifierFromDID', () => {
     it('should extract the method identifier from a DID', async () => {
-      expect(
-        (
-          await DecentralizedIdentifier.parse(
-            'did:sol:Bm8bvjnBCJj6nKExmZk17khkRRNXAvcv2npKbhaqNWGC'
-          )
-        ).authorityPubkey.toString()
-      ).toEqual('Bm8bvjnBCJj6nKExmZk17khkRRNXAvcv2npKbhaqNWGC');
+      const did = DecentralizedIdentifier.parse(
+        'did:sol:Bm8bvjnBCJj6nKExmZk17khkRRNXAvcv2npKbhaqNWGC'
+      );
+      console.log(did);
+      expect(did.authorityPubkey.toString()).toEqual(
+        'Bm8bvjnBCJj6nKExmZk17khkRRNXAvcv2npKbhaqNWGC'
+      );
     });
   });
 

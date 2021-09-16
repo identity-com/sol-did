@@ -93,7 +93,7 @@ export const keypairAndClusterToDID = async (
   keypair: Keypair,
   cluster: ClusterType = ClusterType.mainnetBeta()
 ): Promise<string> =>
-  (await DecentralizedIdentifier.create(keypair.publicKey, cluster)).toString();
+  DecentralizedIdentifier.create(keypair.publicKey, cluster).toString();
 
 type EncodedKeyPair = {
   secretKey: string;
@@ -111,5 +111,5 @@ export const keyToIdentifier = async (
   key: PublicKey,
   clusterType: ClusterType = ClusterType.mainnetBeta()
 ): Promise<string> => {
-  return (await DecentralizedIdentifier.create(key, clusterType)).toString();
+  return DecentralizedIdentifier.create(key, clusterType).toString();
 };

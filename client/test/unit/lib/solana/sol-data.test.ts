@@ -37,7 +37,7 @@ describe('sol-data', () => {
       it('should allow properties to be added to empty arrays', async () => {
         const withService = await SolData.empty();
         withService.service = [
-          await ServiceEndpoint.parse(await makeService(Keypair.generate())),
+          ServiceEndpoint.parse(await makeService(Keypair.generate())),
         ];
         const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
 
@@ -53,12 +53,12 @@ describe('sol-data', () => {
           ClusterType.mainnetBeta()
         );
         sparseWithService.service = [
-          await ServiceEndpoint.parse(await makeService(Keypair.generate())),
+          ServiceEndpoint.parse(await makeService(Keypair.generate())),
         ];
 
         const justService = new SolData({
           service: [
-            await ServiceEndpoint.parse(await makeService(Keypair.generate())),
+            ServiceEndpoint.parse(await makeService(Keypair.generate())),
           ],
         });
 
@@ -88,12 +88,12 @@ describe('sol-data', () => {
           ClusterType.mainnetBeta()
         );
         sparseWithService.service = [
-          await ServiceEndpoint.parse(await makeService(Keypair.generate())),
+          ServiceEndpoint.parse(await makeService(Keypair.generate())),
         ];
 
         const justService = new SolData({
           service: [
-            await ServiceEndpoint.parse(await makeService(Keypair.generate())),
+            ServiceEndpoint.parse(await makeService(Keypair.generate())),
           ],
         });
 
