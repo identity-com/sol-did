@@ -1,8 +1,8 @@
 import { Keypair, Connection } from '@solana/web3.js';
 import { DEFAULT_DOCUMENT_SIZE } from '../../src/lib/constants';
 import { SolTransaction } from '../../src/lib/solana/transaction';
-import { SolData } from '../../src/lib/solana/sol-data';
-import { SolanaUtil } from '../../src/lib/solana/solana-util';
+import { SolData, getPDAKeyFromAuthority } from '../../src/lib/solana/sol-data';
+import { SolanaUtil } from '../../src';
 import { strict as assert } from 'assert';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
 
@@ -14,16 +14,17 @@ describe('transaction', () => {
       1000000000
     );
     const authority = Keypair.generate();
-    const solKey = await SolTransaction.createDID(
+    const pdaAccount = await getPDAKeyFromAuthority(authority.publicKey);
+    await SolTransaction.createDID(
       connection,
       payer,
       authority.publicKey,
       DEFAULT_DOCUMENT_SIZE,
-      SolData.empty()
+      SolData.sparse(pdaAccount, authority.publicKey, CLUSTER)
     );
-    const sol = await SolTransaction.getSol(connection, CLUSTER, solKey);
+    const sol = await SolTransaction.getSol(connection, CLUSTER, pdaAccount);
     assert.notEqual(sol, null);
-    const checkSol = SolData.sparse(solKey, authority.publicKey, CLUSTER);
+    const checkSol = SolData.sparse(pdaAccount, authority.publicKey, CLUSTER);
     assert.deepEqual(sol, checkSol);
     const solFromAuthority = await SolTransaction.getSolFromAuthority(
       connection,

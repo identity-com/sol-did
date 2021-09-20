@@ -1,6 +1,6 @@
 import { Enum, Assignable, SCHEMA } from './solana-borsh';
 import { SolData } from './sol-data';
-import { DID_METHOD, PROGRAM_ID } from '../constants';
+import { PROGRAM_ID } from '../constants';
 import {
   AccountMeta,
   PublicKey,
@@ -39,16 +39,6 @@ export class SolInstruction extends Enum {
   static closeAccount(): SolInstruction {
     return new SolInstruction({ closeAccount: new CloseAccount({}) });
   }
-}
-
-export async function getKeyFromAuthority(
-  authority: PublicKey
-): Promise<PublicKey> {
-  const publicKeyNonce = await PublicKey.findProgramAddress(
-    [authority.toBuffer(), Buffer.from(DID_METHOD, 'utf8')],
-    PROGRAM_ID
-  );
-  return publicKeyNonce[0];
 }
 
 export function initialize(

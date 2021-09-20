@@ -61,7 +61,7 @@ fn check_sol(data: SolData, authority: Pubkey) {
     assert_eq!(data.verification_method, vec![]);
     assert_eq!(
         data.inferred_verification_methods(),
-        vec![verification_method.clone()]
+        vec![verification_method]
     );
     assert_eq!(data.authentication, vec![] as Vec<String>);
     assert_eq!(data.capability_invocation, vec![] as Vec<String>);

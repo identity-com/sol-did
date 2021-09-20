@@ -1,7 +1,7 @@
 import { DIDDocument } from 'did-resolver';
 import { Connection } from '@solana/web3.js';
 import { SolTransaction } from '../lib/solana/transaction';
-import { DecentralizedIdentifier } from '../lib/solana/sol-data';
+import { DecentralizedIdentifier, SolData } from '../lib/solana/sol-data';
 import { SOLANA_COMMITMENT } from '../lib/constants';
 
 /**
@@ -11,7 +11,6 @@ import { SOLANA_COMMITMENT } from '../lib/constants';
  * @throws Error if the document is not found
  */
 export const resolve = async (identifier: string): Promise<DIDDocument> => {
-  // TODO replace with Promise<DIDDocument | null> ?
   const id = DecentralizedIdentifier.parse(identifier);
   const connection = new Connection(
     id.clusterType.solanaUrl(),
@@ -20,11 +19,15 @@ export const resolve = async (identifier: string): Promise<DIDDocument> => {
   const solData = await SolTransaction.getSol(
     connection,
     id.clusterType,
-    id.pubkey.toPublicKey()
+    await id.pdaSolanaPubkey()
   );
   if (solData !== null) {
     return solData.toDIDDocument();
   } else {
-    throw new Error(`No DID found at identifier ${identifier}`);
+    return SolData.sparse(
+      await id.pdaSolanaPubkey(),
+      id.authorityPubkey.toPublicKey(),
+      id.clusterType
+    ).toDIDDocument();
   }
 };

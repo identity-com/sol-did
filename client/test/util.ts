@@ -3,16 +3,14 @@ import { ServiceEndpoint, VerificationMethod } from 'did-resolver';
 import {
   DecentralizedIdentifier,
   SolPublicKey,
+  getPDAKeyFromAuthority,
 } from '../src/lib/solana/sol-data';
 import { CLUSTER } from './constants';
-import { getKeyFromAuthority } from '../src/lib/solana/instruction';
 
 export const makeService = async (owner: Keypair): Promise<ServiceEndpoint> => {
-  const pubkey = await getKeyFromAuthority(owner.publicKey);
-
   const identifier = new DecentralizedIdentifier({
     clusterType: CLUSTER,
-    pubkey: SolPublicKey.fromPublicKey(pubkey),
+    authorityPubkey: SolPublicKey.fromPublicKey(owner.publicKey),
   }).toString();
 
   return {
@@ -26,11 +24,11 @@ export const makeService = async (owner: Keypair): Promise<ServiceEndpoint> => {
 export const makeVerificationMethod = async (
   owner: Keypair
 ): Promise<VerificationMethod> => {
-  const pubkey = await getKeyFromAuthority(owner.publicKey);
+  const pubkey = await getPDAKeyFromAuthority(owner.publicKey);
 
   const identifier = new DecentralizedIdentifier({
     clusterType: CLUSTER,
-    pubkey: SolPublicKey.fromPublicKey(pubkey),
+    authorityPubkey: SolPublicKey.fromPublicKey(pubkey),
   }).toString();
 
   const newKey = Keypair.generate().publicKey.toBase58();

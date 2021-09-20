@@ -9,6 +9,7 @@ import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js';
 import {
   ClusterType,
   DecentralizedIdentifier,
+  getPDAKeyFromAuthority,
   SolData,
 } from '../lib/solana/sol-data';
 import { DEFAULT_DOCUMENT_SIZE, SOLANA_COMMITMENT } from '../lib/constants';
@@ -25,15 +26,17 @@ export const register = async (request: RegisterRequest): Promise<string> => {
   const cluster = request.cluster || ClusterType.mainnetBeta();
   const size = request.size || DEFAULT_DOCUMENT_SIZE;
   const connection = new Connection(cluster.solanaUrl(), SOLANA_COMMITMENT);
-  const solKey = await SolTransaction.createDID(
+  await SolTransaction.createDID(
     connection,
     payer,
     owner,
     size,
-    SolData.parse(request.document)
+    request.document
+      ? await SolData.parse(request.document)
+      : SolData.sparse(await getPDAKeyFromAuthority(owner), owner, cluster)
   );
 
-  return DecentralizedIdentifier.create(solKey, cluster).toString();
+  return DecentralizedIdentifier.create(owner, cluster).toString();
 };
 
 export const createRegisterInstruction = async ({
@@ -44,6 +47,12 @@ export const createRegisterInstruction = async ({
 }: RegisterInstructionRequest): Promise<
   [TransactionInstruction, PublicKey]
 > => {
-  const initData = SolData.parse(document);
+  const initData = document
+    ? await SolData.parse(document)
+    : SolData.sparse(
+        await getPDAKeyFromAuthority(authority),
+        authority,
+        ClusterType.mainnetBeta()
+      );
   return SolTransaction.createDIDInstruction(payer, authority, size, initData);
 };

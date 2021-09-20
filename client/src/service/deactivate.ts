@@ -21,7 +21,7 @@ export const deactivate = async (request: DeactivateRequest): Promise<void> => {
   await SolTransaction.deactivateSol(
     connection,
     payer,
-    id.pubkey.toPublicKey(),
+    await id.pdaPubkey().then((key) => key.toPublicKey()),
     owner
   );
 };
@@ -32,7 +32,7 @@ export const createDeactivateInstruction = async ({
 }: DeactivateInstructionRequest): Promise<TransactionInstruction> => {
   const id = DecentralizedIdentifier.parse(identifier);
   return SolTransaction.deactivateDIDInstruction(
-    id.pubkey.toPublicKey(),
+    await id.pdaSolanaPubkey(),
     authority
   );
 };

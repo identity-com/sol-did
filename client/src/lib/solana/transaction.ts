@@ -1,11 +1,6 @@
-import { ClusterType, SolData } from './sol-data';
+import { ClusterType, SolData, getPDAKeyFromAuthority } from './sol-data';
 import { SolanaUtil } from './solana-util';
-import {
-  closeAccount,
-  getKeyFromAuthority,
-  initialize,
-  write,
-} from './instruction';
+import { closeAccount, initialize, write } from './instruction';
 import {
   Keypair,
   Connection,
@@ -22,7 +17,7 @@ export class SolTransaction {
     size: number,
     initData: SolData
   ): Promise<[TransactionInstruction, PublicKey]> {
-    const solKey = await getKeyFromAuthority(authority);
+    const solKey = await getPDAKeyFromAuthority(authority);
     return [initialize(payer, solKey, authority, size, initData), solKey];
   }
 
@@ -32,8 +27,8 @@ export class SolTransaction {
     authority: PublicKey,
     size: number,
     initData: SolData
-  ): Promise<PublicKey> {
-    const solKey = await getKeyFromAuthority(authority);
+  ): Promise<void> {
+    const solKey = await getPDAKeyFromAuthority(authority);
 
     // Allocate memory for the account
     const transaction = new Transaction().add(
@@ -42,7 +37,6 @@ export class SolTransaction {
 
     // Send the instructions
     await SolanaUtil.sendAndConfirmTransaction(connection, transaction, payer);
-    return solKey;
   }
 
   static async getSol(
@@ -62,7 +56,7 @@ export class SolTransaction {
     clusterType: ClusterType,
     authority: PublicKey
   ): Promise<SolData | null> {
-    const recordKey = await getKeyFromAuthority(authority);
+    const recordKey = await getPDAKeyFromAuthority(authority);
     return SolTransaction.getSol(connection, clusterType, recordKey);
   }
 
@@ -118,7 +112,6 @@ export class SolTransaction {
       dataToMerge,
       mergeBehaviour === 'Overwrite'
     );
-
     return write(recordKey, authority, 0, mergedData.encode());
   }
 

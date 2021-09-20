@@ -9,22 +9,14 @@ import { makeService } from '../../../util';
 
 const pub = () => Keypair.generate().publicKey;
 
-const withoutAuthority = (solData: SolData) => omit(['authority'], solData);
+const withoutAuthority = (solData: Partial<SolData>) =>
+  omit(['authority', 'account', 'cluster', 'version'], solData);
 
 describe('sol-data', () => {
   describe('merge', () => {
     describe('with default behaviour', () => {
-      it('should merge a sparse solData object into an empty one, except the authority', () => {
-        const empty = SolData.empty();
-        const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
-
-        const merged = empty.merge(sparse);
-
-        expect(withoutAuthority(merged)).toEqual(withoutAuthority(sparse));
-      });
-
-      it('should not change a sparse solData object when merging an empty one into it', () => {
-        const empty = SolData.empty();
+      it('should not change a sparse solData object when merging an empty one into it', async () => {
+        const empty = await SolData.empty();
         const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
 
         const merged = sparse.merge(empty);
@@ -32,8 +24,8 @@ describe('sol-data', () => {
         expect(merged).toMatchObject(sparse);
       });
 
-      it('should not change a sparse solData object when merging an empty one with no authority', () => {
-        const empty = SolData.empty() as Partial<SolData>;
+      it('should not change a sparse solData object when merging an empty one with no authority', async () => {
+        const empty = (await SolData.empty()) as Partial<SolData>;
         delete empty.authority;
         const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
 
@@ -43,7 +35,7 @@ describe('sol-data', () => {
       });
 
       it('should allow properties to be added to empty arrays', async () => {
-        const withService = SolData.empty();
+        const withService = await SolData.empty();
         withService.service = [
           ServiceEndpoint.parse(await makeService(Keypair.generate())),
         ];
@@ -80,25 +72,13 @@ describe('sol-data', () => {
     });
 
     describe('with overwriteArrays=true', () => {
-      it('should merge a sparse solData object into an empty one', () => {
-        const empty = SolData.empty();
-        const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
-
-        const merged = empty.merge(sparse, true);
-
-        expect(withoutAuthority(merged)).toEqual(withoutAuthority(sparse));
-      });
-
-      it('should clear the contents of a solData object when merging an empty one', () => {
-        const empty = SolData.empty();
+      it('should clear the contents of a solData object when merging an empty one', async () => {
+        const empty = await SolData.empty();
         const sparse = SolData.sparse(pub(), pub(), ClusterType.mainnetBeta());
 
         const merged = sparse.merge(empty, true);
 
-        expect(withoutAuthority(merged)).toMatchObject({
-          ...withoutAuthority(empty),
-          account: sparse.account, // empty SolData objects have no account
-        });
+        expect(withoutAuthority(merged)).toMatchObject(withoutAuthority(empty));
       });
 
       it('should allow properties to be replaced', async () => {

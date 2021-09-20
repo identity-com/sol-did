@@ -1,31 +1,38 @@
 import { resolve, deactivate, DeactivateRequest } from '../../src';
 import { DEFAULT_DOCUMENT_SIZE } from '../../src/lib/constants';
-import { SolData } from '../../src/lib/solana/sol-data';
-import { SolanaUtil } from '../../src/lib/solana/solana-util';
+import { getPDAKeyFromAuthority, SolData } from '../../src/lib/solana/sol-data';
+import { SolanaUtil } from '../../src';
 import { SolTransaction } from '../../src/lib/solana/transaction';
-import { Keypair, Connection, PublicKey } from '@solana/web3.js';
+import { Keypair, Connection } from '@solana/web3.js';
 import { CLUSTER, VALIDATOR_URL } from '../constants';
 
 describe('deactivate', () => {
   const connection = new Connection(VALIDATOR_URL, 'recent');
-  let solDIDKey: PublicKey;
-  let owner: Keypair;
+  let didAuthorityAddress: Keypair;
 
   beforeEach(async () => {
-    owner = await SolanaUtil.newAccountWithLamports(connection, 1000000000);
-    solDIDKey = await SolTransaction.createDID(
+    didAuthorityAddress = await SolanaUtil.newAccountWithLamports(
       connection,
-      owner,
-      owner.publicKey,
+      1000000000
+    );
+    await SolTransaction.createDID(
+      connection,
+      didAuthorityAddress,
+      didAuthorityAddress.publicKey,
       DEFAULT_DOCUMENT_SIZE,
-      SolData.empty()
+      SolData.sparse(
+        await getPDAKeyFromAuthority(didAuthorityAddress.publicKey),
+        didAuthorityAddress.publicKey,
+        CLUSTER
+      )
     );
   }, 60000);
 
   it('deactivates a DID', async () => {
-    const did = 'did:sol:' + CLUSTER + ':' + solDIDKey.toBase58();
+    const did =
+      'did:sol:' + CLUSTER + ':' + didAuthorityAddress.publicKey.toBase58();
     const deactivateRequest: DeactivateRequest = {
-      payer: owner.secretKey,
+      payer: didAuthorityAddress.secretKey,
       identifier: did,
     };
 
@@ -36,7 +43,13 @@ describe('deactivate', () => {
     await deactivate(deactivateRequest);
 
     // expect the DID no longer to be registered
-    return expect(resolve(did)).rejects.toThrow(/No DID found/);
+    return expect(await resolve(did)).toEqual(
+      SolData.sparse(
+        await getPDAKeyFromAuthority(didAuthorityAddress.publicKey),
+        didAuthorityAddress.publicKey,
+        CLUSTER
+      ).toDIDDocument()
+    );
   });
 
   it('deactivates a DID with a different payer', async () => {
@@ -44,9 +57,10 @@ describe('deactivate', () => {
       connection,
       1000000000
     );
-    const did = 'did:sol:' + CLUSTER + ':' + solDIDKey.toBase58();
+    const did =
+      'did:sol:' + CLUSTER + ':' + didAuthorityAddress.publicKey.toBase58();
     const deactivateRequest: DeactivateRequest = {
-      owner: owner.secretKey,
+      owner: didAuthorityAddress.secretKey,
       payer: payer.secretKey,
       identifier: did,
     };
@@ -58,6 +72,12 @@ describe('deactivate', () => {
     await deactivate(deactivateRequest);
 
     // expect the DID no longer to be registered
-    return expect(resolve(did)).rejects.toThrow(/No DID found/);
+    return expect(await resolve(did)).toEqual(
+      SolData.sparse(
+        await getPDAKeyFromAuthority(didAuthorityAddress.publicKey),
+        didAuthorityAddress.publicKey,
+        CLUSTER
+      ).toDIDDocument()
+    );
   });
 });

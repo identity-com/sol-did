@@ -21,8 +21,8 @@ export const update = async (request: UpdateRequest): Promise<void> => {
     connection,
     cluster,
     payer,
-    id.pubkey.toPublicKey(),
-    SolData.parse(request.document),
+    await id.pdaSolanaPubkey(),
+    await SolData.parse(request.document),
     request.mergeBehaviour || 'Append',
     owner
   );
@@ -40,9 +40,9 @@ export const createUpdateInstruction = async ({
   return SolTransaction.updateDIDInstruction(
     connection,
     cluster,
-    id.pubkey.toPublicKey(),
+    await id.pdaSolanaPubkey(),
     authority,
-    SolData.parse(document),
+    await SolData.parse(document),
     mergeBehaviour || 'Append'
   );
 };
