@@ -44,11 +44,8 @@ pub fn validate_owner(did: &AccountInfo, signers: &[&AccountInfo]) -> ProgramRes
             // This case shouldn't happen in the current incarnation but if it does we don't want it to break things
             return Err(ProgramError::AccountAlreadyInitialized);
         }
-        // Find an account within `signers` that is the authority (the key that generates the did)
-        match signers
-            .iter()
-            .find(|signer| &get_sol_address_with_seed(signer.key).0 == did.key)
-        {
+        // Find an account within `signers` that is the authority (the key of the did)
+        match signers.iter().find(|signer| &signer.key == did.key) {
             None => Err(ProgramError::InvalidArgument),
             Some(authority) => {
                 // Found authority in signers list
