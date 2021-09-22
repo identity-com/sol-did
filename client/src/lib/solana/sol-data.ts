@@ -426,7 +426,6 @@ export class DecentralizedIdentifier extends Assignable {
 
       if (!matches) throw new Error('Invalid DID');
 
-      console.log(matches);
       const authorityPubkey = SolPublicKey.parse(matches[2]);
 
       return new DecentralizedIdentifier({
