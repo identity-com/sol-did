@@ -2,7 +2,12 @@
 #![deny(missing_docs)]
 
 use {
-    crate::{borsh as program_borsh, error::SolError, processor::is_authority, state::SolData},
+    crate::{
+        borsh as program_borsh,
+        error::SolError,
+        processor::is_authority,
+        state::{get_sol_address_with_seed, SolData},
+    },
     solana_program::{
         account_info::AccountInfo, entrypoint::ProgramResult, program_error::ProgramError,
         system_program,
@@ -17,12 +22,16 @@ pub mod processor;
 pub mod state;
 
 // Export current SDK types for downstream users building with a different SDK version
+
 pub use solana_program;
 
 solana_program::declare_id!("ide3Y2TubNMLLhiG1kDL6to4a8SjxD18YWCYC5BZqNV");
 
 /// Given a DID, validate that the signers contain at least one
 /// account that has permissions to sign transactions using the DID.
+///
+/// - `did`: The did pda account
+/// - `signers`: The list of signers to check
 pub fn validate_owner(did: &AccountInfo, signers: &[&AccountInfo]) -> ProgramResult {
     if did.owner == &id() {
         // Normal case
@@ -44,7 +53,10 @@ pub fn validate_owner(did: &AccountInfo, signers: &[&AccountInfo]) -> ProgramRes
             return Err(ProgramError::AccountAlreadyInitialized);
         }
         // Find an account within `signers` that is the authority (the key of the did)
-        match signers.iter().find(|signer| signer.key == did.key) {
+        match signers
+            .iter()
+            .find(|signer| &get_sol_address_with_seed(signer.key).0 == did.key)
+        {
             None => Err(ProgramError::InvalidArgument),
             Some(authority) => {
                 // Found authority in signers list
