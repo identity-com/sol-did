@@ -6,6 +6,7 @@ use {
     solana_program::{
         account_info::AccountInfo, entrypoint::ProgramResult, program_error::ProgramError,
         system_program,
+      msg
     },
 };
 
@@ -24,6 +25,7 @@ solana_program::declare_id!("ide3Y2TubNMLLhiG1kDL6to4a8SjxD18YWCYC5BZqNV");
 /// Given a DID, validate that the signers contain at least one
 /// account that has permissions to sign transactions using the DID.
 pub fn validate_owner(did: &AccountInfo, signers: &[&AccountInfo]) -> ProgramResult {
+  msg!("Validate DID owner {} {:?}", did.key, signers);
     if did.owner == &id() {
         // Normal case
 
@@ -37,6 +39,7 @@ pub fn validate_owner(did: &AccountInfo, signers: &[&AccountInfo]) -> ProgramRes
             Err(SolError::IncorrectAuthority.into())
         }
     } else if did.owner == &system_program::id() {
+      msg!("Generative");
         // Generative case
         if !did.data_is_empty() {
             // Data must be empty, otherwise we can't put a did there
