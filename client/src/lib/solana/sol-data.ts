@@ -6,6 +6,7 @@ import {
   SOL_CONTEXT_PREFIX,
   W3ID_CONTEXT,
   PROGRAM_ID,
+  ExtendedCluster,
 } from '../constants';
 import { encode } from 'bs58';
 import { mergeWith, omit } from 'ramda';
@@ -523,11 +524,13 @@ export class ClusterType extends Enum {
   mainnetBeta: MainnetBeta;
   devnet: Devnet;
   development: Development;
+  civicnet: Civicnet;
 
   solanaUrl(): string {
-    return this.development !== undefined
-      ? 'http://localhost:8899'
-      : clusterApiUrl(this.toCluster());
+    if (this.development !== undefined) return 'http://localhost:8899';
+    if (this.civicnet !== undefined)
+      return 'https://d3ab7dlfud2b5u.cloudfront.net';
+    return clusterApiUrl(this.toCluster() as Cluster);
   }
 
   toString(): string {
@@ -550,13 +553,15 @@ export class ClusterType extends Enum {
     throw new Error('Unknown `ClusterType`: ' + this);
   }
 
-  toCluster(): Cluster {
+  toCluster(): ExtendedCluster {
     if (this.mainnetBeta) {
       return 'mainnet-beta';
     } else if (this.testnet) {
       return 'testnet';
     } else if (this.devnet) {
       return 'devnet';
+    } else if (this.civicnet) {
+      return 'civicnet';
     } else {
       throw new Error('Unknown cluster type');
     }
@@ -574,6 +579,10 @@ export class ClusterType extends Enum {
     return new ClusterType({ devnet: new Devnet({}) });
   }
 
+  static civicnet(): ClusterType {
+    return new ClusterType({ civicnet: new Civicnet({}) });
+  }
+
   static development(): ClusterType {
     return new ClusterType({ development: new Development({}) });
   }
@@ -588,6 +597,8 @@ export class ClusterType extends Enum {
         return ClusterType.development();
       case 'mainnet-beta':
         return ClusterType.mainnetBeta();
+      case 'civicnet':
+        return ClusterType.civicnet();
       case '':
         return ClusterType.mainnetBeta();
       default:
@@ -599,6 +610,7 @@ export class ClusterType extends Enum {
 export class Testnet extends Assignable {}
 export class MainnetBeta extends Assignable {}
 export class Devnet extends Assignable {}
+export class Civicnet extends Assignable {}
 export class Development extends Assignable {}
 
 SCHEMA.set(SolData, {
@@ -656,4 +668,5 @@ SCHEMA.set(ClusterType, {
 SCHEMA.set(Testnet, { kind: 'struct', fields: [] });
 SCHEMA.set(MainnetBeta, { kind: 'struct', fields: [] });
 SCHEMA.set(Devnet, { kind: 'struct', fields: [] });
+SCHEMA.set(Civicnet, { kind: 'struct', fields: [] });
 SCHEMA.set(Development, { kind: 'struct', fields: [] });
