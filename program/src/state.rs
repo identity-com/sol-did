@@ -24,6 +24,8 @@ pub struct SolData {
     /// DecentralizedIdentifier version - used to generate the DID JSON-LD context:
     /// ["https://w3id.org/did/v1.0", "https://w3id.org/sol/v" +  version]
     pub version: String,
+    /// List of controllers of this did, using the key of the did
+    pub controller: Vec<Pubkey>,
 
     /// All of the public keys related to the DecentralizedIdentifier
     pub verification_method: Vec<VerificationMethod>,
@@ -62,6 +64,7 @@ impl SolData {
         Self {
             authority,
             version: Self::DEFAULT_VERSION.to_string(),
+            controller: vec![],
             verification_method: vec![],
             authentication: vec![],
             capability_invocation: vec![],
@@ -282,6 +285,7 @@ pub mod tests {
             authority: TEST_PUBKEY,
             version: SolData::DEFAULT_VERSION.to_string(),
             verification_method: vec![test_verification_method()],
+            controller: vec![],
             authentication: vec![VerificationMethod::DEFAULT_KEY_ID.to_string()],
             capability_invocation: vec![VerificationMethod::DEFAULT_KEY_ID.to_string()],
             capability_delegation: vec![],

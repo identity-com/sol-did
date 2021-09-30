@@ -38,6 +38,7 @@ export type SolDataConstructor = {
   authority?: SolPublicKey;
   cluster?: ClusterType;
   version?: string;
+  controller?: SolPublicKey[];
   verificationMethod?: VerificationMethod[];
   authentication?: string[];
   capabilityInvocation?: string[];
@@ -55,6 +56,7 @@ export class SolData extends Assignable {
 
   // persisted
   version: string;
+  controller: SolPublicKey[];
   verificationMethod: VerificationMethod[];
   authentication: string[];
   capabilityInvocation: string[];
@@ -69,6 +71,7 @@ export class SolData extends Assignable {
       authority: constructor.authority || SolPublicKey.empty(),
       cluster: constructor.cluster || ClusterType.mainnetBeta(),
       version: constructor.version || VERSION,
+      controller: constructor.controller || [],
       verificationMethod: constructor.verificationMethod || [],
       authentication: constructor.authentication || [],
       capabilityInvocation: constructor.capabilityInvocation || [],
@@ -606,6 +609,7 @@ SCHEMA.set(SolData, {
   fields: [
     ['authority', SolPublicKey],
     ['version', 'string'],
+    ['controller', [SolPublicKey]],
     ['verificationMethod', [VerificationMethod]],
     ['authentication', ['string']],
     ['capabilityInvocation', ['string']],

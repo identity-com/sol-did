@@ -103,8 +103,7 @@ pub fn process_instruction(
 
             let mut sol = SolData::new_sparse(*authority_info.key);
             sol.merge(init_data);
-            sol.serialize(&mut *data_info.data.borrow_mut())
-                .map_err(|e| e.into())
+            BorshSerialize::serialize(&sol, &mut *data_info.data.borrow_mut()).map_err(|e| e.into())
         }
 
         SolInstruction::Write { offset, data } => {
