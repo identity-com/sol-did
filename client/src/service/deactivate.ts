@@ -17,7 +17,7 @@ export const deactivate = async (request: DeactivateRequest): Promise<void> => {
   const payer = makeKeypair(request.payer);
   const owner = request.owner ? makeKeypair(request.owner) : undefined;
   const cluster = id.clusterType;
-  const connection = new Connection(cluster.solanaUrl(), SOLANA_COMMITMENT);
+  const connection = request.connection || new Connection(cluster.solanaUrl(), SOLANA_COMMITMENT);
   await SolTransaction.deactivateSol(
     connection,
     payer,
