@@ -1,5 +1,5 @@
 import { DIDDocument } from 'did-resolver';
-import {Connection, Keypair, PublicKey} from '@solana/web3.js';
+import { Connection, Keypair, PublicKey } from '@solana/web3.js';
 import { ClusterType, DecentralizedIdentifier } from './solana/sol-data';
 import { decode, encode } from 'bs58';
 
@@ -9,8 +9,8 @@ export type PrivateKey = number[] | string | Buffer | Uint8Array;
 export type PublicKeyBase58 = string;
 
 export type SolDidOptions = {
-  connection?: Connection
-}
+  connection?: Connection;
+};
 
 export type RegisterRequest = SolDidOptions & {
   payer: PrivateKey;

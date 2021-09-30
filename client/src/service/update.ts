@@ -16,7 +16,8 @@ export const update = async (request: UpdateRequest): Promise<void> => {
   const payer = makeKeypair(request.payer);
   const owner = request.owner ? makeKeypair(request.owner) : undefined;
   const cluster = id.clusterType;
-  const connection = request.connection || new Connection(cluster.solanaUrl(), 'recent');
+  const connection =
+    request.connection || new Connection(cluster.solanaUrl(), 'recent');
   await SolTransaction.updateDID(
     connection,
     cluster,
@@ -33,11 +34,12 @@ export const createUpdateInstruction = async ({
   authority,
   document,
   mergeBehaviour,
-  connection: connectionInput
+  connection: connectionInput,
 }: UpdateInstructionRequest): Promise<TransactionInstruction> => {
   const id = DecentralizedIdentifier.parse(identifier);
   const cluster = id.clusterType;
-  const connection = connectionInput || new Connection(cluster.solanaUrl(), 'recent');
+  const connection =
+    connectionInput || new Connection(cluster.solanaUrl(), 'recent');
   return SolTransaction.updateDIDInstruction(
     connection,
     cluster,
