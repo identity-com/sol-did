@@ -1,4 +1,9 @@
-import { resolve, update, UpdateRequest } from '../../src';
+import {
+  DecentralizedIdentifier,
+  resolve,
+  update,
+  UpdateRequest,
+} from '../../src';
 import { DEFAULT_DOCUMENT_SIZE } from '../../src/lib/constants';
 import { getPDAKeyFromAuthority, SolData } from '../../src/lib/solana/sol-data';
 import { SolanaUtil } from '../../src';
@@ -131,5 +136,30 @@ describe('update', () => {
 
     // ensure the doc contains the service
     expect(doc.service).toEqual([service1, service2]);
+  });
+
+  it('adds a controller to a did', async () => {
+    const identifier = 'did:sol:' + CLUSTER + ':' + owner.publicKey.toBase58();
+
+    const controller = Keypair.generate().publicKey;
+    const controller_id = DecentralizedIdentifier.create(
+      controller,
+      CLUSTER
+    ).toString();
+    const request: UpdateRequest = {
+      identifier,
+      payer: owner.secretKey,
+      document: {
+        controller: controller_id,
+      },
+    };
+
+    await update(request);
+
+    const doc = await resolve(identifier);
+
+    console.log(JSON.stringify(doc, null, 1));
+
+    expect(doc.controller).toEqual([controller_id]);
   });
 });
