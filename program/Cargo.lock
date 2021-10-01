@@ -2181,6 +2181,8 @@ dependencies = [
  "borsh",
  "num-derive",
  "num-traits",
+ "rand 0.7.3",
+ "rand_chacha 0.2.2",
  "solana-program",
  "solana-program-test",
  "solana-sdk",
