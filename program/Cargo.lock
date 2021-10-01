@@ -2176,7 +2176,7 @@ dependencies = [
 
 [[package]]
 name = "sol-did"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "borsh",
  "num-derive",
