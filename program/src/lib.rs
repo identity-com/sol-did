@@ -40,7 +40,7 @@ solana_program::declare_id!("idDa4XeCjVwKcprVAo812coUQbovSZ4kDGJf2sPaBnM");
 pub fn validate_owner<'a>(
     did_pda: &AccountInfo<'a>,
     signer: &AccountInfo,
-    controller_accounts: &[&AccountInfo<'a>],
+    controller_accounts: impl Iterator<Item = &'a AccountInfo<'a>>,
 ) -> ProgramResult {
     let mut verify_pda = did_pda;
     // Go up the controller chain starting with the did pda
@@ -60,7 +60,7 @@ pub fn validate_owner<'a>(
         {
             return Err(SolError::IncorrectController.into());
         }
-        verify_pda = *controller_account;
+        verify_pda = controller_account;
     }
     if verify_pda.owner == &id() {
         // Normal case
@@ -180,7 +180,6 @@ mod test {
                 rent_epoch: 0,
             })
             .collect::<Vec<_>>();
-        let controller_accounts_ref = controller_accounts.iter().collect::<Vec<_>>();
 
         let signing_pubkey = signing_key.pubkey();
         let mut signer_lamports = 0;
@@ -198,7 +197,7 @@ mod test {
         };
 
         assert_eq!(
-            validate_owner(&did_account, &signer, &controller_accounts_ref),
+            validate_owner(&did_account, &signer, controller_accounts.iter()),
             Ok(())
         );
 
