@@ -116,6 +116,7 @@ impl SolData {
         if !other.version.is_empty() {
             self.version = other.version
         }
+        merge_vecs(&mut self.controller, other.controller);
         merge_vecs(&mut self.verification_method, other.verification_method);
         merge_vecs(&mut self.authentication, other.authentication);
         merge_vecs(&mut self.capability_invocation, other.capability_invocation);
@@ -123,6 +124,45 @@ impl SolData {
         merge_vecs(&mut self.key_agreement, other.key_agreement);
         merge_vecs(&mut self.assertion_method, other.assertion_method);
         merge_vecs(&mut self.service, other.service);
+    }
+
+    #[cfg(test)]
+    pub fn rand_data(rng: &mut (impl rand::RngCore + rand::CryptoRng)) -> Self {
+        use rand::Rng;
+        use solana_sdk::signature::{Keypair, Signer};
+        let verification_method = (1..rng.gen_range(1, 11))
+            .map(|_| VerificationMethod::rand_data(rng))
+            .collect::<Vec<_>>();
+        Self {
+            authority: Keypair::generate(rng).pubkey(),
+            version: Self::DEFAULT_VERSION.to_string(),
+            controller: vec![],
+            authentication: Self::rand_from_vm(rng, &verification_method),
+            capability_invocation: Self::rand_from_vm(rng, &verification_method),
+            capability_delegation: Self::rand_from_vm(rng, &verification_method),
+            key_agreement: Self::rand_from_vm(rng, &verification_method),
+            assertion_method: Self::rand_from_vm(rng, &verification_method),
+            service: vec![],
+            verification_method,
+        }
+    }
+
+    #[cfg(test)]
+    fn rand_from_vm(
+        rng: &mut (impl rand::RngCore + rand::CryptoRng),
+        verification_method: &[VerificationMethod],
+    ) -> Vec<String> {
+        use rand::Rng;
+        use std::collections::HashSet;
+        (0..rng.gen_range(0, verification_method.len() + 1))
+            .map(|_| {
+                verification_method[rng.gen_range(0, verification_method.len())]
+                    .id
+                    .clone()
+            })
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect()
     }
 }
 
@@ -245,6 +285,19 @@ impl VerificationMethod {
             id,
             verification_type: Self::DEFAULT_TYPE.to_string(),
             pubkey,
+        }
+    }
+
+    #[cfg(test)]
+    pub fn rand_data(rng: &mut (impl rand::RngCore + rand::CryptoRng)) -> Self {
+        use rand::Rng;
+        use solana_sdk::signature::{Keypair, Signer};
+        Self {
+            id: (10..128)
+                .map(|_| rng.gen_range(b'a', b'z' + 1) as char)
+                .collect(),
+            verification_type: Self::DEFAULT_TYPE.to_string(),
+            pubkey: Keypair::generate(rng).pubkey(),
         }
     }
 }
