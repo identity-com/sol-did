@@ -22,6 +22,10 @@ pub enum SolError {
     /// Invalid string error, from parsing
     #[error("Invalid string")]
     InvalidString,
+
+    /// Wrong controller given
+    #[error("Incorrect controller")]
+    IncorrectController,
 }
 impl From<SolError> for ProgramError {
     fn from(e: SolError) -> Self {

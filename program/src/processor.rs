@@ -62,6 +62,8 @@ pub fn process_instruction(
         SolInstruction::Initialize { size, init_data } => {
             msg!("SolInstruction::Initialize");
 
+            assert_eq!(init_data.account_version, SolData::VALID_ACCOUNT_VERSION);
+
             let funder_info = next_account_info(account_info_iter)?;
             let data_info = next_account_info(account_info_iter)?;
             let authority_info = next_account_info(account_info_iter)?;
@@ -103,16 +105,17 @@ pub fn process_instruction(
 
             let mut sol = SolData::new_sparse(*authority_info.key);
             sol.merge(init_data);
-            sol.serialize(&mut *data_info.data.borrow_mut())
-                .map_err(|e| e.into())
+            BorshSerialize::serialize(&sol, &mut *data_info.data.borrow_mut()).map_err(|e| e.into())
         }
 
         SolInstruction::Write { offset, data } => {
             msg!("SolInstruction::Write");
+
             let data_info = next_account_info(account_info_iter)?;
             let authority_info = next_account_info(account_info_iter)?;
             let account_data =
                 program_borsh::try_from_slice_incomplete::<SolData>(*data_info.data.borrow())?;
+            assert_eq!(account_data.account_version, SolData::VALID_ACCOUNT_VERSION);
             if !account_data.is_initialized() {
                 msg!("Sol account not initialized");
                 return Err(ProgramError::UninitializedAccount);
@@ -140,6 +143,7 @@ pub fn process_instruction(
             let destination_info = next_account_info(account_info_iter)?;
             let account_data =
                 program_borsh::try_from_slice_incomplete::<SolData>(*data_info.data.borrow())?;
+            assert_eq!(account_data.account_version, SolData::VALID_ACCOUNT_VERSION);
             if !account_data.is_initialized() {
                 msg!("Sol not initialized");
                 return Err(ProgramError::UninitializedAccount);

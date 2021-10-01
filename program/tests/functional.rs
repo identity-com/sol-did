@@ -496,7 +496,7 @@ async fn validate_owner_success() {
     let authority_key = &authority.pubkey();
     let authority_account_info = (authority_key, true, &mut empty_account).into_account_info();
 
-    let validation_result = validate_owner(&sol_account_info, &[&authority_account_info]);
+    let validation_result = validate_owner(&sol_account_info, &authority_account_info, &[]);
     assert_eq!(validation_result, Ok(()));
 }
 
@@ -511,13 +511,13 @@ async fn validate_owner_failed_non_signer() {
     // pass the authority, but not as a signer
     let authority_account_info = (authority_key, false, &mut empty_account).into_account_info();
 
-    let validation_result = validate_owner(&sol_account_info, &[&authority_account_info]);
+    let validation_result = validate_owner(&sol_account_info, &authority_account_info, &[]);
     assert_eq!(validation_result, Err(ProgramError::Custom(0))) // IncorrectAuthority
 }
 
 #[tokio::test]
 async fn validate_owner_failed_not_did() {
-    // Tests the case where the DID account information is not owned by the Sol program
+    // Tests the case where the DID account information is not owned by the Sol program or System Program
     // Checks against a spoofed DID
     let authority = Keypair::new();
 
@@ -530,7 +530,7 @@ async fn validate_owner_failed_not_did() {
     let authority_key = &authority.pubkey();
     let authority_account_info = (authority_key, true, &mut empty_account).into_account_info();
 
-    let validation_result = validate_owner(&sol_account_info, &[&authority_account_info]);
+    let validation_result = validate_owner(&sol_account_info, &authority_account_info, &[]);
     assert_eq!(validation_result, Err(ProgramError::IncorrectProgramId))
 }
 

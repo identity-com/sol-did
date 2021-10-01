@@ -15,8 +15,10 @@ fn merge_vecs<T: PartialEq>(lhs: &mut Vec<T>, rhs: Vec<T>) {
 }
 
 /// Struct wrapping data and providing metadata
-#[derive(Clone, Debug, Default, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
+#[derive(Clone, Debug, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
 pub struct SolData {
+    /// The version of the account for (de)serialization
+    pub account_version: u8,
     /// The public key of the solData account - used to derive the identifier
     /// and first verification method
     pub authority: Pubkey,
@@ -24,6 +26,8 @@ pub struct SolData {
     /// DecentralizedIdentifier version - used to generate the DID JSON-LD context:
     /// ["https://w3id.org/did/v1.0", "https://w3id.org/sol/v" +  version]
     pub version: String,
+    /// List of controllers of this did, using the key of the did
+    pub controller: Vec<Pubkey>,
 
     /// All of the public keys related to the DecentralizedIdentifier
     pub verification_method: Vec<VerificationMethod>,
@@ -40,8 +44,27 @@ pub struct SolData {
     /// Services that can be used with this DID
     pub service: Vec<ServiceEndpoint>,
 }
+impl Default for SolData {
+    fn default() -> Self {
+        Self {
+            account_version: Self::VALID_ACCOUNT_VERSION,
+            authority: Default::default(),
+            version: Default::default(),
+            controller: Default::default(),
+            verification_method: Default::default(),
+            authentication: Default::default(),
+            capability_invocation: Default::default(),
+            capability_delegation: Default::default(),
+            key_agreement: Default::default(),
+            assertion_method: Default::default(),
+            service: Default::default(),
+        }
+    }
+}
 
 impl SolData {
+    /// The only valid value for `account_version`
+    pub const VALID_ACCOUNT_VERSION: u8 = 1;
     /// Default size of struct
     pub const DEFAULT_SIZE: usize = 1_000;
     /// The SOL DID method version
@@ -60,8 +83,10 @@ impl SolData {
     /// are inferred from the authority
     pub fn new_sparse(authority: Pubkey) -> Self {
         Self {
+            account_version: Self::VALID_ACCOUNT_VERSION,
             authority,
             version: Self::DEFAULT_VERSION.to_string(),
+            controller: vec![],
             verification_method: vec![],
             authentication: vec![],
             capability_invocation: vec![],
@@ -113,6 +138,7 @@ impl SolData {
         if !other.version.is_empty() {
             self.version = other.version
         }
+        merge_vecs(&mut self.controller, other.controller);
         merge_vecs(&mut self.verification_method, other.verification_method);
         merge_vecs(&mut self.authentication, other.authentication);
         merge_vecs(&mut self.capability_invocation, other.capability_invocation);
@@ -120,6 +146,46 @@ impl SolData {
         merge_vecs(&mut self.key_agreement, other.key_agreement);
         merge_vecs(&mut self.assertion_method, other.assertion_method);
         merge_vecs(&mut self.service, other.service);
+    }
+
+    #[cfg(test)]
+    pub fn rand_data(rng: &mut (impl rand::RngCore + rand::CryptoRng)) -> Self {
+        use rand::Rng;
+        use solana_sdk::signature::{Keypair, Signer};
+        let verification_method = (1..rng.gen_range(1, 11))
+            .map(|_| VerificationMethod::rand_data(rng))
+            .collect::<Vec<_>>();
+        Self {
+            account_version: Self::VALID_ACCOUNT_VERSION,
+            authority: Keypair::generate(rng).pubkey(),
+            version: Self::DEFAULT_VERSION.to_string(),
+            controller: vec![],
+            authentication: Self::rand_from_vm(rng, &verification_method),
+            capability_invocation: Self::rand_from_vm(rng, &verification_method),
+            capability_delegation: Self::rand_from_vm(rng, &verification_method),
+            key_agreement: Self::rand_from_vm(rng, &verification_method),
+            assertion_method: Self::rand_from_vm(rng, &verification_method),
+            service: vec![],
+            verification_method,
+        }
+    }
+
+    #[cfg(test)]
+    fn rand_from_vm(
+        rng: &mut (impl rand::RngCore + rand::CryptoRng),
+        verification_method: &[VerificationMethod],
+    ) -> Vec<String> {
+        use rand::Rng;
+        use std::collections::HashSet;
+        (0..rng.gen_range(0, verification_method.len() + 1))
+            .map(|_| {
+                verification_method[rng.gen_range(0, verification_method.len())]
+                    .id
+                    .clone()
+            })
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect()
     }
 }
 
@@ -244,6 +310,19 @@ impl VerificationMethod {
             pubkey,
         }
     }
+
+    #[cfg(test)]
+    pub fn rand_data(rng: &mut (impl rand::RngCore + rand::CryptoRng)) -> Self {
+        use rand::Rng;
+        use solana_sdk::signature::{Keypair, Signer};
+        Self {
+            id: (10..128)
+                .map(|_| rng.gen_range(b'a', b'z' + 1) as char)
+                .collect(),
+            verification_type: Self::DEFAULT_TYPE.to_string(),
+            pubkey: Keypair::generate(rng).pubkey(),
+        }
+    }
 }
 
 impl IsInitialized for SolData {
@@ -279,9 +358,11 @@ pub mod tests {
 
     pub fn test_sol_data() -> SolData {
         SolData {
+            account_version: SolData::VALID_ACCOUNT_VERSION,
             authority: TEST_PUBKEY,
             version: SolData::DEFAULT_VERSION.to_string(),
             verification_method: vec![test_verification_method()],
+            controller: vec![],
             authentication: vec![VerificationMethod::DEFAULT_KEY_ID.to_string()],
             capability_invocation: vec![VerificationMethod::DEFAULT_KEY_ID.to_string()],
             capability_delegation: vec![],

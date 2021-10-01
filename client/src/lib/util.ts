@@ -1,5 +1,5 @@
 import { DIDDocument } from 'did-resolver';
-import { Keypair, PublicKey } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey } from '@solana/web3.js';
 import { ClusterType, DecentralizedIdentifier } from './solana/sol-data';
 import { decode, encode } from 'bs58';
 
@@ -8,7 +8,11 @@ import { decode, encode } from 'bs58';
 export type PrivateKey = number[] | string | Buffer | Uint8Array;
 export type PublicKeyBase58 = string;
 
-export type RegisterRequest = {
+export type SolDidOptions = {
+  connection?: Connection;
+};
+
+export type RegisterRequest = SolDidOptions & {
   payer: PrivateKey;
   document?: Partial<DIDDocument>;
   owner?: PublicKeyBase58;
@@ -16,25 +20,25 @@ export type RegisterRequest = {
   size?: number;
 };
 
-export type RegisterInstructionRequest = {
+export type RegisterInstructionRequest = SolDidOptions & {
   payer: PublicKey;
   authority: PublicKey;
   size?: number;
   document?: Partial<DIDDocument>;
 };
 
-export type DeactivateRequest = {
+export type DeactivateRequest = SolDidOptions & {
   identifier: string;
   payer: PrivateKey;
   owner?: PrivateKey; // optional different authority (DID owner) to the payer
 };
 
-export type DeactivateInstructionRequest = {
+export type DeactivateInstructionRequest = SolDidOptions & {
   identifier: string;
   authority: PublicKey;
 };
 
-export type UpdateRequest = {
+export type UpdateRequest = SolDidOptions & {
   identifier: string;
   payer: PrivateKey;
   owner?: PrivateKey; // optional different authority (DID owner) to the payer
@@ -42,7 +46,7 @@ export type UpdateRequest = {
   mergeBehaviour?: MergeBehaviour;
 };
 
-export type UpdateInstructionRequest = {
+export type UpdateInstructionRequest = SolDidOptions & {
   identifier: string;
   authority: PublicKey;
   document: Partial<DIDDocument>;

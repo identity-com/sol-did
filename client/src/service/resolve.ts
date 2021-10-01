@@ -3,6 +3,7 @@ import { Connection } from '@solana/web3.js';
 import { SolTransaction } from '../lib/solana/transaction';
 import { DecentralizedIdentifier, SolData } from '../lib/solana/sol-data';
 import { SOLANA_COMMITMENT } from '../lib/constants';
+import { SolDidOptions } from '../lib/util';
 
 /**
  * Resolves a SOL DID to a document,
@@ -10,12 +11,14 @@ import { SOLANA_COMMITMENT } from '../lib/constants';
  * or did:sol:devnet:6Na3uiqyRGZZQdd19RLCb6kJHR51reFdhXzAuc6Y8Yef
  * @throws Error if the document is not found
  */
-export const resolve = async (identifier: string): Promise<DIDDocument> => {
+export const resolve = async (
+  identifier: string,
+  options: SolDidOptions = {}
+): Promise<DIDDocument> => {
   const id = DecentralizedIdentifier.parse(identifier);
-  const connection = new Connection(
-    id.clusterType.solanaUrl(),
-    SOLANA_COMMITMENT
-  );
+  const connection =
+    options.connection ||
+    new Connection(id.clusterType.solanaUrl(), SOLANA_COMMITMENT);
   const solData = await SolTransaction.getSol(
     connection,
     id.clusterType,
