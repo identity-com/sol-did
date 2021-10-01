@@ -11,7 +11,7 @@ import { DIDDocument } from 'did-resolver';
 
 const didKey = DIDKey.driver();
 
-type ExtendedCluster = Cluster | 'localnet';
+type ExtendedCluster = Cluster | 'civicnet' | 'localnet';
 
 type Properties = {
   payer: PrivateKey;
