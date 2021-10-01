@@ -55,6 +55,7 @@ export class SolData extends Assignable {
   cluster: ClusterType;
 
   // persisted
+  accountVersion: number;
   version: string;
   controller: SolPublicKey[];
   verificationMethod: VerificationMethod[];
@@ -67,6 +68,7 @@ export class SolData extends Assignable {
 
   constructor(constructor: SolDataConstructor) {
     super({
+      accountVersion: 1,
       account: constructor.account || SolPublicKey.empty(),
       authority: constructor.authority || SolPublicKey.empty(),
       cluster: constructor.cluster || ClusterType.mainnetBeta(),
@@ -88,6 +90,9 @@ export class SolData extends Assignable {
     cluster: ClusterType
   ): SolData {
     const solData = SolData.decode<SolData>(accountData);
+    if (solData.accountVersion !== 1) {
+      throw new Error('Invliad account version: ' + solData.accountVersion);
+    }
     solData.cluster = cluster;
     solData.account = SolPublicKey.fromPublicKey(accountKey);
     return solData;
@@ -631,6 +636,7 @@ export class Development extends Assignable {}
 SCHEMA.set(SolData, {
   kind: 'struct',
   fields: [
+    ['accountVersion', 'u8'],
     ['authority', SolPublicKey],
     ['version', 'string'],
     ['controller', [SolPublicKey]],
