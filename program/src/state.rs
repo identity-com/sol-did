@@ -17,6 +17,8 @@ fn merge_vecs<T: PartialEq>(lhs: &mut Vec<T>, rhs: Vec<T>) {
 /// Struct wrapping data and providing metadata
 #[derive(Clone, Debug, Default, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
 pub struct SolData {
+    /// The version of the account for (de)serialization
+    pub account_version: u8,
     /// The public key of the solData account - used to derive the identifier
     /// and first verification method
     pub authority: Pubkey,
@@ -44,6 +46,8 @@ pub struct SolData {
 }
 
 impl SolData {
+    /// The only valid value for `account_version`
+    pub const VALID_ACCOUNT_VERSION: u8 = 1;
     /// Default size of struct
     pub const DEFAULT_SIZE: usize = 1_000;
     /// The SOL DID method version
@@ -62,6 +66,7 @@ impl SolData {
     /// are inferred from the authority
     pub fn new_sparse(authority: Pubkey) -> Self {
         Self {
+            account_version: Self::VALID_ACCOUNT_VERSION,
             authority,
             version: Self::DEFAULT_VERSION.to_string(),
             controller: vec![],
@@ -134,6 +139,7 @@ impl SolData {
             .map(|_| VerificationMethod::rand_data(rng))
             .collect::<Vec<_>>();
         Self {
+            account_version: Self::VALID_ACCOUNT_VERSION,
             authority: Keypair::generate(rng).pubkey(),
             version: Self::DEFAULT_VERSION.to_string(),
             controller: vec![],
@@ -335,6 +341,7 @@ pub mod tests {
 
     pub fn test_sol_data() -> SolData {
         SolData {
+            account_version: SolData::VALID_ACCOUNT_VERSION,
             authority: TEST_PUBKEY,
             version: SolData::DEFAULT_VERSION.to_string(),
             verification_method: vec![test_verification_method()],
