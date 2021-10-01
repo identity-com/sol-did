@@ -2,7 +2,7 @@
 
 Register DID documents on the Solana blockchain using the SOL DID method
 
-Solana mainnet address: `ide3Y2TubNMLLhiG1kDL6to4a8SjxD18YWCYC5BZqNV`
+Solana mainnet address: `idDa4XeCjVwKcprVAo812coUQbovSZ4kDGJf2sPaBnM`
 
 ## Build & Deploy
 
@@ -22,7 +22,7 @@ for developing Rust programs.
 
 The program is deployed on Mainnet at address:
 
-    ide3Y2TubNMLLhiG1kDL6to4a8SjxD18YWCYC5BZqNV
+    idDa4XeCjVwKcprVAo812coUQbovSZ4kDGJf2sPaBnM
     
 ## Using in other programs
 
