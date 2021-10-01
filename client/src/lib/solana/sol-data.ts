@@ -138,6 +138,7 @@ export class SolData extends Assignable {
       authority: SolPublicKey.fromPublicKey(authority),
       account: SolPublicKey.fromPublicKey(account),
       version: VERSION,
+      controller: [],
       verificationMethod: [],
       authentication: [],
       capabilityInvocation: [],
@@ -205,6 +206,12 @@ export class SolData extends Assignable {
     return {
       '@context': SolData.defaultContext(this.version),
       id: this.identifier().toString(),
+      controller: this.controller.map((controller) =>
+        DecentralizedIdentifier.create(
+          controller.toPublicKey(),
+          this.cluster
+        ).toString()
+      ),
       verificationMethod: verificationMethods,
       authentication: this.authentication.map(deriveDID),
       assertionMethod: this.assertionMethod.map(deriveDID),
@@ -247,6 +254,7 @@ export class SolData extends Assignable {
       authority: did.authorityPubkey,
       cluster: did.clusterType,
       version: SolData.parseVersion(document['@context']),
+      controller: normalizeController(document.controller),
       verificationMethod: document.verificationMethod
         ? document.verificationMethod.map((v) => VerificationMethod.parse(v))
         : [],
@@ -265,6 +273,22 @@ export class SolData extends Assignable {
     });
   }
 }
+
+const normalizeController = (
+  controller: string | string[] | undefined
+): SolPublicKey[] => {
+  if (controller) {
+    if (Array.isArray(controller)) {
+      return controller
+        .map(DecentralizedIdentifier.parse)
+        .map((id) => id.authorityPubkey);
+    } else {
+      return [DecentralizedIdentifier.parse(controller).authorityPubkey];
+    }
+  } else {
+    return [];
+  }
+};
 
 export class VerificationMethod extends Assignable {
   id: string;
