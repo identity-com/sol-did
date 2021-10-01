@@ -1,6 +1,7 @@
 //! SOL program
 #![deny(missing_docs)]
 
+use std::borrow::Cow;
 use {
     crate::{
         borsh as program_borsh,
@@ -40,9 +41,9 @@ solana_program::declare_id!("idDa4XeCjVwKcprVAo812coUQbovSZ4kDGJf2sPaBnM");
 pub fn validate_owner<'a>(
     did_pda: &AccountInfo<'a>,
     signer: &AccountInfo,
-    controller_accounts: impl Iterator<Item = &'a AccountInfo<'a>>,
+    controller_accounts: impl Iterator<Item = Cow<'a, AccountInfo<'a>>>,
 ) -> ProgramResult {
-    let mut verify_pda = did_pda;
+    let mut verify_pda = Cow::Borrowed(did_pda);
     // Go up the controller chain starting with the did pda
     for controller_account in controller_accounts {
         if verify_pda.owner != &id() {
@@ -112,6 +113,7 @@ mod test {
     use solana_program::account_info::AccountInfo;
     use solana_sdk::rent::Rent;
     use solana_sdk::signature::{Keypair, Signer};
+    use std::borrow::Cow;
     use std::cell::RefCell;
     use std::error::Error;
     use std::rc::Rc;
@@ -178,9 +180,7 @@ mod test {
                 owner: &program_id,
                 executable: false,
                 rent_epoch: 0,
-            })
-            .collect::<Vec<_>>();
-
+            });
         let signing_pubkey = signing_key.pubkey();
         let mut signer_lamports = 0;
         let mut signer_data = [];
@@ -197,7 +197,7 @@ mod test {
         };
 
         assert_eq!(
-            validate_owner(&did_account, &signer, controller_accounts.iter()),
+            validate_owner(&did_account, &signer, controller_accounts.map(Cow::Owned)),
             Ok(())
         );
 
