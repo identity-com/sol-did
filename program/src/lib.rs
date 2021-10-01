@@ -50,6 +50,7 @@ pub fn validate_owner<'a>(
             return Err(ProgramError::IncorrectProgramId);
         }
         let sol = program_borsh::try_from_slice_incomplete::<SolData>(*verify_pda.data.borrow())?;
+        assert_eq!(sol.account_version, SolData::VALID_ACCOUNT_VERSION);
         // Check if pda of controller is the next controller account
         if sol
             .controller
@@ -66,6 +67,7 @@ pub fn validate_owner<'a>(
 
         // Grab the did data
         let sol = program_borsh::try_from_slice_incomplete::<SolData>(*verify_pda.data.borrow())?;
+        assert_eq!(sol.account_version, SolData::VALID_ACCOUNT_VERSION);
 
         // Checks if `signer` is signer and is authority
         if signer.is_signer && is_authority(signer, &sol) {
