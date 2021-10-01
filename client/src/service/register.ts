@@ -25,7 +25,9 @@ export const register = async (request: RegisterRequest): Promise<string> => {
     : getPublicKey(request.payer);
   const cluster = request.cluster || ClusterType.mainnetBeta();
   const size = request.size || DEFAULT_DOCUMENT_SIZE;
-  const connection = new Connection(cluster.solanaUrl(), SOLANA_COMMITMENT);
+  const connection =
+    request.connection ||
+    new Connection(cluster.solanaUrl(), SOLANA_COMMITMENT);
   await SolTransaction.createDID(
     connection,
     payer,
