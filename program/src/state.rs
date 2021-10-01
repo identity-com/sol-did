@@ -15,7 +15,7 @@ fn merge_vecs<T: PartialEq>(lhs: &mut Vec<T>, rhs: Vec<T>) {
 }
 
 /// Struct wrapping data and providing metadata
-#[derive(Clone, Debug, Default, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
+#[derive(Clone, Debug, BorshSerialize, BorshDeserialize, BorshSchema, PartialEq)]
 pub struct SolData {
     /// The version of the account for (de)serialization
     pub account_version: u8,
@@ -43,6 +43,23 @@ pub struct SolData {
     pub assertion_method: Vec<String>,
     /// Services that can be used with this DID
     pub service: Vec<ServiceEndpoint>,
+}
+impl Default for SolData {
+    fn default() -> Self {
+        Self {
+            account_version: Self::VALID_ACCOUNT_VERSION,
+            authority: Default::default(),
+            version: Default::default(),
+            controller: Default::default(),
+            verification_method: Default::default(),
+            authentication: Default::default(),
+            capability_invocation: Default::default(),
+            capability_delegation: Default::default(),
+            key_agreement: Default::default(),
+            assertion_method: Default::default(),
+            service: Default::default(),
+        }
+    }
 }
 
 impl SolData {
