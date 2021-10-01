@@ -25,7 +25,7 @@ pub mod state;
 
 pub use solana_program;
 
-solana_program::declare_id!("ide3Y2TubNMLLhiG1kDL6to4a8SjxD18YWCYC5BZqNV");
+solana_program::declare_id!("idDa4XeCjVwKcprVAo812coUQbovSZ4kDGJf2sPaBnM");
 
 /// Given a DID, validate that the signers contain at least one
 /// account that has permissions to sign transactions using the DID.
