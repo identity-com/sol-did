@@ -53,7 +53,7 @@ pub fn validate_owner<'a>(
         let sol = program_borsh::try_from_slice_incomplete::<SolData>(*verify_pda.data.borrow())?;
         assert_eq!(sol.account_version, SolData::VALID_ACCOUNT_VERSION);
         // Check if pda of controller is the next controller account
-        if sol
+        if !sol
             .controller
             .iter()
             .map(get_sol_address_with_seed)
@@ -121,15 +121,11 @@ mod test {
     #[test]
     fn controller_test() -> Result<(), Box<dyn Error>> {
         let mut rng = ChaCha20Rng::from_entropy();
-        let did_data = SolData::rand_data(&mut rng);
-        let mut controller_data = (1..=10)
+        let mut did_data = SolData::rand_data(&mut rng);
+        let mut controller_data = (0..1)
             .map(|_| SolData::rand_data(&mut rng))
             .collect::<Vec<_>>();
-        let mut last_authority = did_data.authority;
-        for data in &mut controller_data {
-            data.controller = vec![last_authority];
-            last_authority = data.authority;
-        }
+
         let signing_key = Keypair::generate(&mut rng);
         let last = controller_data.last_mut().unwrap();
         last.authority = signing_key.pubkey();
@@ -139,6 +135,17 @@ mod test {
             pubkey: signing_key.pubkey(),
         });
         last.capability_invocation.push("signer".to_string());
+
+        let mut last_authority = None;
+        for data in controller_data.iter_mut().rev() {
+            if let Some(last_authority) = last_authority {
+                data.controller = vec![last_authority];
+            }
+            last_authority = Some(data.authority);
+        }
+        if let Some(last_authority) = last_authority {
+            did_data.controller = vec![last_authority];
+        }
 
         let program_id = id();
         let did_key = get_sol_address_with_seed(&did_data.authority).0;
