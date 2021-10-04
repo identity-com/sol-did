@@ -121,9 +121,9 @@ mod test {
     #[test]
     fn controller_test() -> Result<(), Box<dyn Error>> {
         let mut rng = ChaCha20Rng::from_entropy();
-        for i in 0..10 {
+        for i in 1..11 {
             let mut did_data = SolData::rand_data(&mut rng);
-            let mut controller_data = (0..10)
+            let mut controller_data = (0..i)
                 .map(|_| SolData::rand_data(&mut rng))
                 .collect::<Vec<_>>();
 
