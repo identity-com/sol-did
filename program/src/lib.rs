@@ -121,92 +121,94 @@ mod test {
     #[test]
     fn controller_test() -> Result<(), Box<dyn Error>> {
         let mut rng = ChaCha20Rng::from_entropy();
-        let mut did_data = SolData::rand_data(&mut rng);
-        let mut controller_data = (0..1)
-            .map(|_| SolData::rand_data(&mut rng))
-            .collect::<Vec<_>>();
+        for i in 0..10 {
+            let mut did_data = SolData::rand_data(&mut rng);
+            let mut controller_data = (0..10)
+                .map(|_| SolData::rand_data(&mut rng))
+                .collect::<Vec<_>>();
 
-        let signing_key = Keypair::generate(&mut rng);
-        let last = controller_data.last_mut().unwrap();
-        last.authority = signing_key.pubkey();
-        last.verification_method.push(VerificationMethod {
-            id: "signer".to_string(),
-            verification_type: VerificationMethod::DEFAULT_TYPE.to_string(),
-            pubkey: signing_key.pubkey(),
-        });
-        last.capability_invocation.push("signer".to_string());
+            let signing_key = Keypair::generate(&mut rng);
+            let last = controller_data.last_mut().unwrap();
+            last.authority = signing_key.pubkey();
+            last.verification_method.push(VerificationMethod {
+                id: "signer".to_string(),
+                verification_type: VerificationMethod::DEFAULT_TYPE.to_string(),
+                pubkey: signing_key.pubkey(),
+            });
+            last.capability_invocation.push("signer".to_string());
 
-        let mut last_authority = None;
-        for data in controller_data.iter_mut().rev() {
-            if let Some(last_authority) = last_authority {
-                data.controller = vec![last_authority];
+            let mut last_authority = None;
+            for data in controller_data.iter_mut().rev() {
+                if let Some(last_authority) = last_authority {
+                    data.controller = vec![last_authority];
+                }
+                last_authority = Some(data.authority);
             }
-            last_authority = Some(data.authority);
-        }
-        if let Some(last_authority) = last_authority {
-            did_data.controller = vec![last_authority];
-        }
+            if let Some(last_authority) = last_authority {
+                did_data.controller = vec![last_authority];
+            }
 
-        let program_id = id();
-        let did_key = get_sol_address_with_seed(&did_data.authority).0;
-        let mut did_data_bytes = BorshSerialize::try_to_vec(&did_data)?;
-        let mut did_lamports = Rent::default().minimum_balance(did_data_bytes.len());
-        let did_account = AccountInfo {
-            key: &did_key,
-            is_signer: false,
-            is_writable: false,
-            lamports: Rc::new(RefCell::new(&mut did_lamports)),
-            data: Rc::new(RefCell::new(&mut did_data_bytes)),
-            owner: &program_id,
-            executable: false,
-            rent_epoch: 0,
-        };
-
-        let controller_keys = controller_data
-            .iter()
-            .map(|controller_data| get_sol_address_with_seed(&controller_data.authority).0)
-            .collect::<Vec<_>>();
-        let mut controller_data_bytes = controller_data
-            .iter()
-            .map(|controller_data| BorshSerialize::try_to_vec(controller_data))
-            .collect::<Result<Vec<_>, _>>()?;
-        let mut controller_lamports = controller_data_bytes
-            .iter()
-            .map(|bytes| Rent::default().minimum_balance(bytes.len()))
-            .collect::<Vec<_>>();
-        let controller_accounts = controller_keys
-            .iter()
-            .zip(controller_data_bytes.iter_mut())
-            .zip(controller_lamports.iter_mut())
-            .map(|((key, bytes), lamports)| AccountInfo {
-                key,
+            let program_id = id();
+            let did_key = get_sol_address_with_seed(&did_data.authority).0;
+            let mut did_data_bytes = BorshSerialize::try_to_vec(&did_data)?;
+            let mut did_lamports = Rent::default().minimum_balance(did_data_bytes.len());
+            let did_account = AccountInfo {
+                key: &did_key,
                 is_signer: false,
                 is_writable: false,
-                lamports: Rc::new(RefCell::new(lamports)),
-                data: Rc::new(RefCell::new(bytes)),
+                lamports: Rc::new(RefCell::new(&mut did_lamports)),
+                data: Rc::new(RefCell::new(&mut did_data_bytes)),
                 owner: &program_id,
                 executable: false,
                 rent_epoch: 0,
-            });
-        let signing_pubkey = signing_key.pubkey();
-        let mut signer_lamports = 0;
-        let mut signer_data = [];
-        let system_program_id = solana_sdk::system_program::id();
-        let signer = AccountInfo {
-            key: &signing_pubkey,
-            is_signer: true,
-            is_writable: false,
-            lamports: Rc::new(RefCell::new(&mut signer_lamports)),
-            data: Rc::new(RefCell::new(&mut signer_data)),
-            owner: &system_program_id,
-            executable: false,
-            rent_epoch: 0,
-        };
+            };
 
-        assert_eq!(
-            validate_owner(&did_account, &signer, controller_accounts.map(Cow::Owned)),
-            Ok(())
-        );
+            let controller_keys = controller_data
+                .iter()
+                .map(|controller_data| get_sol_address_with_seed(&controller_data.authority).0)
+                .collect::<Vec<_>>();
+            let mut controller_data_bytes = controller_data
+                .iter()
+                .map(|controller_data| BorshSerialize::try_to_vec(controller_data))
+                .collect::<Result<Vec<_>, _>>()?;
+            let mut controller_lamports = controller_data_bytes
+                .iter()
+                .map(|bytes| Rent::default().minimum_balance(bytes.len()))
+                .collect::<Vec<_>>();
+            let controller_accounts = controller_keys
+                .iter()
+                .zip(controller_data_bytes.iter_mut())
+                .zip(controller_lamports.iter_mut())
+                .map(|((key, bytes), lamports)| AccountInfo {
+                    key,
+                    is_signer: false,
+                    is_writable: false,
+                    lamports: Rc::new(RefCell::new(lamports)),
+                    data: Rc::new(RefCell::new(bytes)),
+                    owner: &program_id,
+                    executable: false,
+                    rent_epoch: 0,
+                });
+            let signing_pubkey = signing_key.pubkey();
+            let mut signer_lamports = 0;
+            let mut signer_data = [];
+            let system_program_id = solana_sdk::system_program::id();
+            let signer = AccountInfo {
+                key: &signing_pubkey,
+                is_signer: true,
+                is_writable: false,
+                lamports: Rc::new(RefCell::new(&mut signer_lamports)),
+                data: Rc::new(RefCell::new(&mut signer_data)),
+                owner: &system_program_id,
+                executable: false,
+                rent_epoch: 0,
+            };
+
+            assert_eq!(
+                validate_owner(&did_account, &signer, controller_accounts.map(Cow::Owned)),
+                Ok(())
+            );
+        }
 
         Ok(())
     }
