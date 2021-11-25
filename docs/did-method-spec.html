@@ -69,7 +69,7 @@
     <code>
       sol-did    = "did:sol" *(":" network) ":" idstring<br>
       idstring      = 40*48(base58char)<br>
-      network  = "testnet" / "devnet" / "development" <br>
+      network  = "testnet" / "devnet" / "localnet" <br>
       base58char          = "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9" / "A" / "B" / "C"<br/>
       &nbsp;&nbsp;&nbsp;&nbsp;/ "D" / "E" / "F" / "G" / "H" / "J" / "K" / "L" / "M" / "N" / "P" / "Q"<br/>
       &nbsp;&nbsp;&nbsp;&nbsp;/ "R" / "S" / "T" / "U" / "V" / "W" / "X" / "Y" / "Z" / "a" / "b" / "c"<br/>
@@ -107,7 +107,7 @@
   <p>A convenient regex to match <code>SOL</code> DID identifiers is: <br><br>
     <code>^[1-9A-HJ-NP-Za-km-z]{40,48}$</code><br><br>
     A convenient regex to match the entire DID string is:<br><br>
-    <code>^did\:sol(\:(testnet|devnet|development))?\:[1-9A-HJ-NP-Za-km-z]{40,48}$</code>
+    <code>^did\:sol(\:(testnet|devnet|localnet))?\:[1-9A-HJ-NP-Za-km-z]{40,48}$</code>
   </p>
   <h3>Examples</h3>
   <p>Valid <code>SOL</code> DIDs might be:
@@ -119,56 +119,68 @@
 <section>
   <h2>Operations</h2>
   The following section outlines the DID operations for the did:sol method.
-  <h3>Create (Register)</h3>
+  <h3 id="create">Create (Register)</h3>
   <p>
-    Creating a SOL DID involves submitting a transaction to the Solana blockchain calling the "Initialize" instruction
-    on the SOL Program. The only required input to this program is the public key of the 'authority', that is, the
-    initial owner of the DID. This creates a 'sparse' DID Document as follows:
-<pre>
+      A SOL DID can be created by combining the <code>did:sol(:network)</code> prefix with the <code>AUTHORITY</code>.
+    An initial 'sparse' DID document can be generated without the need to register it on the Solana blockchain:
+    <pre>
 {
-        "@context": [
-            "https://w3id.org/did/v1.0",
-            "https://w3id.org/sol/v1"
-        ],
-        "id": "did:sol:IDENTIFIER",
-        "verificationMethod": [
-            {
-                "id": "did:sol:IDENTIFIER#key1",
-                "type": "Ed25519VerificationKey2018",
-                "controller": "did:sol:IDENTIFIER",
-                "publicKeyBase58": "AUTHORITY"
-            }
-        ],
-        "authentication": [
-            "did:sol:IDENTIFIER#key1"
-        ],
-        "assertionMethod": [],
-        "keyAgreement": [],
-        "capabilityInvocation": [
-            "did:sol:IDENTIFIER#key1"
-        ],
-        "capabilityDelegation": [],
-        "service": [],
-        "publicKey": [
-            {
-                "id": "did:sol:IDENTIFIER#key1",
-                "type": "Ed25519VerificationKey2018",
-                "controller": "did:sol:IDENTIFIER",
-                "publicKeyBase58": "AUTHORITY"
-            }
-        ]
-    }
+    "@context": [
+        "https://w3id.org/did/v1.0",
+        "https://w3id.org/sol/v1"
+    ],
+    "id": "did:sol:IDENTIFIER",
+    "verificationMethod": [
+        {
+            "id": "did:sol:IDENTIFIER#key1",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:sol:IDENTIFIER",
+            "publicKeyBase58": "AUTHORITY"
+        }
+    ],
+    "authentication": [
+        "did:sol:IDENTIFIER#key1"
+    ],
+    "assertionMethod": [],
+    "keyAgreement": [],
+    "capabilityInvocation": [
+        "did:sol:IDENTIFIER#key1"
+    ],
+    "capabilityDelegation": [],
+    "service": [],
+    "publicKey": [
+        {
+            "id": "did:sol:IDENTIFIER#key1",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:sol:IDENTIFIER",
+            "publicKeyBase58": "AUTHORITY"
+        }
+    ]
+}
 </pre>
   where: </p><p>
   <code>AUTHORITY</code> is the base58-encoded 32-byte x25519 public key of the DID owner,</p><p>
   <code>IDENTIFIER</code> is the DID method identifier derived from the authority.</p><p>
 
-  The transaction must be signed by the authority.
+    Changing the default data of a SOL DID involves submitting a transaction to the Solana blockchain calling the "Initialize" instruction
+    on the SOL Program. The only required input to this program is the public key of the 'authority', that is, the
+    initial owner of the DID.
+
+    The transaction must be signed by the authority.</p><p>
+
+    The authority is a special key from which the DID is derived. It is always present in the
+    <a href="https://www.w3.org/TR/did-core/#dfn-verification-method">verification methods</a> list,
+    and by default is added as the only key in the
+    <a href="https://www.w3.org/TR/did-core/#capability-invocation">capabilityInvocations</a>
+    list, indicating that it is permitted to change
+    the DID Document contents. It can, however be removed from the list by submitting an update instruction where the
+    capabilityInvocation list is explicitly set (e.g. to the empty list or some other list of keys).
+
   </p><p>An optional additional SolData field may be added, containing additional document data, such as service
   endpoints or additional keys.
   </p>
 <h4 id="fees">Fees and Rent</h4>
-  <p>Registering a SOL DID on Solana incurs two types of fee, imposed by the Solana blockchain
+  <p>Updating a SOL DID on Solana incurs two types of fee, imposed by the Solana blockchain
     and paid in the chain's native token, SOL.</p>
   <ul>
     <li><strong>Transaction Fee:</strong>
@@ -194,12 +206,13 @@
     </li>
   </ul>
   <p>By default, the fee payer is the owner of the DID that will be created. However, the implementation supports
-  a separate fee payer, that will incur the charges of creation/updating/deletion of the DID without having
+  a separate fee payer, that will incur the charges of registration/updating/deletion of the DID without having
   any permissions on the DID itself. This allows a central body to generate DIDs for its customers, without
   requiring them to have a SOL balance.</p>
   <h3>Read (Resolve)</h3>
   <p>A SOL DID record can be looked up on Solana,by stripping the did:sol: prefix from the DID, and
-    network identifier if present, and looking up the account on-chain.</p>
+      network identifier if present, and looking up the resultant account on-chain. If no data is present on-chain,
+      the generated DID document (<a href="#create">see above</a>) should be returned.</p>
   <p>
     Anyone can query a DID record, by sending the above request.
     The response contains the DID document,
@@ -229,63 +242,65 @@
   <pre>
 {
     "service": [
-    {
-      "id": "did:sol:IDENTIFIER#agent",
-      "type": "AgentService",
-      "serviceEndpoint": "https://hub.myhub.com/did:sol:IDENTIFIER/agent"
-    }, {
-      "id": "did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#messages",
-      "type": "MessagingService",
-      "serviceEndpoint": "https://hub.myhub.com/did:sol:IDENTIFIER/messages"
-    }
-  ]
+        {
+            "id": "did:sol:IDENTIFIER#agent",
+            "type": "AgentService",
+            "serviceEndpoint": "https://hub.myhub.com/did:sol:IDENTIFIER/agent"
+        }, {
+            "id": "did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#messages",
+            "type": "MessagingService",
+            "serviceEndpoint": "https://hub.myhub.com/did:sol:IDENTIFIER/messages"
+        }
+    ]
 }
+
 </pre>
   to the above document, results in:
   <pre>
 {
-        "@context": [
-            "https://w3id.org/did/v1.0",
-            "https://w3id.org/sol/v1"
-        ],
-        "id": "did:sol:IDENTIFIER",
-        "verificationMethod": [
-            {
-                "id": "did:sol:IDENTIFIER#key1",
-                "type": "Ed25519VerificationKey2018",
-                "controller": "did:sol:IDENTIFIER",
-                "publicKeyBase58": "AUTHORITY"
-            }
-        ],
-        "authentication": [
-            "did:sol:IDENTIFIER#key1"
-        ],
-        "assertionMethod": [],
-        "keyAgreement": [],
-        "capabilityInvocation": [
-            "did:sol:IDENTIFIER#key1"
-        ],
-        "capabilityDelegation": [],
-        "service": [
-          {
+    "@context": [
+        "https://w3id.org/did/v1.0",
+        "https://w3id.org/sol/v1"
+    ],
+    "id": "did:sol:IDENTIFIER",
+    "verificationMethod": [
+        {
+            "id": "did:sol:IDENTIFIER#key1",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:sol:IDENTIFIER",
+            "publicKeyBase58": "AUTHORITY"
+        }
+    ],
+    "authentication": [
+        "did:sol:IDENTIFIER#key1"
+    ],
+    "assertionMethod": [],
+    "keyAgreement": [],
+    "capabilityInvocation": [
+        "did:sol:IDENTIFIER#key1"
+    ],
+    "capabilityDelegation": [],
+    "service": [
+        {
             "id": "did:sol:IDENTIFIER#agent",
             "type": "AgentService",
             "serviceEndpoint": "https://hub.myhub.com/did:sol:IDENTIFIER/agent"
-          }, {
+        }, {
             "id": "did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#messages",
             "type": "MessagingService",
             "serviceEndpoint": "https://hub.myhub.com/did:sol:IDENTIFIER/messages"
-          }
-        ],
-        "publicKey": [
-            {
-                "id": "did:sol:IDENTIFIER#key1",
-                "type": "Ed25519VerificationKey2018",
-                "controller": "did:sol:IDENTIFIER",
-                "publicKeyBase58": "AUTHORITY"
-            }
-        ]
-    }
+        }
+    ],
+    "publicKey": [
+        {
+            "id": "did:sol:IDENTIFIER#key1",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:sol:IDENTIFIER",
+            "publicKeyBase58": "AUTHORITY"
+        }
+    ]
+}
+
 </pre>
 
   Only the AUTHORITY key can make this change,
@@ -304,6 +319,7 @@
     in which case, this account will also receive any reimbursed
     <a href="#fees">rent</a> in the account that stores the DID document.
   </p>
+    <p>When a SOL DID has been deleted, the DID document will resolve to the <a href="#create">generated</a> version.</p>
 </section>
 
 <section>
