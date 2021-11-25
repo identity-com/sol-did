@@ -162,16 +162,25 @@
   <code>AUTHORITY</code> is the base58-encoded 32-byte x25519 public key of the DID owner,</p><p>
   <code>IDENTIFIER</code> is the DID method identifier derived from the authority.</p><p>
 
-    Registering a SOL DID involves submitting a transaction to the Solana blockchain calling the "Initialize" instruction
+    Changing the default data of a SOL DID involves submitting a transaction to the Solana blockchain calling the "Initialize" instruction
     on the SOL Program. The only required input to this program is the public key of the 'authority', that is, the
     initial owner of the DID.
 
-    The transaction must be signed by the authority.
+    The transaction must be signed by the authority.</p><p>
+
+    The authority is a special key from which the DID is derived. It is always present in the
+    <a href="https://www.w3.org/TR/did-core/#dfn-verification-method">verification methods</a> list,
+    and by default is added as the only key in the
+    <a href="https://www.w3.org/TR/did-core/#capability-invocation">capabilityInvocations</a>
+    list, indicating that it is permitted to change
+    the DID Document contents. It can, however be removed from the list by submitting an update instruction where the
+    capabilityInvocation list is explicitly set (e.g. to the empty list or some other list of keys).
+
   </p><p>An optional additional SolData field may be added, containing additional document data, such as service
   endpoints or additional keys.
   </p>
 <h4 id="fees">Fees and Rent</h4>
-  <p>Registering a SOL DID on Solana incurs two types of fee, imposed by the Solana blockchain
+  <p>Updating a SOL DID on Solana incurs two types of fee, imposed by the Solana blockchain
     and paid in the chain's native token, SOL.</p>
   <ul>
     <li><strong>Transaction Fee:</strong>
@@ -202,7 +211,8 @@
   requiring them to have a SOL balance.</p>
   <h3>Read (Resolve)</h3>
   <p>A SOL DID record can be looked up on Solana,by stripping the did:sol: prefix from the DID, and
-    network identifier if present, and looking up the account on-chain.</p>
+      network identifier if present, and looking up the resultant account on-chain. If no data is present on-chain,
+      the generated DID document (<a href="#create">see above</a>) should be returned.</p>
   <p>
     Anyone can query a DID record, by sending the above request.
     The response contains the DID document,
@@ -211,7 +221,6 @@
     The schema for this format is defined in the
     <a href="#reference-implementations">reference implementation client.</a>
   </p>
-    <p>If the DID is not present on on-chain, the <a href="create">generated</a> DID document must be used.</p>
   <h3>Update (Replace)</h3>
   <p>To replace or update the DID document, the owner of the DID should send a transaction containing
     the "write" instruction to the SOL program.
