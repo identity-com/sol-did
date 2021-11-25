@@ -6,6 +6,7 @@ import {
   SOL_CONTEXT_PREFIX,
   W3ID_CONTEXT,
   PROGRAM_ID,
+  ExtendedCluster,
 } from '../constants';
 import { encode } from 'bs58';
 import { mergeWith, omit } from 'ramda';
@@ -38,6 +39,7 @@ export type SolDataConstructor = {
   authority?: SolPublicKey;
   cluster?: ClusterType;
   version?: string;
+  controller?: SolPublicKey[];
   verificationMethod?: VerificationMethod[];
   authentication?: string[];
   capabilityInvocation?: string[];
@@ -54,7 +56,9 @@ export class SolData extends Assignable {
   cluster: ClusterType;
 
   // persisted
+  accountVersion: number;
   version: string;
+  controller: SolPublicKey[];
   verificationMethod: VerificationMethod[];
   authentication: string[];
   capabilityInvocation: string[];
@@ -65,10 +69,12 @@ export class SolData extends Assignable {
 
   constructor(constructor: SolDataConstructor) {
     super({
+      accountVersion: 1,
       account: constructor.account || SolPublicKey.empty(),
       authority: constructor.authority || SolPublicKey.empty(),
       cluster: constructor.cluster || ClusterType.mainnetBeta(),
       version: constructor.version || VERSION,
+      controller: constructor.controller || [],
       verificationMethod: constructor.verificationMethod || [],
       authentication: constructor.authentication || [],
       capabilityInvocation: constructor.capabilityInvocation || [],
@@ -85,6 +91,9 @@ export class SolData extends Assignable {
     cluster: ClusterType
   ): SolData {
     const solData = SolData.decode<SolData>(accountData);
+    if (solData.accountVersion !== 1) {
+      throw new Error('Invliad account version: ' + solData.accountVersion);
+    }
     solData.cluster = cluster;
     solData.account = SolPublicKey.fromPublicKey(accountKey);
     return solData;
@@ -135,6 +144,7 @@ export class SolData extends Assignable {
       authority: SolPublicKey.fromPublicKey(authority),
       account: SolPublicKey.fromPublicKey(account),
       version: VERSION,
+      controller: [],
       verificationMethod: [],
       authentication: [],
       capabilityInvocation: [],
@@ -202,6 +212,12 @@ export class SolData extends Assignable {
     return {
       '@context': SolData.defaultContext(this.version),
       id: this.identifier().toString(),
+      controller: this.controller.map((controller) =>
+        DecentralizedIdentifier.create(
+          controller.toPublicKey(),
+          this.cluster
+        ).toString()
+      ),
       verificationMethod: verificationMethods,
       authentication: this.authentication.map(deriveDID),
       assertionMethod: this.assertionMethod.map(deriveDID),
@@ -244,6 +260,7 @@ export class SolData extends Assignable {
       authority: did.authorityPubkey,
       cluster: did.clusterType,
       version: SolData.parseVersion(document['@context']),
+      controller: normalizeController(document.controller),
       verificationMethod: document.verificationMethod
         ? document.verificationMethod.map((v) => VerificationMethod.parse(v))
         : [],
@@ -262,6 +279,22 @@ export class SolData extends Assignable {
     });
   }
 }
+
+const normalizeController = (
+  controller: string | string[] | undefined
+): SolPublicKey[] => {
+  if (controller) {
+    if (Array.isArray(controller)) {
+      return controller
+        .map(DecentralizedIdentifier.parse)
+        .map((id) => id.authorityPubkey);
+    } else {
+      return [DecentralizedIdentifier.parse(controller).authorityPubkey];
+    }
+  } else {
+    return [];
+  }
+};
 
 export class VerificationMethod extends Assignable {
   id: string;
@@ -523,11 +556,13 @@ export class ClusterType extends Enum {
   mainnetBeta: MainnetBeta;
   devnet: Devnet;
   development: Development;
+  civicnet: Civicnet;
 
   solanaUrl(): string {
-    return this.development !== undefined
-      ? 'http://localhost:8899'
-      : clusterApiUrl(this.toCluster());
+    if (this.development !== undefined) return 'http://localhost:8899';
+    if (this.civicnet !== undefined)
+      return 'https://d3ab7dlfud2b5u.cloudfront.net';
+    return clusterApiUrl(this.toCluster() as Cluster);
   }
 
   toString(): string {
@@ -550,13 +585,15 @@ export class ClusterType extends Enum {
     throw new Error('Unknown `ClusterType`: ' + this);
   }
 
-  toCluster(): Cluster {
+  toCluster(): ExtendedCluster {
     if (this.mainnetBeta) {
       return 'mainnet-beta';
     } else if (this.testnet) {
       return 'testnet';
     } else if (this.devnet) {
       return 'devnet';
+    } else if (this.civicnet) {
+      return 'civicnet';
     } else {
       throw new Error('Unknown cluster type');
     }
@@ -574,6 +611,10 @@ export class ClusterType extends Enum {
     return new ClusterType({ devnet: new Devnet({}) });
   }
 
+  static civicnet(): ClusterType {
+    return new ClusterType({ civicnet: new Civicnet({}) });
+  }
+
   static development(): ClusterType {
     return new ClusterType({ development: new Development({}) });
   }
@@ -588,6 +629,8 @@ export class ClusterType extends Enum {
         return ClusterType.development();
       case 'mainnet-beta':
         return ClusterType.mainnetBeta();
+      case 'civicnet':
+        return ClusterType.civicnet();
       case '':
         return ClusterType.mainnetBeta();
       default:
@@ -599,13 +642,16 @@ export class ClusterType extends Enum {
 export class Testnet extends Assignable {}
 export class MainnetBeta extends Assignable {}
 export class Devnet extends Assignable {}
+export class Civicnet extends Assignable {}
 export class Development extends Assignable {}
 
 SCHEMA.set(SolData, {
   kind: 'struct',
   fields: [
+    ['accountVersion', 'u8'],
     ['authority', SolPublicKey],
     ['version', 'string'],
+    ['controller', [SolPublicKey]],
     ['verificationMethod', [VerificationMethod]],
     ['authentication', ['string']],
     ['capabilityInvocation', ['string']],
@@ -656,4 +702,5 @@ SCHEMA.set(ClusterType, {
 SCHEMA.set(Testnet, { kind: 'struct', fields: [] });
 SCHEMA.set(MainnetBeta, { kind: 'struct', fields: [] });
 SCHEMA.set(Devnet, { kind: 'struct', fields: [] });
+SCHEMA.set(Civicnet, { kind: 'struct', fields: [] });
 SCHEMA.set(Development, { kind: 'struct', fields: [] });
