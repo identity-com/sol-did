@@ -4,7 +4,7 @@ import {
   ClusterType,
 } from '@identity.com/sol-did-client';
 import * as DID from '@identity.com/sol-did-client';
-import { Cluster } from '@solana/web3.js';
+import {Cluster, Keypair} from '@solana/web3.js';
 import { DIDDocument } from 'did-resolver';
 
 type Properties = {
@@ -23,6 +23,7 @@ type RegisterParameters = {
 
 export class Driver {
   private payer: PrivateKey;
+  public readonly method: string = 'sol';
 
   constructor({ payer }: Properties) {
     this.payer = payer;
@@ -32,13 +33,19 @@ export class Driver {
     return DID.resolve(did);
   }
 
-  async register({ key, size = 1000, cluster }: RegisterParameters) {
-    return DID.register({
-      owner: key,
+  async generate({ size = 1000, cluster }: RegisterParameters) {
+    const keypair = Keypair.generate();
+
+    const did = await DID.register({
+      owner: keypair.publicKey.toBase58(),
       payer: this.payer,
       size,
       cluster: ClusterType.parse(cluster),
     });
+
+    const didDocument = await DID.resolve(did);
+
+    return {didDocument};
   }
 }
 

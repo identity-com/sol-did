@@ -27,12 +27,10 @@
   "author": "dankelleher",
   "module": "dist/did-io-driver.esm.js",
   "devDependencies": {
-    "did-io": "^0.8.3",
-    "did-method-key": "^0.7.0",
-    "ts-jest": "^26.5.4",
+    "@digitalbazaar/did-io": "^1.1.0",
     "tsdx": "^0.14.1",
-    "tslib": "^2.1.0",
-    "typescript": "^4.2.3"
+    "tslib": "^2.3.1",
+    "typescript": "^4.5.4"
   },
   "dependencies": {
     "@identity.com/sol-did-client": "^1.0.0-beta",
