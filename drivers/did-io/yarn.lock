@@ -889,10 +889,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@identity.com/sol-did-client@^0.1.10":
-  version "0.1.10"
-  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-client/-/sol-did-client-0.1.10.tgz#478d4227a1e8428a119dc9d43280d11e2a741a40"
-  integrity sha512-Xk8kW9iLOhcnRoKJwUU7ynCXuM/AJd2HT4seQjH7XWDyQWDYFQIaIxzkyS7HAhM18YXWi4khHaxIMl6mnJLp9Q==
+"@identity.com/sol-did-client@^1.0.0-beta":
+  version "1.0.0-beta"
+  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-client/-/sol-did-client-1.0.0-beta.tgz#0fa3f3328f813eeffd216c5588b660f2f47c108d"
+  integrity sha512-uzIo8B5ScUTnr4SAJrxruLb+yu8EtJUvNHaftYBfoJ5RYKZ0e+5kjpVuVlR66yoycOacjNF1o4c/MVzvGMG86g==
   dependencies:
     "@solana/web3.js" "^1.21.0"
     bn.js "^4.12.0"
