@@ -1,4 +1,5 @@
 import {CachedResolver} from '@digitalbazaar/did-io';
+import didKey from '@digitalbazaar/did-method-key';
 import didSol from '../src/';
 import {Connection} from '@solana/web3.js';
 import {ClusterType, SolanaUtil} from '@identity.com/sol-did-client';
@@ -15,6 +16,7 @@ describe('did-io integration', () => {
       10000000
     );
 
+    resolver.use(didKey.driver());
     resolver.use(didSol.driver({payer: payerAccount.secretKey}));
   }, 60000);
 
