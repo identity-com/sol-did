@@ -91,10 +91,12 @@ export class Driver {
     const methodFor = (options: { purpose: string }) => {
       const { purpose } = options;
 
-      return findVerificationMethod({
+      const { id: methodId } = findVerificationMethod({
         doc: didDocument,
         purpose,
       });
+
+      return keyPairs.get(methodId);
     };
 
     return { didDocument, keyPairs, methodFor };
