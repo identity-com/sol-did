@@ -4,8 +4,10 @@ import {
   ClusterType,
 } from '@identity.com/sol-did-client';
 import * as DID from '@identity.com/sol-did-client';
-import {Cluster, Keypair} from '@solana/web3.js';
-import { DIDDocument } from 'did-resolver';
+import {Cluster} from '@solana/web3.js';
+import {DIDDocument} from 'did-resolver';
+import {Ed25519VerificationKey2018} from '@digitalbazaar/ed25519-verification-key-2018';
+import * as didIo from '@digitalbazaar/did-io';
 
 type Properties = {
   payer: PrivateKey;
@@ -25,7 +27,7 @@ export class Driver {
   private payer: PrivateKey;
   public readonly method: string = 'sol';
 
-  constructor({ payer }: Properties) {
+  constructor({payer}: Properties) {
     this.payer = payer;
   }
 
@@ -34,10 +36,10 @@ export class Driver {
   }
 
   async generate({ size = 1000, cluster }: RegisterParameters) {
-    const keypair = Keypair.generate();
+    const keyPair = await Ed25519VerificationKey2018.generate();
 
     const did = await DID.register({
-      owner: keypair.publicKey.toBase58(),
+      owner: keyPair.publicKeyBase58,
       payer: this.payer,
       size,
       cluster: ClusterType.parse(cluster),
@@ -45,7 +47,25 @@ export class Driver {
 
     const didDocument = await DID.resolve(did);
 
-    return {didDocument};
+    if (!didDocument || !didDocument.verificationMethod) {
+      throw new Error(`Unable to resolve document`);
+    }
+
+    keyPair.id = didDocument.verificationMethod[0].id;
+    keyPair.controller = didDocument.verificationMethod[0].controller;
+
+    const keyPairs = new Map();
+    keyPairs.set(keyPair.id, keyPair);
+
+    const methodFor = (options : {purpose: string}) => {
+      const {purpose} = options;
+
+      return didIo.findVerificationMethod({
+        doc: didDocument, purpose
+      });
+    };
+
+    return { didDocument, keyPairs, methodFor };
   }
 }
 

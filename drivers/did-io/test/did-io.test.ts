@@ -1,7 +1,7 @@
 import {CachedResolver} from '@digitalbazaar/did-io';
 import didSol from '../src/';
-import { Connection } from '@solana/web3.js';
-import { ClusterType, SolanaUtil } from '@identity.com/sol-did-client';
+import {Connection} from '@solana/web3.js';
+import {ClusterType, SolanaUtil} from '@identity.com/sol-did-client';
 
 const cluster = ClusterType.devnet();
 const resolver = new CachedResolver();
@@ -15,20 +15,26 @@ describe('did-io integration', () => {
       10000000
     );
 
-    resolver.use(didSol.driver({ payer: payerAccount.secretKey }));
+    resolver.use(didSol.driver({payer: payerAccount.secretKey}));
   }, 60000);
 
   it('generates a did on devnet', async () => {
-    const { didDocument } = await resolver.generate({
+    const {didDocument, keyPairs, methodFor} = await resolver.generate({
       method: 'sol',
       cluster: cluster.toString(),
     });
 
-    const document = await resolver.get({ did: didDocument.id });
+    const verificationMethod = methodFor({purpose: 'verificationMethod'});
+    const keypair = keyPairs.get(verificationMethod.id);
+
+    const document = await resolver.get({did: didDocument.id});
 
     expect(document).toEqual(didDocument);
-    // expect(document.verificationMethod[0].publicKeyBase58).toEqual(
-    //   owner.publicKey.toBase58()
-    // );
+    expect(document.verificationMethod[0].publicKeyBase58).toEqual(
+      keypair.publicKeyBase58
+    );
+    expect(document.verificationMethod[0].publicKeyBase58).toEqual(
+      verificationMethod.publicKeyBase58
+    );
   }, 60000);
 });
