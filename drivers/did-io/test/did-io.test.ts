@@ -13,7 +13,7 @@ const generateKey = () => {
   const methodId = `${did}#default`;
 
   return { keyPair, did, methodId };
-}
+};
 
 // Creates a DID on Solana Devnet
 describe('did-io integration', () => {
@@ -70,7 +70,10 @@ describe('did-io integration', () => {
 
     const didDocument = await resolver.get({ did });
 
-    const vm = didSolDriver.publicMethodFor({ didDocument, purpose: 'verificationMethod' });
+    const vm = didSolDriver.publicMethodFor({
+      didDocument,
+      purpose: 'verificationMethod',
+    });
 
     expect(vm).toEqual({
       id: methodId,
