@@ -23,6 +23,11 @@ type RegisterParameters = {
   cluster: 'localnet' | Cluster;
 };
 
+type GenerateParameters = {
+  size: number;
+  cluster: 'localnet' | Cluster;
+};
+
 export class Driver {
   private payer: PrivateKey;
   public readonly method: string = 'sol';
@@ -35,7 +40,16 @@ export class Driver {
     return DID.resolve(did);
   }
 
-  async generate({ size = 1000, cluster }: RegisterParameters) {
+  async register({ key, size = 1000, cluster }: RegisterParameters) {
+    return DID.register({
+      owner: key,
+      payer: this.payer,
+      size,
+      cluster: ClusterType.parse(cluster),
+    });
+  }
+
+  async generate({ size = 1000, cluster }: GenerateParameters) {
     const keyPair = await Ed25519VerificationKey2018.generate();
 
     const did = await DID.register({
@@ -48,7 +62,7 @@ export class Driver {
     const didDocument = await DID.resolve(did);
 
     if (!didDocument || !didDocument.verificationMethod) {
-      throw new Error(`Unable to resolve document`);
+      throw new Error(`Unable to generate document`);
     }
 
     keyPair.id = didDocument.verificationMethod[0].id;
