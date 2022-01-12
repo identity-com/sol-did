@@ -7,7 +7,7 @@ import * as DID from '@identity.com/sol-did-client';
 import { Cluster } from '@solana/web3.js';
 import { DIDDocument, VerificationMethod } from 'did-resolver';
 import { Ed25519VerificationKey2018 } from '@digitalbazaar/ed25519-verification-key-2018';
-import * as didIo from '@digitalbazaar/did-io';
+import { findVerificationMethod } from '@digitalbazaar/did-io';
 
 type Properties = {
   payer: PrivateKey;
@@ -51,7 +51,7 @@ export class Driver {
     const document = await DID.resolve(didAuthority);
 
     if (keyIdFragment) {
-      return didIo.findVerificationMethod({ doc: document, methodId: did });
+      return findVerificationMethod({ doc: document, methodId: did });
     }
 
     return document;
@@ -91,7 +91,7 @@ export class Driver {
     const methodFor = (options: { purpose: string }) => {
       const { purpose } = options;
 
-      return didIo.findVerificationMethod({
+      return findVerificationMethod({
         doc: didDocument,
         purpose,
       });
