@@ -11,7 +11,10 @@ declare module '@digitalbazaar/did-io' {
     use(driver: Driver): void;
   }
 
-  export function findVerificationMethod(options: { doc: any; purpose: string }): any;
+  export function findVerificationMethod(options: {
+    doc: any;
+    purpose: string;
+  }): any;
 }
 
 declare module '@digitalbazaar/did-method-key' {
