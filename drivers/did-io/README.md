@@ -11,13 +11,15 @@ properties.
 To generate a DID:
 
 ```js
-import didIo from '@digitalbazaar/did-io';
-import didSol from '@identity.com/did-io-driver-sol'
-didIo.use(didSol.driver({payer: PAYER_KEY}))
+import { CachedResolver } from '@digitalbazaar/did-io';
+import didSol from '@identity.com/did-io-driver-sol';
 
-const did = await didIo.generate({
+const resolver = new CachedResolver(); 
+resolver.use(didSol.driver({payer: PAYER_KEY}))
+
+// Generate a DID
+const did = await resolver.generate({
   method: 'sol',
-  didDocument: { did: 'did:sol:'},
   cluster: 'devnet'   // omit for mainnet
 })
 ```
