@@ -4,9 +4,9 @@ import {
   ClusterType,
 } from '@identity.com/sol-did-client';
 import * as DID from '@identity.com/sol-did-client';
-import {Cluster} from '@solana/web3.js';
-import {DIDDocument} from 'did-resolver';
-import {Ed25519VerificationKey2018} from '@digitalbazaar/ed25519-verification-key-2018';
+import { Cluster } from '@solana/web3.js';
+import { DIDDocument } from 'did-resolver';
+import { Ed25519VerificationKey2018 } from '@digitalbazaar/ed25519-verification-key-2018';
 import * as didIo from '@digitalbazaar/did-io';
 
 type Properties = {
@@ -32,7 +32,7 @@ export class Driver {
   private payer: PrivateKey;
   public readonly method: string = 'sol';
 
-  constructor({payer}: Properties) {
+  constructor({ payer }: Properties) {
     this.payer = payer;
   }
 
@@ -71,11 +71,12 @@ export class Driver {
     const keyPairs = new Map();
     keyPairs.set(keyPair.id, keyPair);
 
-    const methodFor = (options : {purpose: string}) => {
-      const {purpose} = options;
+    const methodFor = (options: { purpose: string }) => {
+      const { purpose } = options;
 
       return didIo.findVerificationMethod({
-        doc: didDocument, purpose
+        doc: didDocument,
+        purpose,
       });
     };
 

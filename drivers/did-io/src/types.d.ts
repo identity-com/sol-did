@@ -1,31 +1,25 @@
 type Driver = {};
 
 declare module '@digitalbazaar/did-io' {
-  class CachedResolver {
+  export class CachedResolver {
     get(options: { did: string }): any;
 
-    generate(options: any): { didDocument: any, keyPairs: any, methodFor: Function };
+    generate(
+      options: any
+    ): { didDocument: any; keyPairs: any; methodFor: Function };
 
     use(driver: Driver): void;
   }
 
-  function findVerificationMethod(options: { doc: any, purpose: string }): any;
-
-  return {
-    CachedResolver
-  }
+  export function findVerificationMethod(options: { doc: any; purpose: string }): any;
 }
 
 declare module '@digitalbazaar/did-method-key' {
-  function driver(): Driver;
-
-  return {
-    driver
-  }
+  export function driver(): Driver;
 }
 
 declare module '@digitalbazaar/ed25519-verification-key-2018' {
-  class Ed25519VerificationKey2018 {
+  export class Ed25519VerificationKey2018 {
     id: string;
     controller: string;
     type: string;
@@ -33,9 +27,5 @@ declare module '@digitalbazaar/ed25519-verification-key-2018' {
     privateKeyBase58?: string;
 
     static generate(): Promise<Ed25519VerificationKey2018>;
-  }
-
-  return {
-    Ed25519VerificationKey2018
   }
 }
