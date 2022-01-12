@@ -5,7 +5,7 @@ import {
 } from '@identity.com/sol-did-client';
 import * as DID from '@identity.com/sol-did-client';
 import { Cluster } from '@solana/web3.js';
-import { DIDDocument } from 'did-resolver';
+import { DIDDocument, VerificationMethod } from 'did-resolver';
 import { Ed25519VerificationKey2018 } from '@digitalbazaar/ed25519-verification-key-2018';
 import * as didIo from '@digitalbazaar/did-io';
 
@@ -14,7 +14,8 @@ type Properties = {
 };
 
 type GetParameters = {
-  did: string;
+  did?: string;
+  url?: string;
 };
 
 type RegisterParameters = {
@@ -36,8 +37,24 @@ export class Driver {
     this.payer = payer;
   }
 
-  async get({ did }: GetParameters): Promise<DIDDocument> {
-    return DID.resolve(did);
+  async get({
+    did,
+    url,
+  }: GetParameters): Promise<DIDDocument | VerificationMethod | undefined> {
+    did = did || url;
+    if (!did) {
+      throw new TypeError('A "did" or "url" parameter is required.');
+    }
+
+    const [didAuthority, keyIdFragment] = did.split('#');
+
+    const document = await DID.resolve(didAuthority);
+
+    if (keyIdFragment) {
+      return didIo.findVerificationMethod({ doc: document, methodId: did });
+    }
+
+    return document;
   }
 
   async register({ key, size = 1000, cluster }: RegisterParameters) {

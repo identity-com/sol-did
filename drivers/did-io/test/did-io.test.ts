@@ -1,7 +1,7 @@
 import { CachedResolver } from '@digitalbazaar/did-io';
 import didKey from '@digitalbazaar/did-method-key';
 import didSol from '../src/';
-import { Connection } from '@solana/web3.js';
+import { Connection, Keypair } from '@solana/web3.js';
 import { ClusterType, SolanaUtil } from '@identity.com/sol-did-client';
 
 const cluster = ClusterType.devnet();
@@ -29,14 +29,28 @@ describe('did-io integration', () => {
     const verificationMethod = methodFor({ purpose: 'verificationMethod' });
     const keypair = keyPairs.get(verificationMethod.id);
 
-    const document = await resolver.get({ did: didDocument.id });
+    const resolvedDocument = await resolver.get({ did: didDocument.id });
 
-    expect(document).toEqual(didDocument);
-    expect(document.verificationMethod[0].publicKeyBase58).toEqual(
+    expect(resolvedDocument).toEqual(didDocument);
+    expect(resolvedDocument.verificationMethod[0].publicKeyBase58).toEqual(
       keypair.publicKeyBase58
     );
-    expect(document.verificationMethod[0].publicKeyBase58).toEqual(
+    expect(resolvedDocument.verificationMethod[0].publicKeyBase58).toEqual(
       verificationMethod.publicKeyBase58
     );
+  }, 60000);
+
+  it('resolves a verification method', async () => {
+    const kp = Keypair.generate();
+    const did = `did:sol:devnet:${kp.publicKey.toBase58()}`;
+    const keyId = `${did}#default`;
+    const vm = await resolver.get({ url: keyId });
+
+    expect(vm).toEqual({
+      id: keyId,
+      type: 'Ed25519VerificationKey2018',
+      controller: did,
+      publicKeyBase58: kp.publicKey.toBase58(),
+    });
   }, 60000);
 });

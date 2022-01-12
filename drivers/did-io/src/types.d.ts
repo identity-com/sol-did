@@ -1,19 +1,26 @@
 type Driver = {};
 
 declare module '@digitalbazaar/did-io' {
+  import { DIDDocument } from 'did-resolver';
+
   export class CachedResolver {
-    get(options: { did: string }): any;
+    get(options: { did?: string; url?: string }): any;
 
     generate(
       options: any
-    ): { didDocument: any; keyPairs: any; methodFor: Function };
+    ): Promise<{
+      didDocument: DIDDocument;
+      keyPairs: Map;
+      methodFor: Function;
+    }>;
 
     use(driver: Driver): void;
   }
 
   export function findVerificationMethod(options: {
-    doc: any;
-    purpose: string;
+    doc: DIDDocument;
+    purpose?: string;
+    methodId?: string;
   }): any;
 }
 
