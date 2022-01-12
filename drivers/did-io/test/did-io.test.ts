@@ -1,14 +1,24 @@
 import { CachedResolver } from '@digitalbazaar/did-io';
 import didKey from '@digitalbazaar/did-method-key';
-import didSol from '../src/';
+import didSol, { Driver } from '../src/';
 import { Connection, Keypair } from '@solana/web3.js';
 import { ClusterType, SolanaUtil } from '@identity.com/sol-did-client';
 
 const cluster = ClusterType.devnet();
 const resolver = new CachedResolver();
 
+const generateKey = () => {
+  const keyPair = Keypair.generate();
+  const did = `did:sol:devnet:${keyPair.publicKey.toBase58()}`;
+  const methodId = `${did}#default`;
+
+  return { keyPair, did, methodId };
+}
+
 // Creates a DID on Solana Devnet
 describe('did-io integration', () => {
+  let didSolDriver: Driver;
+
   beforeAll(async () => {
     const connection = new Connection(cluster.solanaUrl(), 'recent');
     const payerAccount = await SolanaUtil.newAccountWithLamports(
@@ -16,8 +26,10 @@ describe('did-io integration', () => {
       10000000
     );
 
+    didSolDriver = didSol.driver({ payer: payerAccount.secretKey });
+
     resolver.use(didKey.driver());
-    resolver.use(didSol.driver({ payer: payerAccount.secretKey }));
+    resolver.use(didSolDriver);
   }, 60000);
 
   it('generates a did on devnet', async () => {
@@ -41,16 +53,30 @@ describe('did-io integration', () => {
   }, 60000);
 
   it('resolves a verification method', async () => {
-    const kp = Keypair.generate();
-    const did = `did:sol:devnet:${kp.publicKey.toBase58()}`;
-    const keyId = `${did}#default`;
-    const vm = await resolver.get({ url: keyId });
+    const { keyPair, did, methodId } = generateKey();
+
+    const vm = await resolver.get({ url: methodId });
 
     expect(vm).toEqual({
-      id: keyId,
+      id: methodId,
       type: 'Ed25519VerificationKey2018',
       controller: did,
-      publicKeyBase58: kp.publicKey.toBase58(),
+      publicKeyBase58: keyPair.publicKey.toBase58(),
     });
   }, 60000);
+
+  it('finds the finds the verification method for a did', async () => {
+    const { did, methodId, keyPair } = generateKey();
+
+    const didDocument = await resolver.get({ did });
+
+    const vm = didSolDriver.publicMethodFor({ didDocument, purpose: 'verificationMethod' });
+
+    expect(vm).toEqual({
+      id: methodId,
+      type: 'Ed25519VerificationKey2018',
+      controller: did,
+      publicKeyBase58: keyPair.publicKey.toBase58(),
+    });
+  });
 });

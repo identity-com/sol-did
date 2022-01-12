@@ -29,6 +29,11 @@ type GenerateParameters = {
   cluster: 'localnet' | Cluster;
 };
 
+type PublicMethodForParameters = {
+  didDocument: DIDDocument;
+  purpose: string;
+};
+
 export class Driver {
   private payer: PrivateKey;
   public readonly method: string = 'sol';
@@ -100,6 +105,24 @@ export class Driver {
     };
 
     return { didDocument, keyPairs, methodFor };
+  }
+
+  publicMethodFor({ didDocument, purpose }: PublicMethodForParameters) {
+    if (!didDocument) {
+      throw new TypeError('The "didDocument" parameter is required.');
+    }
+
+    if (!purpose) {
+      throw new TypeError('The "purpose" parameter is required.');
+    }
+
+    const method = findVerificationMethod({ doc: didDocument, purpose });
+
+    if (!method) {
+      throw new Error(`No verification method found for purpose "${purpose}"`);
+    }
+
+    return method;
   }
 }
 
