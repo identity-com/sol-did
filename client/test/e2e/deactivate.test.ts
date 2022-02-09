@@ -33,7 +33,7 @@ describe('deactivate', () => {
       'did:sol:' + CLUSTER + ':' + didAuthorityAddress.publicKey.toBase58();
     const deactivateRequest: DeactivateRequest = {
       payer: didAuthorityAddress.secretKey,
-      identifier: did,
+      did: did,
     };
 
     // ensure the DID is currently registered
@@ -59,10 +59,11 @@ describe('deactivate', () => {
     );
     const did =
       'did:sol:' + CLUSTER + ':' + didAuthorityAddress.publicKey.toBase58();
+
     const deactivateRequest: DeactivateRequest = {
       owner: didAuthorityAddress.secretKey,
       payer: payer.secretKey,
-      identifier: did,
+      did,
     };
 
     // ensure the DID is currently registered

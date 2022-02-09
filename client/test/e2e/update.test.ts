@@ -49,7 +49,7 @@ describe('update', () => {
     const service = await makeService(owner);
     const request: UpdateRequest = {
       payer: owner.secretKey,
-      identifier,
+      did: identifier,
       document: {
         service: [service],
       },
@@ -69,7 +69,7 @@ describe('update', () => {
     const key = await makeVerificationMethod(owner);
     const request: UpdateRequest = {
       payer: owner.secretKey,
-      identifier,
+      did: identifier,
       document: {
         verificationMethod: [key],
         capabilityInvocation: [key.id],
@@ -95,7 +95,7 @@ describe('update', () => {
     const request: UpdateRequest = {
       payer: payer.secretKey,
       owner: owner.secretKey,
-      identifier,
+      did: identifier,
       document: {
         service: [service],
       },
@@ -147,7 +147,7 @@ describe('update', () => {
       CLUSTER
     ).toString();
     const request: UpdateRequest = {
-      identifier,
+      did: identifier,
       payer: owner.secretKey,
       document: {
         controller: controller_id,

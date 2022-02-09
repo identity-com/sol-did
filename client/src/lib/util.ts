@@ -270,7 +270,7 @@ export const sendTransaction = (
 };
 
 export const createRegisterOrUpdateInstruction = async (
-  identifier: string,
+  did: string,
   payer: PublicKey,
   authority: PublicKey,
   document: Partial<DIDDocument>,
@@ -278,10 +278,10 @@ export const createRegisterOrUpdateInstruction = async (
   mergeBehaviour: MergeBehaviour,
   size = DEFAULT_DOCUMENT_SIZE
 ): Promise<TransactionInstruction> => {
-  const isRegistered = await didIsRegistered(connection, identifier);
+  const isRegistered = await didIsRegistered(connection, did);
 
   if (!isRegistered) {
-    if (!authority.equals(didToPublicKey(identifier))) {
+    if (!authority.equals(didToPublicKey(did))) {
       throw new Error('Authority must be did for creation');
     }
 
@@ -298,7 +298,7 @@ export const createRegisterOrUpdateInstruction = async (
   return createUpdateInstruction({
     authority,
     document,
-    did: identifier,
+    did: did,
     connection,
     mergeBehaviour,
   });
