@@ -9,6 +9,12 @@ import { Connection } from '@solana/web3.js';
 import { DecentralizedIdentifier } from '../lib/solana/sol-data';
 import { DIDDocument } from 'did-resolver';
 
+/**
+ * Adds a controller to the DID
+ *
+ * It will send a register instruction (if the DID is not yet registered on chain)
+ * or an update instruction (if it is already registered)
+ */
 export const addController = async (
   request: AddControllerRequest
 ): Promise<void> => {

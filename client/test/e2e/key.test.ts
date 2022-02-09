@@ -1,11 +1,16 @@
-import { CLUSTER } from '../constants';
-import { register, RegisterRequest, resolve, SolanaUtil } from '../../src';
+import { CLUSTER, VALIDATOR_URL } from '../constants';
+import {
+  register,
+  RegisterRequest,
+  resolve,
+  SolanaUtil,
+  addKey,
+  removeKey,
+} from '../../src';
 import { Connection, Keypair } from '@solana/web3.js';
-import { addKey } from '../../src/service/addKey';
-import { removeKey } from '../../src/service/removeKey';
 
 describe('key', () => {
-  const connection = new Connection('http://localhost:8899', 'recent');
+  const connection = new Connection(VALIDATOR_URL, 'recent');
   let payer: Keypair;
   let owner: Keypair;
 

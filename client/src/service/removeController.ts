@@ -22,6 +22,9 @@ const hasController = (document: DIDDocument, controller: string): boolean => {
   return document.controller === controller;
 };
 
+/**
+ * Removes controller to the DID
+ */
 export const removeController = async (
   request: RemoveControllerRequest
 ): Promise<void> => {

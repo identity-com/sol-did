@@ -1,9 +1,7 @@
 import { DIDDocument, VerificationMethod } from 'did-resolver';
 import { complement, filter, has, isNil } from 'ramda';
-import { didIsRegistered, PublicKeyBase58 } from './util';
-import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js';
-import { DEFAULT_DOCUMENT_SIZE } from './constants';
-import { createRegisterInstruction } from '../service/register';
+import { PublicKeyBase58 } from './util';
+import { PublicKey } from '@solana/web3.js';
 import { DecentralizedIdentifier } from './solana/sol-data';
 
 export const makeVerificationMethod = (
@@ -70,38 +68,5 @@ export const sanitizeDefaultKeys = (document: Partial<DIDDocument>): void => {
 export const filterNotNil = <T>(entries: (T | null | undefined)[]): T[] =>
   entries.filter(complement(isNil)) as T[];
 
-const registerInstruction = async (
-  payer: PublicKey,
-  authority: PublicKey,
-  document?: Partial<DIDDocument>,
-  size: number = DEFAULT_DOCUMENT_SIZE
-) =>
-  createRegisterInstruction({
-    payer,
-    authority,
-    size,
-    document,
-  });
-
 export const didToPublicKey = (did: string): PublicKey =>
   DecentralizedIdentifier.parse(did).authorityPubkey.toPublicKey();
-
-export const registerInstructionIfNeeded = async (
-  connection: Connection,
-  did: string,
-  payer: PublicKey,
-  document?: Partial<DIDDocument>,
-  size?: number
-): Promise<TransactionInstruction | null> => {
-  const isRegistered = await didIsRegistered(connection, did);
-
-  if (isRegistered) return null;
-
-  const [instruction] = await registerInstruction(
-    payer,
-    didToPublicKey(did),
-    document,
-    size
-  );
-  return instruction;
-};

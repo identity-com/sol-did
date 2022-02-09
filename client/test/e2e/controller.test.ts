@@ -1,10 +1,16 @@
-import { register, RegisterRequest, resolve, SolanaUtil } from '../../src';
-import { CLUSTER } from '../constants';
+import {
+  register,
+  RegisterRequest,
+  resolve,
+  SolanaUtil,
+  addController,
+  removeController,
+} from '../../src';
+import { CLUSTER , VALIDATOR_URL} from '../constants';
 import { Connection, Keypair } from '@solana/web3.js';
-import { addController, removeController } from '../../dist';
 
 describe('controller', () => {
-  const connection = new Connection('http://localhost:8899', 'recent');
+  const connection = new Connection(VALIDATOR_URL, 'recent');
   let payer: Keypair;
   let owner: Keypair;
 
@@ -19,7 +25,7 @@ describe('controller', () => {
   describe('add', () => {
     it('adds a controller to a did', async () => {
       const key = Keypair.generate().publicKey.toBase58();
-      const controller = `did:sol:localnet:${key}`;
+      const controller = `did:sol:${CLUSTER}:${key}`;
 
       const registerRequest: RegisterRequest = {
         payer: payer.secretKey,
@@ -43,10 +49,10 @@ describe('controller', () => {
   });
 
   describe('remove', () => {
-    it('removes a controller to a did', async () => {
+    it('removes a controller from a did', async () => {
       const key = Keypair.generate().publicKey.toBase58();
-      const did = `did:sol:localnet:${owner.publicKey.toBase58()}`;
-      const controller = `did:sol:localnet:${key}`;
+      const did = `did:sol:${CLUSTER}:${owner.publicKey.toBase58()}`;
+      const controller = `did:sol:${CLUSTER}:${key}`;
 
       await addController({
         did,

@@ -17,6 +17,9 @@ const findServiceWithAlias = (
   alias: string
 ): ServiceEndpoint | undefined => document.service?.find(hasAlias(alias));
 
+/**
+ * Removes a service from a DID
+ */
 export const removeService = async (
   request: RemoveServiceRequest
 ): Promise<void> => {

@@ -69,7 +69,7 @@ export type UpdateInstructionRequest = SolDidOptions & {
 export type AddKeyRequest = SolDidOptions & {
   did: string;
   payer: PrivateKey;
-  owner?: PrivateKey;
+  owner?: PrivateKey; // optional different authority (DID owner) to the payer
   key: PublicKeyBase58;
   fragment: string;
   size?: number;
@@ -87,7 +87,7 @@ export type AddKeyInstructionRequest = SolDidOptions & {
 export type RemoveKeyRequest = SolDidOptions & {
   did: string;
   payer: PrivateKey;
-  owner?: PrivateKey;
+  owner?: PrivateKey; // optional different authority (DID owner) to the payer
   fragment: string;
   size?: number;
 };
@@ -103,7 +103,7 @@ export type RemoveKeyInstructionRequest = SolDidOptions & {
 export type AddControllerRequest = SolDidOptions & {
   did: string;
   payer: PrivateKey;
-  owner?: PrivateKey;
+  owner?: PrivateKey; // optional different authority (DID owner) to the payer
   controller: string;
   size?: number;
 };
@@ -135,7 +135,7 @@ export type RemoveControllerInstructionRequest = SolDidOptions & {
 export type AddServiceRequest = SolDidOptions & {
   did: string;
   payer: PrivateKey;
-  owner?: PrivateKey;
+  owner?: PrivateKey; // optional different authority (DID owner) to the payer
   service: ServiceEndpoint;
   size?: number;
 };
@@ -151,7 +151,7 @@ export type AddServiceInstructionRequest = SolDidOptions & {
 export type RemoveServiceRequest = SolDidOptions & {
   did: string;
   payer: PrivateKey;
-  owner?: PrivateKey;
+  owner?: PrivateKey; // optional different authority (DID owner) to the payer
   alias: string;
   size?: number;
 };
@@ -247,6 +247,9 @@ export const didIsRegistered = async (
   );
 };
 
+/**
+ * Creates and sends a transaction with the provided instructions
+ */
 export const sendTransaction = (
   connection: Connection,
   instructions: TransactionInstruction[],
@@ -257,6 +260,7 @@ export const sendTransaction = (
 
   const keys = [payer];
 
+  // Checks to see if the owner key needs to be included
   instructions.forEach((instruction) => {
     instruction.keys.map((meta) => {
       if (meta.isSigner && meta.pubkey.equals(owner.publicKey)) {
@@ -269,6 +273,12 @@ export const sendTransaction = (
   return SolanaUtil.sendAndConfirmTransaction(connection, transaction, ...keys);
 };
 
+/**
+ * Creates an instruction that updates a DID Document.
+ *
+ * This will return a register instruction (if the DID is not yet registered on chain)
+ * or an update instruction (if it is already registered), but not both
+ */
 export const createRegisterOrUpdateInstruction = async (
   did: string,
   payer: PublicKey,
@@ -298,7 +308,7 @@ export const createRegisterOrUpdateInstruction = async (
   return createUpdateInstruction({
     authority,
     document,
-    did: did,
+    did,
     connection,
     mergeBehaviour,
   });

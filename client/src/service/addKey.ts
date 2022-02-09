@@ -34,6 +34,12 @@ export const updatedCapabilityInvocation = (
   return [newVerificationMethod.id];
 };
 
+/**
+ * Adds a key to the DID
+ *
+ * It will send a register instruction (if the DID is not yet registered on chain)
+ * or an update instruction (if it is already registered)
+ */
 export const addKey = async (request: AddKeyRequest): Promise<void> => {
   const { did, connection: connectionInput, key, fragment } = request;
 

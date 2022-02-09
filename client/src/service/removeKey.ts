@@ -16,6 +16,9 @@ import {
 import { pick, without } from 'ramda';
 import { resolve } from './resolve';
 
+/**
+ * Removes a key from the DID
+ */
 export const removeKey = async (request: RemoveKeyRequest): Promise<void> => {
   const { did, connection: connectionInput, fragment } = request;
 
