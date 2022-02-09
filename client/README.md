@@ -23,12 +23,12 @@ import nacl from 'tweetnacl';
 const keyPair = nacl.sign.keyPair();
 
 // register a DID
-const identifier = await register({
+const did = await register({
   payer: keyPair.secretKey,
 });
 
 // resolve a DID
-const document = await resolve(identifier);
+const document = await resolve(did);
 
 // update a DID
 const request = {
@@ -38,7 +38,7 @@ const request = {
     service: [{
       description: 'Messaging Service',
       id: `${identifier}#service1`,
-      serviceEndpoint: `https://dummmy.dummy/${identifier}`,
+      serviceEndpoint: `https://dummmy.dummy/${did}`,
       type: 'Messaging',
     }],
   },
@@ -48,7 +48,7 @@ await update(request);
 // deactivate a DID
 await deactivate({
   payer: keyPair.secretKey,
-  identifier: did,
+  did,
 });
 ```
 
