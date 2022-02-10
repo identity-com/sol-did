@@ -72,7 +72,6 @@ removeKey({
   payer: keyPair.secretKey,
   did,
   fragment: 'ledger',
-  key
 });
 
 // Add a controller to the DID
@@ -94,7 +93,7 @@ addService({
   payer: keyPair.secretKey,
   did,
   service: {
-    id: `${did}#${alias}`,
+    id: `${did}#${fragment}`,
     type: 'Service',
     serviceEndpoint: `https://service.com/${did}`,
     description: 'Service'
@@ -105,7 +104,7 @@ addService({
 removeService({
   payer: keyPair.secretKey,
   did,
-  alias,
+  fragment,
 });
 ```
 

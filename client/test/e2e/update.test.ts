@@ -15,11 +15,11 @@ import { ServiceEndpoint } from 'did-resolver';
 
 const makeServiceRequest = (
   payer: Keypair,
-  identifier: string,
+  did: string,
   service: ServiceEndpoint
 ) => ({
   payer: payer.secretKey,
-  identifier,
+  did,
   document: {
     service: [service],
   },
@@ -110,19 +110,19 @@ describe('update', () => {
   });
 
   it('adds a service to a DID with an existing service', async () => {
-    const identifier = 'did:sol:' + CLUSTER + ':' + owner.publicKey.toBase58();
+    const did = 'did:sol:' + CLUSTER + ':' + owner.publicKey.toBase58();
 
     const service1 = await makeService(owner);
     const service2 = await makeService(owner);
 
     const request1: UpdateRequest = makeServiceRequest(
       owner,
-      identifier,
+      did,
       service1
     );
     const request2: UpdateRequest = makeServiceRequest(
       owner,
-      identifier,
+      did,
       service2
     );
 
@@ -130,7 +130,7 @@ describe('update', () => {
     await update(request1);
     await update(request2);
 
-    const doc = await resolve(identifier);
+    const doc = await resolve(did);
 
     console.log(JSON.stringify(doc, null, 1));
 
@@ -139,7 +139,7 @@ describe('update', () => {
   });
 
   it('adds a controller to a did', async () => {
-    const identifier = 'did:sol:' + CLUSTER + ':' + owner.publicKey.toBase58();
+    const did = 'did:sol:' + CLUSTER + ':' + owner.publicKey.toBase58();
 
     const controller = Keypair.generate().publicKey;
     const controller_id = DecentralizedIdentifier.create(
@@ -147,7 +147,7 @@ describe('update', () => {
       CLUSTER
     ).toString();
     const request: UpdateRequest = {
-      did: identifier,
+      did,
       payer: owner.secretKey,
       document: {
         controller: controller_id,
@@ -156,7 +156,7 @@ describe('update', () => {
 
     await update(request);
 
-    const doc = await resolve(identifier);
+    const doc = await resolve(did);
 
     console.log(JSON.stringify(doc, null, 1));
 

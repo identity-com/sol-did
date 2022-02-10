@@ -152,7 +152,7 @@ export type RemoveServiceRequest = SolDidOptions & {
   did: string;
   payer: PrivateKey;
   owner?: PrivateKey; // optional different authority (DID owner) to the payer
-  alias: string;
+  fragment: string;
   size?: number;
 };
 
@@ -160,7 +160,7 @@ export type RemoveServiceInstructionRequest = SolDidOptions & {
   did: string;
   payer: PublicKey;
   authority: PublicKey;
-  alias: string;
+  fragment: string;
   size?: number;
 };
 

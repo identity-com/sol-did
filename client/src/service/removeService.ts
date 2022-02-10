@@ -12,10 +12,10 @@ import { DIDDocument, ServiceEndpoint } from 'did-resolver';
 import { Connection } from '@solana/web3.js';
 import { DecentralizedIdentifier } from '../lib/solana/sol-data';
 
-const findServiceWithAlias = (
+const findServiceWithFragment = (
   document: DIDDocument,
-  alias: string
-): ServiceEndpoint | undefined => document.service?.find(hasAlias(alias));
+  fragment: string
+): ServiceEndpoint | undefined => document.service?.find(hasAlias(fragment));
 
 /**
  * Removes a service from a DID
@@ -23,7 +23,7 @@ const findServiceWithAlias = (
 export const removeService = async (
   request: RemoveServiceRequest
 ): Promise<void> => {
-  const { did, connection: connectionInput, alias } = request;
+  const { did, connection: connectionInput, fragment } = request;
 
   const id = DecentralizedIdentifier.parse(did);
   const cluster = id.clusterType;
@@ -38,7 +38,7 @@ export const removeService = async (
     authority: owner.publicKey,
     connection,
     did: did,
-    alias,
+    fragment,
   });
 
   await sendTransaction(connection, [instruction], payer, owner);
@@ -53,7 +53,7 @@ export const createRemoveServiceInstruction = async (
     did,
     connection: connectionInput,
     size,
-    alias,
+    fragment,
   } = request;
 
   const id = DecentralizedIdentifier.parse(did);
@@ -62,10 +62,10 @@ export const createRemoveServiceInstruction = async (
     connectionInput || new Connection(cluster.solanaUrl(), 'recent');
 
   const existingDocument = await resolve(did, { connection });
-  const serviceToRemove = findServiceWithAlias(existingDocument, alias);
+  const serviceToRemove = findServiceWithFragment(existingDocument, fragment);
 
   if (!serviceToRemove)
-    throw new Error(`Service ${alias} not found on ${did}`);
+    throw new Error(`Service ${fragment} not found on ${did}`);
 
   // get the new list of services without the one being removed.
   // the cast is safe here as if the service array did not exist, it would fail above
