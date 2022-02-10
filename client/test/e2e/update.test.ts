@@ -115,16 +115,8 @@ describe('update', () => {
     const service1 = await makeService(owner);
     const service2 = await makeService(owner);
 
-    const request1: UpdateRequest = makeServiceRequest(
-      owner,
-      did,
-      service1
-    );
-    const request2: UpdateRequest = makeServiceRequest(
-      owner,
-      did,
-      service2
-    );
+    const request1: UpdateRequest = makeServiceRequest(owner, did, service1);
+    const request2: UpdateRequest = makeServiceRequest(owner, did, service2);
 
     // add the services individually
     await update(request1);

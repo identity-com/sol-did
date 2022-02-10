@@ -9,7 +9,7 @@ import { resolve } from './resolve';
 import { pick, without } from 'ramda';
 import { hasAlias, sanitizeDefaultKeys } from '../lib/did';
 import { DIDDocument, ServiceEndpoint } from 'did-resolver';
-import { Connection } from '@solana/web3.js';
+import { Connection, TransactionInstruction } from '@solana/web3.js';
 import { DecentralizedIdentifier } from '../lib/solana/sol-data';
 
 const findServiceWithFragment = (
@@ -46,7 +46,7 @@ export const removeService = async (
 
 export const createRemoveServiceInstruction = async (
   request: RemoveServiceInstructionRequest
-) => {
+): Promise<TransactionInstruction> => {
   const {
     payer,
     authority,

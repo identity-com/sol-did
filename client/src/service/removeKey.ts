@@ -5,7 +5,7 @@ import {
   RemoveKeyRequest,
   sendTransaction,
 } from '../lib/util';
-import { Connection } from '@solana/web3.js';
+import { Connection, TransactionInstruction } from '@solana/web3.js';
 import { DecentralizedIdentifier } from '../lib/solana/sol-data';
 import { DIDDocument } from 'did-resolver';
 import {
@@ -43,7 +43,7 @@ export const removeKey = async (request: RemoveKeyRequest): Promise<void> => {
 
 export const createRemoveKeyInstruction = async (
   request: RemoveKeyInstructionRequest
-) => {
+): Promise<TransactionInstruction> => {
   const {
     payer,
     authority,

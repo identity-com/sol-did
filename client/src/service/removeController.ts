@@ -5,7 +5,7 @@ import {
   RemoveControllerRequest,
   sendTransaction,
 } from '../lib/util';
-import { Connection } from '@solana/web3.js';
+import { Connection, TransactionInstruction } from '@solana/web3.js';
 import { DecentralizedIdentifier } from '../lib/solana/sol-data';
 import { DIDDocument } from 'did-resolver';
 import { filterNotNil, sanitizeDefaultKeys } from '../lib/did';
@@ -51,7 +51,7 @@ export const removeController = async (
 
 export const createRemoveControllerInstruction = async (
   request: RemoveControllerInstructionRequest
-) => {
+): Promise<TransactionInstruction> => {
   const {
     payer,
     authority,

@@ -7,14 +7,14 @@ import {
 } from '../lib/util';
 import { resolve } from './resolve';
 import { isDefault, makeVerificationMethod } from '../lib/did';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { DecentralizedIdentifier } from '../lib/solana/sol-data';
 import { DIDDocument, VerificationMethod } from 'did-resolver';
 
 export const updatedCapabilityInvocation = (
   existingDocument: DIDDocument,
   newVerificationMethod: VerificationMethod
-) => {
+): (string | VerificationMethod)[] => {
   if (!existingDocument || !existingDocument.capabilityInvocation) {
     return [newVerificationMethod.id];
   }
@@ -65,7 +65,7 @@ export const addKey = async (request: AddKeyRequest): Promise<void> => {
 
 export const createAddKeyInstruction = async (
   request: AddKeyInstructionRequest
-) => {
+): Promise<TransactionInstruction> => {
   const {
     payer,
     authority,

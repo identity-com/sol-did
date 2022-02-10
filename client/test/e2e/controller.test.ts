@@ -6,7 +6,7 @@ import {
   addController,
   removeController,
 } from '../../src';
-import { CLUSTER , VALIDATOR_URL} from '../constants';
+import { CLUSTER, VALIDATOR_URL } from '../constants';
 import { Connection, Keypair } from '@solana/web3.js';
 
 describe('controller', () => {

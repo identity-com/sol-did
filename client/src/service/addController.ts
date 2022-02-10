@@ -5,7 +5,7 @@ import {
   makeKeypair,
   sendTransaction,
 } from '../lib/util';
-import { Connection } from '@solana/web3.js';
+import { Connection, TransactionInstruction } from '@solana/web3.js';
 import { DecentralizedIdentifier } from '../lib/solana/sol-data';
 import { DIDDocument } from 'did-resolver';
 
@@ -41,7 +41,7 @@ export const addController = async (
 
 export const createAddControllerInstruction = async (
   request: AddControllerInstructionRequest
-) => {
+): Promise<TransactionInstruction> => {
   const {
     payer,
     authority,
