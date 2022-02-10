@@ -10,7 +10,7 @@ export const update = async (request: UpdateRequest): Promise<UpdateState> => {
   await DID.update({
     owner,
     payer,
-    identifier: request.identifier,
+    did: request.identifier,
     document: request.didDocument,
     mergeBehaviour: request.options?.mergeBehaviour,
   });
