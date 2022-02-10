@@ -12,7 +12,7 @@ export const deactivate = async (
   await DID.deactivate({
     owner,
     payer,
-    identifier: request.identifier,
+    did: request.identifier,
   });
 
   return {

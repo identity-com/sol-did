@@ -12,7 +12,7 @@ import { DecentralizedIdentifier, SolData } from '../lib/solana/sol-data';
  * @param request
  */
 export const update = async (request: UpdateRequest): Promise<void> => {
-  const id = DecentralizedIdentifier.parse(request.identifier);
+  const id = DecentralizedIdentifier.parse(request.did);
   const payer = makeKeypair(request.payer);
   const owner = request.owner ? makeKeypair(request.owner) : undefined;
   const cluster = id.clusterType;
@@ -30,13 +30,13 @@ export const update = async (request: UpdateRequest): Promise<void> => {
 };
 
 export const createUpdateInstruction = async ({
-  identifier,
+  did,
   authority,
   document,
   mergeBehaviour,
   connection: connectionInput,
 }: UpdateInstructionRequest): Promise<TransactionInstruction> => {
-  const id = DecentralizedIdentifier.parse(identifier);
+  const id = DecentralizedIdentifier.parse(did);
   const cluster = id.clusterType;
   const connection =
     connectionInput || new Connection(cluster.solanaUrl(), 'recent');
