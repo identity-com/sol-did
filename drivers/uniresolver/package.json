@@ -21,7 +21,7 @@
     "pretest": "(cd ../../client && yarn && yarn build && yarn link) && yarn link @identity.com/sol-did-client",
     "test": "tsdx test",
     "lint": "tsdx lint --maxWarnings 0",
-    "prepublishOnly": "yarn build",
+    "prepublish": "yarn build",
     "dev": "ts-node-dev src/index.ts",
     "app": "node dist/index.js",
     "buildAndPush": "docker-compose build && docker push identitydotcom/driver-did-sol"
