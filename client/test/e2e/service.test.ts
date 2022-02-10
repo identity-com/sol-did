@@ -96,7 +96,7 @@ describe('service', () => {
         connection,
         owner: owner.secretKey,
         payer: payer.secretKey,
-        alias,
+        fragment: alias,
       });
 
       document = await resolve(did);
