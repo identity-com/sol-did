@@ -6,6 +6,7 @@ export { ClusterType, DecentralizedIdentifier } from './lib/solana/sol-data';
 export { resolve } from './service/resolve';
 export { register, createRegisterInstruction } from './service/register';
 export { update, createUpdateInstruction } from './service/update';
+
 export { deactivate } from './service/deactivate';
 
 export { addKey, createAddKeyInstruction } from './service/addKey';
@@ -33,4 +34,5 @@ export {
   PrivateKey,
   PublicKeyBase58,
   keyToIdentifier,
+  createRegisterOrUpdateInstruction,
 } from './lib/util';
