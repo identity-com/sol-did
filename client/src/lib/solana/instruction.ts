@@ -48,7 +48,7 @@ export class SolInstruction extends Enum {
 
   static resize(size: number, updateData: SolData): SolInstruction {
     return new SolInstruction({
-      resize: new Initialize({ size, updateData }),
+      resize: new Resize({ size, updateData }),
     });
   }
 }

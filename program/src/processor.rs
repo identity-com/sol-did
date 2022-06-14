@@ -1,6 +1,8 @@
 //! Program state processor
 
 use solana_program::entrypoint::MAX_PERMITTED_DATA_INCREASE;
+use solana_program::program::invoke;
+use solana_program::system_instruction::transfer;
 use {
     crate::{
         borsh as program_borsh,
@@ -173,11 +175,29 @@ pub fn process_instruction(
 
             let current_size = data_info.data_len();
             if size > current_size as u64 {
-                assert!(size - (current_size as u64) < MAX_PERMITTED_DATA_INCREASE as u64);
-                return Err(ProgramError::InvalidArgument);
+                assert!(size - (current_size as u64) < MAX_PERMITTED_DATA_INCREASE as u64, "Sol account size increase too large");
             }
 
+            msg!("Trying to realloc to {} bytes", size);
             data_info.realloc(size as usize, false)?;
+            msg!("Done with realloc");
+
+
+            // optional transfer to match rent minimum
+            if data_info.lamports() < rent.minimum_balance(size as usize) {
+                let delta = rent.minimum_balance(size as usize) - data_info.lamports();
+                msg!("Transferring {} lamports to match rent minimum", delta);
+                invoke(
+                    &transfer(funder_info.key, data_info.key, delta),
+                    &[
+                        funder_info.clone(),
+                        data_info.clone(),
+                        system_program_info.clone(),
+                    ]
+                )?;
+                msg!("Done with transfer");
+            }
+
 
             let mut sol = SolData::new_sparse(*authority_info.key);
             sol.merge(update_data);
