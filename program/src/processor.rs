@@ -175,7 +175,10 @@ pub fn process_instruction(
 
             let current_size = data_info.data_len();
             if size > current_size as u64 {
-                assert!(size - (current_size as u64) < MAX_PERMITTED_DATA_INCREASE as u64, "Sol account size increase too large");
+                assert!(
+                    size - (current_size as u64) < MAX_PERMITTED_DATA_INCREASE as u64,
+                    "Sol account size increase too large"
+                );
             }
 
             let account_data =
@@ -191,7 +194,6 @@ pub fn process_instruction(
             data_info.realloc(size as usize, false)?;
             msg!("Done with realloc");
 
-
             // optional transfer to match rent minimum
             if data_info.lamports() < rent.minimum_balance(size as usize) {
                 let delta = rent.minimum_balance(size as usize) - data_info.lamports();
@@ -202,11 +204,10 @@ pub fn process_instruction(
                         funder_info.clone(),
                         data_info.clone(),
                         system_program_info.clone(),
-                    ]
+                    ],
                 )?;
                 msg!("Done with transfer");
             }
-
 
             let mut sol = SolData::new_sparse(*authority_info.key);
             sol.merge(update_data);

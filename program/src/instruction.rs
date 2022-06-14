@@ -194,7 +194,7 @@ mod tests {
         let update_data = test_sol_data();
         let mut expected = vec![3];
         expected.extend_from_slice(&size.to_le_bytes());
-        expected.append(&mut init_data.try_to_vec().unwrap());
+        expected.append(&mut update_data.try_to_vec().unwrap());
         let instruction = SolInstruction::Resize { size, update_data };
         assert_eq!(instruction.try_to_vec().unwrap(), expected);
         assert_eq!(
