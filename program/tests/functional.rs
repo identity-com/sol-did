@@ -184,7 +184,10 @@ async fn initialize_too_small_fail() {
         .unwrap();
     assert_eq!(
         err,
-        TransactionError::InstructionError(0, InstructionError::BorshIoError("Unknown".to_string())),
+        TransactionError::InstructionError(
+            0,
+            InstructionError::BorshIoError("Unknown".to_string())
+        ),
     );
 }
 
@@ -592,10 +595,7 @@ async fn resize_account_success() {
         account.lamports,
         1.max(Rent::default().minimum_balance(SolData::DEFAULT_SIZE + 100))
     );
-    assert_eq!(
-        account.data.len(),
-        SolData::DEFAULT_SIZE + 100
-    );
+    assert_eq!(account.data.len(), SolData::DEFAULT_SIZE + 100);
 }
 
 async fn create_sol_account(authority_pubkey: Pubkey) -> (Pubkey, Account) {
