@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node: ['15.x']
+        node: ['16.x']
         os: [ubuntu-latest]
 
     defaults:
@@ -52,10 +52,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node: ['15.x']
+        node: ['16.x']
         os: [ubuntu-latest]
-        solana: ['v1.8.12']
-        rust: ['1.50']
+        solana: ['v1.9.18']
+        rust: ['1.60']
 
     steps:
       - name: Checkout repo

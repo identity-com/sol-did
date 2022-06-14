@@ -32,7 +32,7 @@ describe('sol-data', () => {
 
       it('should allow properties to be added to empty arrays', async () => {
         const withService = await SolData.empty();
-        SolData.decode();
+
         withService.service = [
           ServiceEndpoint.parse(await makeService(Keypair.generate())),
         ];
