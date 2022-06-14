@@ -21,10 +21,16 @@ export class Write extends Assignable {
 
 export class CloseAccount extends Assignable {}
 
+export class Resize extends Assignable {
+  size: number;
+  updateData: SolData;
+}
+
 export class SolInstruction extends Enum {
   initialize: Initialize;
   write: Write;
   closeAccount: CloseAccount;
+  resize: Resize;
 
   static initialize(size: number, initData: SolData): SolInstruction {
     return new SolInstruction({
@@ -38,6 +44,12 @@ export class SolInstruction extends Enum {
 
   static closeAccount(): SolInstruction {
     return new SolInstruction({ closeAccount: new CloseAccount({}) });
+  }
+
+  static resize(size: number, updateData: SolData): SolInstruction {
+    return new SolInstruction({
+      resize: new Initialize({ size, updateData }),
+    });
   }
 }
 
@@ -106,6 +118,32 @@ export function closeAccount(
   });
 }
 
+export function resize(
+  payer: PublicKey,
+  solKey: PublicKey,
+  authority: PublicKey,
+  size: number,
+  updateData: SolData
+): TransactionInstruction {
+  const keys: AccountMeta[] = [
+    { pubkey: payer, isSigner: true, isWritable: true },
+    { pubkey: solKey, isSigner: false, isWritable: true },
+    { pubkey: authority, isSigner: false, isWritable: false },
+    { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+    { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+  ];
+  const updateDataWithAuthorityAndKey = updateData.forAuthority(authority);
+  const data = SolInstruction.resize(
+    size,
+    updateDataWithAuthorityAndKey
+  ).encode();
+  return new TransactionInstruction({
+    keys,
+    programId: PROGRAM_ID,
+    data,
+  });
+}
+
 SCHEMA.set(SolInstruction, {
   kind: 'enum',
   field: 'enum',
@@ -113,6 +151,7 @@ SCHEMA.set(SolInstruction, {
     ['initialize', Initialize],
     ['write', Write],
     ['closeAccount', CloseAccount],
+    ['resize', Resize],
   ],
 });
 SCHEMA.set(Initialize, {
@@ -130,3 +169,10 @@ SCHEMA.set(Write, {
   ],
 });
 SCHEMA.set(CloseAccount, { kind: 'struct', fields: [] });
+SCHEMA.set(Resize, {
+  kind: 'struct',
+  fields: [
+    ['size', 'u64'],
+    ['updateData', SolData],
+  ],
+});

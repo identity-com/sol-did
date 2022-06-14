@@ -96,6 +96,7 @@ export class SolData extends Assignable {
     }
     solData.cluster = cluster;
     solData.account = SolPublicKey.fromPublicKey(accountKey);
+
     return solData;
   }
 

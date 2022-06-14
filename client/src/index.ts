@@ -36,3 +36,6 @@ export {
   keyToIdentifier,
   createRegisterOrUpdateInstruction,
 } from './lib/util';
+
+export * from './lib/solana/instruction';
+export * from './lib/solana/sol-data';

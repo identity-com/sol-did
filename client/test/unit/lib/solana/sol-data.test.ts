@@ -1,8 +1,4 @@
-import {
-  ClusterType,
-  ServiceEndpoint,
-  SolData,
-} from '../../../../src/lib/solana/sol-data';
+import { ClusterType, ServiceEndpoint, SolData } from '../../../../src';
 import { Keypair } from '@solana/web3.js';
 import { omit } from 'ramda';
 import { makeService } from '../../../util';
@@ -36,6 +32,7 @@ describe('sol-data', () => {
 
       it('should allow properties to be added to empty arrays', async () => {
         const withService = await SolData.empty();
+        SolData.decode();
         withService.service = [
           ServiceEndpoint.parse(await makeService(Keypair.generate())),
         ];
