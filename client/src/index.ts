@@ -3,6 +3,7 @@ export { DIDDocument } from 'did-resolver';
 export { SolanaUtil } from './lib/solana/solana-util';
 export { ClusterType, DecentralizedIdentifier } from './lib/solana/sol-data';
 
+export { resize } from './service/resize';
 export { resolve } from './service/resolve';
 export { register, createRegisterInstruction } from './service/register';
 export { update, createUpdateInstruction } from './service/update';
@@ -36,3 +37,6 @@ export {
   keyToIdentifier,
   createRegisterOrUpdateInstruction,
 } from './lib/util';
+
+export * from './lib/solana/instruction';
+export * from './lib/solana/sol-data';

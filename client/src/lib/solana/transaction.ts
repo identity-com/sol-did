@@ -1,6 +1,6 @@
 import { ClusterType, SolData, getPDAKeyFromAuthority } from './sol-data';
 import { SolanaUtil } from './solana-util';
-import { closeAccount, initialize, write } from './instruction';
+import { closeAccount, initialize, resize, write } from './instruction';
 import {
   Keypair,
   Connection,
@@ -82,6 +82,28 @@ export class SolTransaction {
 
     // Send the instructions
     return SolanaUtil.sendAndConfirmTransaction(
+      connection,
+      transaction,
+      payer,
+      owner
+    );
+  }
+
+  static async resizeAccount(
+    connection: Connection,
+    payer: Keypair,
+    recordKey: PublicKey,
+    size: number,
+    updateData: SolData,
+    owner: Keypair = payer
+  ): Promise<void> {
+    // Allocate new memory for the account
+    const transaction = new Transaction().add(
+      resize(payer.publicKey, recordKey, owner.publicKey, size, updateData)
+    );
+
+    // Send the instructions
+    await SolanaUtil.sendAndConfirmTransaction(
       connection,
       transaction,
       payer,

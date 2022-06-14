@@ -53,6 +53,22 @@ pub enum SolInstruction {
     /// 1. `[signer]` Sol authority
     /// 2. `[]` Receiver of account lamports
     CloseAccount,
+
+    /// Resize an existing sol account
+    ///
+    /// Accounts expected by this instruction:
+    ///
+    /// 0. `[writable, signer]` Funding account, must be a system account
+    /// 1. `[writable]` Unallocated Sol account, must be a program address
+    /// 2. `[]` Sol authority
+    /// 3. `[]` Rent sysvar
+    /// 4. `[]` System program
+    Resize {
+        /// New account size of the DID document
+        size: u64,
+        /// Additional data to write into the document
+        update_data: SolData,
+    },
 }
 
 /// Create a `SolInstruction::Initialize` instruction
@@ -101,6 +117,27 @@ pub fn close_account(sol_account: &Pubkey, authority: &Pubkey, receiver: &Pubkey
     )
 }
 
+/// Create a `SolInstruction::Resize` instruction
+pub fn resize(
+    funder_account: &Pubkey,
+    sol_account: &Pubkey,
+    authority: &Pubkey,
+    size: u64,
+    update_data: SolData,
+) -> Instruction {
+    Instruction::new_with_borsh(
+        id(),
+        &SolInstruction::Resize { size, update_data },
+        vec![
+            AccountMeta::new(*funder_account, true),
+            AccountMeta::new(*sol_account, false),
+            AccountMeta::new_readonly(*authority, true),
+            AccountMeta::new_readonly(sysvar::rent::id(), false),
+            AccountMeta::new_readonly(system_program::id(), false),
+        ],
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -144,6 +181,21 @@ mod tests {
     fn serialize_close_account() {
         let instruction = SolInstruction::CloseAccount;
         let expected = vec![2];
+        assert_eq!(instruction.try_to_vec().unwrap(), expected);
+        assert_eq!(
+            SolInstruction::try_from_slice(&expected).unwrap(),
+            instruction
+        );
+    }
+
+    #[test]
+    fn serialize_resize() {
+        let size = 2 * SolData::DEFAULT_SIZE as u64;
+        let update_data = test_sol_data();
+        let mut expected = vec![3];
+        expected.extend_from_slice(&size.to_le_bytes());
+        expected.append(&mut update_data.try_to_vec().unwrap());
+        let instruction = SolInstruction::Resize { size, update_data };
         assert_eq!(instruction.try_to_vec().unwrap(), expected);
         assert_eq!(
             SolInstruction::try_from_slice(&expected).unwrap(),

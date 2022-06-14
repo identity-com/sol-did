@@ -1,5 +1,8 @@
 //! Program state processor
 
+use solana_program::entrypoint::MAX_PERMITTED_DATA_INCREASE;
+use solana_program::program::invoke;
+use solana_program::system_instruction::transfer;
 use {
     crate::{
         borsh as program_borsh,
@@ -100,7 +103,7 @@ pub fn process_instruction(
                     data_info.clone(),
                     system_program_info.clone(),
                 ],
-                &[&sol_signer_seeds],
+                &[sol_signer_seeds],
             )?;
 
             let mut sol = SolData::new_sparse(*authority_info.key);
@@ -156,6 +159,60 @@ pub fn process_instruction(
                 .checked_add(data_lamports)
                 .ok_or(SolError::Overflow)?;
             Ok(())
+        }
+
+        SolInstruction::Resize { size, update_data } => {
+            msg!("SolInstruction::Resize");
+
+            assert_eq!(update_data.account_version, SolData::VALID_ACCOUNT_VERSION);
+
+            let funder_info = next_account_info(account_info_iter)?;
+            let data_info = next_account_info(account_info_iter)?;
+            let authority_info = next_account_info(account_info_iter)?;
+            let rent_info = next_account_info(account_info_iter)?;
+            let system_program_info = next_account_info(account_info_iter)?;
+            let rent = &Rent::from_account_info(rent_info)?;
+
+            let current_size = data_info.data_len();
+            if size > current_size as u64 {
+                assert!(
+                    size - (current_size as u64) < MAX_PERMITTED_DATA_INCREASE as u64,
+                    "Sol account size increase too large"
+                );
+            }
+
+            let account_data =
+                program_borsh::try_from_slice_incomplete::<SolData>(*data_info.data.borrow())?;
+            assert_eq!(account_data.account_version, SolData::VALID_ACCOUNT_VERSION);
+            if !account_data.is_initialized() {
+                msg!("Sol account not initialized");
+                return Err(ProgramError::UninitializedAccount);
+            }
+            check_authority(authority_info, &account_data)?;
+
+            msg!("Trying to realloc to {} bytes", size);
+            data_info.realloc(size as usize, false)?;
+            msg!("Done with realloc");
+
+            // optional transfer to match rent minimum
+            if data_info.lamports() < rent.minimum_balance(size as usize) {
+                let delta = rent.minimum_balance(size as usize) - data_info.lamports();
+                msg!("Transferring {} lamports to match rent minimum", delta);
+                invoke(
+                    &transfer(funder_info.key, data_info.key, delta),
+                    &[
+                        funder_info.clone(),
+                        data_info.clone(),
+                        system_program_info.clone(),
+                    ],
+                )?;
+                msg!("Done with transfer");
+            }
+
+            let mut sol = SolData::new_sparse(*authority_info.key);
+            sol.merge(update_data);
+
+            BorshSerialize::serialize(&sol, &mut *data_info.data.borrow_mut()).map_err(|e| e.into())
         }
     }
 }
