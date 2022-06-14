@@ -58,7 +58,7 @@ describe('resize', () => {
       payer: payer.secretKey,
       size: DEFAULT_DOCUMENT_SIZE + SIZE_INCREASE,
       cluster: CLUSTER,
-      owner: owner.publicKey.toBase58(),
+      owner: owner.secretKey,
       document: {
         service: [service],
       },

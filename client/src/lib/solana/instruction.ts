@@ -128,7 +128,7 @@ export function resize(
   const keys: AccountMeta[] = [
     { pubkey: payer, isSigner: true, isWritable: true },
     { pubkey: solKey, isSigner: false, isWritable: true },
-    { pubkey: authority, isSigner: false, isWritable: false },
+    { pubkey: authority, isSigner: true, isWritable: false },
     { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
     { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
   ];

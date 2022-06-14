@@ -34,8 +34,8 @@ export type RegisterRequest = SolDidOptions & {
 export type ResizeRequest = SolDidOptions & {
   did: string;
   payer: PrivateKey;
-  document?: Partial<DIDDocument>;
-  owner?: PublicKeyBase58;
+  document: Partial<DIDDocument>;
+  owner?: PrivateKey;
   cluster?: ClusterType;
   size: number;
 };

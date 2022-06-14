@@ -178,6 +178,15 @@ pub fn process_instruction(
                 assert!(size - (current_size as u64) < MAX_PERMITTED_DATA_INCREASE as u64, "Sol account size increase too large");
             }
 
+            let account_data =
+                program_borsh::try_from_slice_incomplete::<SolData>(*data_info.data.borrow())?;
+            assert_eq!(account_data.account_version, SolData::VALID_ACCOUNT_VERSION);
+            if !account_data.is_initialized() {
+                msg!("Sol account not initialized");
+                return Err(ProgramError::UninitializedAccount);
+            }
+            check_authority(authority_info, &account_data)?;
+
             msg!("Trying to realloc to {} bytes", size);
             data_info.realloc(size as usize, false)?;
             msg!("Done with realloc");

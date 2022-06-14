@@ -93,17 +93,22 @@ export class SolTransaction {
     connection: Connection,
     payer: Keypair,
     recordKey: PublicKey,
-    authority: PublicKey,
     size: number,
-    updateData: SolData
+    updateData: SolData,
+    owner: Keypair = payer
   ): Promise<void> {
     // Allocate new memory for the account
     const transaction = new Transaction().add(
-      resize(payer.publicKey, recordKey, authority, size, updateData)
+      resize(payer.publicKey, recordKey, owner.publicKey, size, updateData)
     );
 
     // Send the instructions
-    await SolanaUtil.sendAndConfirmTransaction(connection, transaction, payer);
+    await SolanaUtil.sendAndConfirmTransaction(
+      connection,
+      transaction,
+      payer,
+      owner
+    );
   }
 
   static async deactivateDIDInstruction(
