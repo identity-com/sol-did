@@ -45,7 +45,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --manifest-path program/Cargo.toml --tests --features test-bpf -Zunstable-options --workspace --all-targets -- --deny=warnings
+          args: --manifest-path program/Cargo.toml --tests --features test-bpf --workspace --all-targets -- --deny=warnings
 
   program-unit-test:
     name: Unit test program on Rust ${{ matrix.rust }} and ${{ matrix.os }}

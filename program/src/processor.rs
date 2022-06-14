@@ -103,7 +103,7 @@ pub fn process_instruction(
                     data_info.clone(),
                     system_program_info.clone(),
                 ],
-                &[&sol_signer_seeds],
+                &[sol_signer_seeds],
             )?;
 
             let mut sol = SolData::new_sparse(*authority_info.key);

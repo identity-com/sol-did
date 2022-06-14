@@ -169,7 +169,7 @@ mod test {
                 .collect::<Vec<_>>();
             let mut controller_data_bytes = controller_data
                 .iter()
-                .map(|controller_data| BorshSerialize::try_to_vec(controller_data))
+                .map(BorshSerialize::try_to_vec)
                 .collect::<Result<Vec<_>, _>>()?;
             let mut controller_lamports = controller_data_bytes
                 .iter()
