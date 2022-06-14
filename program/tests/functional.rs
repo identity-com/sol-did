@@ -184,7 +184,7 @@ async fn initialize_too_small_fail() {
         .unwrap();
     assert_eq!(
         err,
-        TransactionError::InstructionError(0, InstructionError::BorshIoError("Unkown".to_string())),
+        TransactionError::InstructionError(0, InstructionError::BorshIoError("Unknown".to_string())),
     );
 }
 
@@ -536,6 +536,66 @@ async fn validate_owner_failed_not_did() {
     let validation_result =
         validate_owner(&sol_account_info, &authority_account_info, iter::empty());
     assert_eq!(validation_result, Err(ProgramError::IncorrectProgramId))
+}
+
+#[tokio::test]
+async fn resize_account_success() {
+    let mut context = program_test().start_with_context().await;
+
+    let authority = Keypair::new();
+    let (sol, _) = get_sol_address_with_seed(&authority.pubkey());
+    initialize_did_account(&mut context, &authority.pubkey(), SolData::DEFAULT_SIZE)
+        .await
+        .unwrap();
+
+    let account_info = context
+        .banks_client
+        .get_account(sol)
+        .await
+        .unwrap()
+        .unwrap();
+    let mut sol_data =
+        program_borsh::try_from_slice_incomplete::<SolData>(&account_info.data).unwrap();
+    let test_endpoint = ServiceEndpoint {
+        id: "service1".to_string(),
+        endpoint_type: "example".to_string(),
+        endpoint: "example.com".to_string(),
+        description: "".to_string(),
+    };
+    sol_data.service.push(test_endpoint.clone());
+
+    let transaction = Transaction::new_signed_with_payer(
+        &[instruction::resize(
+            &context.payer.pubkey(),
+            &sol,
+            &authority.pubkey(),
+            (SolData::DEFAULT_SIZE + 100) as u64,
+            sol_data.clone(),
+        )],
+        Some(&context.payer.pubkey()),
+        &[&context.payer, &authority],
+        context.last_blockhash,
+    );
+    context
+        .banks_client
+        .process_transaction(transaction)
+        .await
+        .unwrap();
+
+    let account = context
+        .banks_client
+        .get_account(sol)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        account.lamports,
+        1.max(Rent::default().minimum_balance(SolData::DEFAULT_SIZE + 100))
+    );
+    assert_eq!(
+        account.data.len(),
+        SolData::DEFAULT_SIZE + 100
+    );
 }
 
 async fn create_sol_account(authority_pubkey: Pubkey) -> (Pubkey, Account) {

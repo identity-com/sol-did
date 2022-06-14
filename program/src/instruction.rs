@@ -131,7 +131,7 @@ pub fn resize(
         vec![
             AccountMeta::new(*funder_account, true),
             AccountMeta::new(*sol_account, false),
-            AccountMeta::new_readonly(*authority, false),
+            AccountMeta::new_readonly(*authority, true),
             AccountMeta::new_readonly(sysvar::rent::id(), false),
             AccountMeta::new_readonly(system_program::id(), false),
         ],
