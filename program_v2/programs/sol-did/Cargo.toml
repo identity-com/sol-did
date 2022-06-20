@@ -1,0 +1,20 @@
+[package]
+name = "sol-did"
+version = "0.1.0"
+description = "Created with Anchor"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "sol_did"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+# TODO: Update to stable when available
+anchor-lang = { git = "https://github.com/project-serum/anchor", branch = "master" }
