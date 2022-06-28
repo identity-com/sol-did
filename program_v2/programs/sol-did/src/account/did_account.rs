@@ -37,6 +37,7 @@ pub struct NativeDidVerificationKey {
     pub key: Pubkey,
 }
 
+#[derive(Debug, AnchorSerialize, AnchorDeserialize, Default, Clone)]
 pub struct EthWallet(pub(crate) [u8; 20]);
 
 /// The eth wallet authority address for a [`DidAccount`]
