@@ -13,4 +13,13 @@ describe("sol-did", () => {
     const tx = await program.methods.initialize().rpc();
     console.log("Your transaction signature", tx);
   });
+  it("Service added!", async () => {
+    // Add your test here.
+    const tx = await program.methods.addService({
+      id: "test",
+      serviceType: "serviceType",
+      serviceEndpoint: "test",
+    }).rpc();
+    console.log("Your transaction signature", tx);
+  });
 });

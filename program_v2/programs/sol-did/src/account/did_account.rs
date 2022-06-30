@@ -1,13 +1,14 @@
 use anchor_lang::prelude::*;
-
+use std::collections::HashSet;
+use std::collections::hash_map::HashMap;
 #[account]
 #[derive(Default)]
-pub struct DidAccount {
+pub struct DidAccountData {
     pub version: u8,
     /// All native verification keys
     pub nativeVerificationKeys: Vec<NativeDidVerificationKey>,
     /// All EthWallet verification addresses
-    pub ethVerificationKeys: Vec<EthWalletDidVerificationKey>,
+    // pub ethVerificationKeys: Vec<EthWalletDidVerificationKey>,
     /// TODO: Is there a general way to support other keys? (non-on-chain keys).
     /// Move that into a "free-text-extension" and merge back on client side.
     /// Services
@@ -18,7 +19,7 @@ pub struct DidAccount {
     pub otherControllers: Vec<String>,
 }
 
-impl DidAccount {
+impl DidAccountData {
     pub fn on_chain_size_with_arg(self) -> usize {
         // TODO.
         0
@@ -52,11 +53,22 @@ pub struct EthWalletDidVerificationKey {
     pub key: EthWallet,
 }
 
+// #[derive(Debug, AnchorSerialize, AnchorDeserialize,Clone)]
+// pub enum Dynamic {
+//     Case1(String),
+//     Case2(HashSet<String>),
+// }
+
+// impl Default for Dynamic {
+//     fn default() -> Self {
+//         Dynamic::Case1(Default::default())
+//     }
+// }
+
 /// A Service Definition [`DidAccount`]
 #[derive(Debug, AnchorSerialize, AnchorDeserialize, Default, Clone)]
 pub struct ServiceDefinition {
-    /// The permissions this key has
-    pub key: String,
-    /// The eth wallet address
-    pub value: String,
+    pub id: String,
+    pub service_type: String,
+    pub service_endpoint: String,
 }

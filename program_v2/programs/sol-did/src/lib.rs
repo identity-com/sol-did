@@ -1,4 +1,8 @@
+use std::collections::{HashSet, HashMap};
+
+use account::ServiceDefinition;
 use anchor_lang::prelude::*;
+use account::DidAccountData;
 
 pub mod account;
 
@@ -9,7 +13,7 @@ pub mod sol_did {
     use super::*;
 
     // TODO remove
-    pub fn initialize(ctx: Context<DidAccount>) -> Result<()> {
+    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         Ok(())
     }
 
@@ -30,12 +34,13 @@ pub mod sol_did {
     }
 
     // TODO implement
-    pub fn addService(ctx: Context<DidAccount>) -> Result<()> {
+    pub fn addService(ctx: Context<DidAccount>, service: ServiceDefinition) -> Result<()> {
+        ctx.accounts.data.services.push(service);
         Ok(())
     }
-
     // TODO implement
-    pub fn removeService(ctx: Context<DidAccount>) -> Result<()> {
+    pub fn removeService(ctx: Context<DidAccount>, programID: String) -> Result<()> {
+        ctx.accounts.data.services.retain(|x| x.id != programID);
         Ok(())
     }
 
@@ -51,9 +56,15 @@ pub mod sol_did {
 }
 
 #[derive(Accounts)]
-pub struct DidAccount {} // TODO Replace with
+pub struct DidAccount<'info> {
+    data: Account<'info, DidAccountData>,
+}
 
-
+#[derive(Accounts)]
+pub struct Initialize {
+    
+}
+#[derive(Debug, AnchorSerialize, AnchorDeserialize,Clone)]
 pub enum VerificationMethodTypes {
     /// The main Ed25519Verification Method.
     /// https://w3c-ccg.github.io/lds-ed25519-2018/
