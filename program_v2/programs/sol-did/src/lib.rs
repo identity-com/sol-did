@@ -1,6 +1,9 @@
 use anchor_lang::prelude::*;
 
-pub mod account;
+use instructions::*;
+
+pub mod state;
+pub mod instructions;
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
@@ -8,9 +11,8 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 pub mod sol_did {
     use super::*;
 
-    // TODO remove
-    pub fn initialize(ctx: Context<DidAccount>) -> Result<()> {
-        Ok(())
+    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+        instructions::initialize(ctx)
     }
 
     // TODO implement
@@ -19,13 +21,12 @@ pub mod sol_did {
         Ok(())
     }
 
-    // TODO implement
-    pub fn addVerificationMethod(ctx: Context<DidAccount>) -> Result<()> {
-        Ok(())
+    pub fn add_verification_method(ctx: Context<AddVerificationMethod>, newKey: Pubkey) -> Result<()> {
+        instructions::add_verification_method(ctx, newKey)
     }
 
     // TODO implement
-    pub fn removeVerificationMethod(ctx: Context<DidAccount>) -> Result<()> {
+    pub fn remove_verification_method(ctx: Context<DidAccount>) -> Result<()> {
         Ok(())
     }
 

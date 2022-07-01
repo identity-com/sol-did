@@ -1,13 +1,15 @@
 use anchor_lang::prelude::*;
 
 #[account]
-#[derive(Default)]
 pub struct DidAccount {
+    /// Version identifier
     pub version: u8,
+    /// Bump
+    pub bump: u8,
     /// All native verification keys
     pub nativeVerificationKeys: Vec<NativeDidVerificationKey>,
     /// All EthWallet verification addresses
-    pub ethVerificationKeys: Vec<EthWalletDidVerificationKey>,
+    // pub ethVerificationKeys: Vec<EthWalletDidVerificationKey>,
     /// TODO: Is there a general way to support other keys? (non-on-chain keys).
     /// Move that into a "free-text-extension" and merge back on client side.
     /// Services
