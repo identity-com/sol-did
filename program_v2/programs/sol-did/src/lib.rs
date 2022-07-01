@@ -57,7 +57,11 @@ pub mod sol_did {
 
 #[derive(Accounts)]
 pub struct DidAccount<'info> {
-    data: Account<'info, DidAccountData>,
+    #[account(init, payer = player_one, space = 8000)]
+    pub data: Account<'info, DidAccountData>,
+    #[account(mut)]
+    pub player_one: Signer<'info>,
+    pub system_program: Program<'info, System>
 }
 
 #[derive(Accounts)]
