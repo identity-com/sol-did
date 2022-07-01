@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 
 use instructions::*;
+use crate::state::{DidAccount, Service};
 
 pub mod state;
 pub mod instructions;
@@ -17,7 +18,7 @@ pub mod sol_did {
 
     // TODO implement
     // TODO this should respect
-    pub fn authenticate(ctx: Context<DidAccount>) -> Result<()> {
+    pub fn authenticate(ctx: Context<DummyInstruction>) -> Result<()> {
         Ok(())
     }
 
@@ -26,45 +27,45 @@ pub mod sol_did {
     }
 
     // TODO implement
-    pub fn remove_verification_method(ctx: Context<DidAccount>) -> Result<()> {
+    pub fn remove_verification_method(ctx: Context<DummyInstruction>) -> Result<()> {
+        Ok(())
+    }
+
+    pub fn add_service(ctx: Context<AddService>, service: Service) -> Result<()> {
+        instructions::add_service(ctx, service)
+    }
+
+    // TODO implement
+    pub fn remove_service(ctx: Context<RemoveService>, service_id: String) -> Result<()> {
+        ctx.accounts.data.services.retain(|x| x.id != service_id);
         Ok(())
     }
 
     // TODO implement
-    pub fn addService(ctx: Context<DidAccount>, service: ServiceDefinition) -> Result<()> {
-        ctx.accounts.data.services.push(service);
-        Ok(())
-    }
-    // TODO implement
-    pub fn removeService(ctx: Context<DidAccount>, programID: String) -> Result<()> {
-        ctx.accounts.data.services.retain(|x| x.id != programID);
+    pub fn proof_key_ownership(ctx: Context<DummyInstruction>) -> Result<()> {
         Ok(())
     }
 
     // TODO implement
-    pub fn proofKeyOwnership(ctx: Context<DidAccount>) -> Result<()> {
-        Ok(())
-    }
-
-    // TODO implement
-    pub fn removeKeyOwnership(ctx: Context<DidAccount>) -> Result<()> {
+    pub fn remove_key_ownership(ctx: Context<DummyInstruction>) -> Result<()> {
         Ok(())
     }
 }
 
 #[derive(Accounts)]
-pub struct DidAccount<'info> {
-    #[account(init, payer = player_one, space = 8000)]
-    pub data: Account<'info, DidAccountData>,
+pub struct RemoveService<'info> {
+    #[account(init, payer = authority, space = 8000)]
+    pub data: Account<'info, DidAccount>,
     #[account(mut)]
-    pub player_one: Signer<'info>,
+    pub authority: Signer<'info>,
     pub system_program: Program<'info, System>
 }
 
 #[derive(Accounts)]
-pub struct Initialize {
+pub struct DummyInstruction {
 
 }
+
 #[derive(Debug, AnchorSerialize, AnchorDeserialize,Clone)]
 pub enum VerificationMethodTypes {
     /// The main Ed25519Verification Method.

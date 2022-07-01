@@ -51,11 +51,67 @@ describe("sol-did", () => {
   });
 
 
-  it("Can add a Key to an account", async () => {
-    // Add your test here.
-    const newKey = anchor.web3.Keypair.generate();
+  // it("Can add a Key to an account", async () => {
+  //   // Add your test here.
+  //   const newKey = anchor.web3.Keypair.generate();
+  //
+  //   const tx = await program.methods.addVerificationMethod(newKey.publicKey).rpc();
+  //   console.log("Your transaction signature", tx);
+  // });
+  //
+  // it("Can remove a Key to an account", async () => {
+  //   // Add your test here.
+  //   const tx = await program.methods.removeVerificationMethod().rpc();
+  //   console.log("Your transaction signature", tx);
+  // });
 
-    const tx = await program.methods.addVerificationMethod(newKey.publicKey).rpc();
+  it("Service added!", async () => {
+    // Init Account
+    const authority = programProvider.wallet;
+
+    const [data, _] = await PublicKey
+      .findProgramAddress(
+        [
+          anchor.utils.bytes.utf8.encode("did-account"),
+          authority.publicKey.toBuffer()
+        ],
+        program.programId
+      );
+
+
+    // await program.methods.initialize()
+    //   .accounts({
+    //     data,
+    //     authority: authority.publicKey
+    //   })
+    //   .rpc();
+
+    console.log('Successfully initialized accout already.')
+    const dataAccountBefore = await program.account.didAccount.fetch(data);
+    expect(dataAccountBefore.services.length).to.equal(0);
+
+    // Add A service
+
+    const tx = await program.methods.addService({
+      id: "test",
+      serviceType: "serviceType",
+      serviceEndpoint: "test"
+    }).accounts({
+      authority: authority.publicKey,
+      data,
+    }).rpc()
+
     console.log("Your transaction signature", tx);
+
+
+    // const tx = await program.methods.removeVerificationMethod().rpc()
+    // const tx = await program.methods.addVerificationMethod(data).rpc();
+
+
+    const dataAccountAfter = await program.account.didAccount.fetch(data);
+    expect(dataAccountBefore.services.length).to.equal(1);
+
+
+    console.log(dataAccountAfter)
   });
 });
