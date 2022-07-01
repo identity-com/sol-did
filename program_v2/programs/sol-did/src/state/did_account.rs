@@ -1,10 +1,11 @@
 use anchor_lang::prelude::*;
-use std::collections::HashSet;
-use std::collections::hash_map::HashMap;
+
 #[account]
-#[derive(Default)]
-pub struct DidAccountData {
+pub struct DidAccount {
+    /// Version identifier
     pub version: u8,
+    /// Bump
+    pub bump: u8,
     /// All native verification keys
     pub nativeVerificationKeys: Vec<NativeDidVerificationKey>,
     /// All EthWallet verification addresses
@@ -19,7 +20,7 @@ pub struct DidAccountData {
     pub otherControllers: Vec<String>,
 }
 
-impl DidAccountData {
+impl DidAccount {
     pub fn on_chain_size_with_arg(self) -> usize {
         // TODO.
         0
@@ -52,18 +53,6 @@ pub struct EthWalletDidVerificationKey {
     /// The eth wallet address
     pub key: EthWallet,
 }
-
-// #[derive(Debug, AnchorSerialize, AnchorDeserialize,Clone)]
-// pub enum Dynamic {
-//     Case1(String),
-//     Case2(HashSet<String>),
-// }
-
-// impl Default for Dynamic {
-//     fn default() -> Self {
-//         Dynamic::Case1(Default::default())
-//     }
-// }
 
 /// A Service Definition [`DidAccount`]
 #[derive(Debug, AnchorSerialize, AnchorDeserialize, Default, Clone)]

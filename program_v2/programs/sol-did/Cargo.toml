@@ -17,5 +17,4 @@ default = []
 
 [dependencies]
 # TODO: Update to stable when available
-anchor-lang = { git = "https://github.com/project-serum/anchor", branch = "master" }
-http = "0.2"
+anchor-lang = { git = "https://github.com/coral-xyz/anchor", branch = "master" }
