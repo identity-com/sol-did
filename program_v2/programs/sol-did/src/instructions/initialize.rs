@@ -1,4 +1,4 @@
-use crate::state::{DidAccount};
+use crate::state::{DidAccount, Service};
 use anchor_lang::prelude::*;
 
 pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
@@ -6,8 +6,6 @@ pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
     let data = &mut ctx.accounts.data;
     data.version = 0;
     data.bump = *ctx.bumps.get("data").unwrap();
-
-
     msg!("Successfully initialized DID account.");
     Ok(())
 }

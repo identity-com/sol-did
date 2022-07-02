@@ -1,15 +1,15 @@
 use crate::state::{DidAccount, Service};
 use anchor_lang::prelude::*;
 
-pub fn add_service(ctx: Context<AddService>, service: Service) -> Result<()> {
+pub fn remove_service(ctx: Context<RemoveService>, service_id: String) -> Result<()> {
     let data = &mut ctx.accounts.data;
-    data.services.push(service);
+    data.services.retain(|x| x.id != service_id);
     Ok(())
 }
 
 
 #[derive(Accounts)]
-pub struct AddService<'info> {
+pub struct RemoveService<'info> {
     #[account(mut, seeds = [b"did-account", authority.key().as_ref()], bump )]
     pub data: Account<'info, DidAccount>,
     #[account(mut)]

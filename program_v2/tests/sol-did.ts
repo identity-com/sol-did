@@ -28,7 +28,7 @@ describe("sol-did", () => {
         program.programId
       );
 
-
+    
     const tx = await program.methods.initialize()
       .accounts({
         data,
@@ -47,18 +47,18 @@ describe("sol-did", () => {
     expect(rawDidDataAccount.data.length).to.equal(10_000)
 
 
-    console.log("Your transaction signature", tx);
+    console.log("Your transaction signature1", tx);
   });
 
 
   // it("Can add a Key to an account", async () => {
   //   // Add your test here.
   //   const newKey = anchor.web3.Keypair.generate();
-  //
+  
   //   const tx = await program.methods.addVerificationMethod(newKey.publicKey).rpc();
   //   console.log("Your transaction signature", tx);
   // });
-  //
+  
   // it("Can remove a Key to an account", async () => {
   //   // Add your test here.
   //   const tx = await program.methods.removeVerificationMethod().rpc();
@@ -66,9 +66,7 @@ describe("sol-did", () => {
   // });
 
   it("Service added!", async () => {
-    // Init Account
     const authority = programProvider.wallet;
-
     const [data, _] = await PublicKey
       .findProgramAddress(
         [
@@ -77,41 +75,62 @@ describe("sol-did", () => {
         ],
         program.programId
       );
-
-
-    // await program.methods.initialize()
-    //   .accounts({
-    //     data,
-    //     authority: authority.publicKey
-    //   })
-    //   .rpc();
-
-    console.log('Successfully initialized accout already.')
     const dataAccountBefore = await program.account.didAccount.fetch(data);
     expect(dataAccountBefore.services.length).to.equal(0);
 
     // Add A service
 
     const tx = await program.methods.addService({
-      id: "test",
+      id: "aaaaaaaa",
       serviceType: "serviceType",
       serviceEndpoint: "test"
     }).accounts({
+      data: data,
       authority: authority.publicKey,
-      data,
     }).rpc()
 
-    console.log("Your transaction signature", tx);
+    console.log("Your transaction signature2", tx);
 
-
+    
     // const tx = await program.methods.removeVerificationMethod().rpc()
     // const tx = await program.methods.addVerificationMethod(data).rpc();
 
 
     const dataAccountAfter = await program.account.didAccount.fetch(data);
+    expect(dataAccountAfter.services.length).to.equal(1);
+  });
+
+  it("Service deleted!", async () => {
+    const authority = programProvider.wallet;
+    const [data, _] = await PublicKey
+      .findProgramAddress(
+        [
+          anchor.utils.bytes.utf8.encode("did-account"),
+          authority.publicKey.toBuffer()
+        ],
+        program.programId
+      );
+    const dataAccountBefore = await program.account.didAccount.fetch(data);
     expect(dataAccountBefore.services.length).to.equal(1);
-
-
+  
+    // Add A service
+  
+    const tx = await program.methods.removeService("aaaaaaaa").accounts({
+      data: data,
+      authority: authority.publicKey,
+    }).rpc()
+  
+    console.log("Your transaction signature2", tx);
+  
+    
+    // const tx = await program.methods.removeVerificationMethod().rpc()
+    // const tx = await program.methods.addVerificationMethod(data).rpc();
+  
+  
+    const dataAccountAfter = await program.account.didAccount.fetch(data);
     console.log(dataAccountAfter)
+    expect(dataAccountAfter.services.length).to.equal(0);
   });
 });
+
+

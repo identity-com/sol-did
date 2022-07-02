@@ -10,6 +10,7 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 #[program]
 pub mod sol_did {
+
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
@@ -37,12 +38,12 @@ pub mod sol_did {
 
     // TODO implement
     pub fn remove_service(ctx: Context<RemoveService>, service_id: String) -> Result<()> {
-        ctx.accounts.data.services.retain(|x| x.id != service_id);
-        Ok(())
+        instructions::remove_service(ctx, service_id)
     }
 
     // TODO implement
     pub fn proof_key_ownership(ctx: Context<DummyInstruction>) -> Result<()> {
+        msg!("reached proof");
         Ok(())
     }
 
@@ -50,15 +51,6 @@ pub mod sol_did {
     pub fn remove_key_ownership(ctx: Context<DummyInstruction>) -> Result<()> {
         Ok(())
     }
-}
-
-#[derive(Accounts)]
-pub struct RemoveService<'info> {
-    #[account(init, payer = authority, space = 8000)]
-    pub data: Account<'info, DidAccount>,
-    #[account(mut)]
-    pub authority: Signer<'info>,
-    pub system_program: Program<'info, System>
 }
 
 #[derive(Accounts)]
