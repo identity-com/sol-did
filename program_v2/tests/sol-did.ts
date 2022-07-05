@@ -29,7 +29,11 @@ describe("sol-did", () => {
       );
 
 
-    const tx = await program.methods.initialize()
+    const tx = await program.methods.initialize([{
+      alias: "default",
+      publicKey: authority.publicKey,
+      flags: 0,
+      }], [])
       .accounts({
         data,
         authority: authority.publicKey
@@ -41,7 +45,7 @@ describe("sol-did", () => {
     expect(didDataAccount.version).to.equal(0)
     expect(didDataAccount.bump).to.equal(dataPDABump)
     expect(didDataAccount.nativeControllers.length).to.equal(0)
-    expect(didDataAccount.nativeVerificationKeys.length).to.equal(0)
+    expect(didDataAccount.nativeVerificationMethods.length).to.equal(1)
     expect(didDataAccount.otherControllers.length).to.equal(0)
     const rawDidDataAccount = await programProvider.connection.getAccountInfo(data)
     expect(rawDidDataAccount.data.length).to.equal(10_000)

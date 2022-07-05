@@ -1,6 +1,8 @@
 use anchor_lang::prelude::*;
 
 use instructions::*;
+use state::{VerificationMethod};
+
 
 pub mod state;
 pub mod instructions;
@@ -11,8 +13,8 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 pub mod sol_did {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        instructions::initialize(ctx)
+    pub fn initialize(ctx: Context<Initialize>, initial_verification_methods: Vec<VerificationMethod>) -> Result<()> {
+        instructions::initialize(ctx, initial_verification_methods)
     }
 
     // TODO implement
@@ -21,8 +23,8 @@ pub mod sol_did {
         Ok(())
     }
 
-    pub fn add_verification_method(ctx: Context<AddVerificationMethod>, newKey: Pubkey) -> Result<()> {
-        instructions::add_verification_method(ctx, newKey)
+    pub fn add_verification_method(ctx: Context<AddVerificationMethod>, verification_method: VerificationMethod) -> Result<()> {
+        instructions::add_verification_method(ctx, verification_method)
     }
 
     // TODO implement
@@ -54,13 +56,3 @@ pub mod sol_did {
 #[derive(Accounts)]
 pub struct DidAccount {} // TODO Replace with
 
-
-pub enum VerificationMethodTypes {
-    /// The main Ed25519Verification Method.
-    /// https://w3c-ccg.github.io/lds-ed25519-2018/
-    Ed25519VerificationKey2018,
-    /// Verification Method for For 20-bytes Ethereum Keys
-    EcdsaSecp256k1RecoveryMethod2020,
-    /// Verification Method for a full 32 bytes Secp256k1 Verification Key
-    EcdsaSecp256k1VerificationKey2019,
-}
