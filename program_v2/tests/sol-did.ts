@@ -1,10 +1,10 @@
 import * as anchor from "@project-serum/anchor";
-import { Program } from "@project-serum/anchor";
+import { AnchorError, Program } from "@project-serum/anchor";
 import { SolDid } from "../target/types/sol_did";
 import { PublicKey } from '@solana/web3.js';
 
 
-import chai from 'chai';
+import chai, { assert } from 'chai';
 import { expect } from 'chai';
 
 describe("sol-did", () => {
@@ -15,7 +15,7 @@ describe("sol-did", () => {
   const program = anchor.workspace.SolDid as Program<SolDid>;
   const programProvider = program.provider as anchor.AnchorProvider;
 
-
+  //initialize
   it("Is initialized!", async () => {
     const authority = programProvider.wallet;
 
@@ -50,21 +50,7 @@ describe("sol-did", () => {
     console.log("Your transaction signature1", tx);
   });
 
-
-  // it("Can add a Key to an account", async () => {
-  //   // Add your test here.
-  //   const newKey = anchor.web3.Keypair.generate();
-  
-  //   const tx = await program.methods.addVerificationMethod(newKey.publicKey).rpc();
-  //   console.log("Your transaction signature", tx);
-  // });
-  
-  // it("Can remove a Key to an account", async () => {
-  //   // Add your test here.
-  //   const tx = await program.methods.removeVerificationMethod().rpc();
-  //   console.log("Your transaction signature", tx);
-  // });
-
+  //add data
   it("Service added!", async () => {
     const authority = programProvider.wallet;
     const [data, _] = await PublicKey
@@ -78,28 +64,51 @@ describe("sol-did", () => {
     const dataAccountBefore = await program.account.didAccount.fetch(data);
     expect(dataAccountBefore.services.length).to.equal(0);
 
-    // Add A service
-
     const tx = await program.methods.addService({
-      id: "aaaaaaaa",
+      id: "aws",
       serviceType: "serviceType",
       serviceEndpoint: "test"
     }).accounts({
       data: data,
-      authority: authority.publicKey,
     }).rpc()
 
     console.log("Your transaction signature2", tx);
-
-    
-    // const tx = await program.methods.removeVerificationMethod().rpc()
-    // const tx = await program.methods.addVerificationMethod(data).rpc();
-
 
     const dataAccountAfter = await program.account.didAccount.fetch(data);
     expect(dataAccountAfter.services.length).to.equal(1);
   });
 
+  //functions used for following test
+  async function testAddServiceError(data) {
+    try{const tx = await program.methods.addService({
+      id: "aws",
+      serviceType: "serviceType2",
+      serviceEndpoint: "test2"
+    }).accounts({
+      data: data
+    }).rpc()} catch(error) {
+      assert(error instanceof AnchorError)
+      return 1;
+    }
+    return 0;
+  }
+
+  //add service with the same key, expect an error to pass the test
+  it("Add service with the same ID", async () => {
+    const authority = programProvider.wallet;
+    const [data, _] = await PublicKey
+      .findProgramAddress(
+        [
+          anchor.utils.bytes.utf8.encode("did-account"),
+          authority.publicKey.toBuffer()
+        ],
+        program.programId
+      );
+    const result = testAddServiceError(data);
+    expect(await result ).to.equal(1);
+  });
+
+  //delete a service
   it("Service deleted!", async () => {
     const authority = programProvider.wallet;
     const [data, _] = await PublicKey
@@ -113,23 +122,39 @@ describe("sol-did", () => {
     const dataAccountBefore = await program.account.didAccount.fetch(data);
     expect(dataAccountBefore.services.length).to.equal(1);
   
-    // Add A service
-  
-    const tx = await program.methods.removeService("aaaaaaaa").accounts({
+    const tx = await program.methods.removeService("aws").accounts({
       data: data,
-      authority: authority.publicKey,
     }).rpc()
   
     console.log("Your transaction signature2", tx);
   
-    
-    // const tx = await program.methods.removeVerificationMethod().rpc()
-    // const tx = await program.methods.addVerificationMethod(data).rpc();
-  
-  
     const dataAccountAfter = await program.account.didAccount.fetch(data);
-    console.log(dataAccountAfter)
     expect(dataAccountAfter.services.length).to.equal(0);
+  });
+
+  async function testRemoveServiceError(data) {
+    try{const tx = await program.methods.removeService("aws",).accounts({
+      data: data,
+    }).rpc()} catch(error) {
+      assert(error instanceof AnchorError)
+      return 1;
+    }
+    return 0;
+  }
+
+  //delete a service that doesn't exist, expect an error to pass the test.
+  it("Delete non-existing service", async () => {
+    const authority = programProvider.wallet;
+    const [data, _] = await PublicKey
+      .findProgramAddress(
+        [
+          anchor.utils.bytes.utf8.encode("did-account"),
+          authority.publicKey.toBuffer()
+        ],
+        program.programId
+      );
+    const result = testRemoveServiceError(data);
+    expect(await result ).to.equal(1);
   });
 });
 

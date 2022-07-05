@@ -3,14 +3,24 @@ use anchor_lang::prelude::*;
 
 pub fn add_service(ctx: Context<AddService>, service: Service) -> Result<()> {
     let data = &mut ctx.accounts.data;
-    data.services.push(service);
-    Ok(())
+    if data.services.iter().all(|x| x.id != service.id) {
+        data.services.push(service);
+        Ok(())
+    } else {
+        Err(error!(ErrorCode::RepetitiveService))
+    }
+}
+
+#[error_code]
+pub enum ErrorCode {
+    #[msg("serviceID already exists in current service")]
+    RepetitiveService,
 }
 
 
 #[derive(Accounts)]
 pub struct AddService<'info> {
-    #[account(mut, seeds = [b"did-account", authority.key().as_ref()], bump )]
+    #[account(mut)]
     pub data: Account<'info, DidAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,
