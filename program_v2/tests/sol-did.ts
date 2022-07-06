@@ -18,8 +18,9 @@ describe("sol-did", () => {
 
   it("Is initialized!", async () => {
     const authority = programProvider.wallet;
+    const ACCOUNT_SIZE = 10_000;
 
-    const [data, dataPDABump] = await PublicKey
+    const [didData, didDataPDABump] = await PublicKey
       .findProgramAddress(
         [
           anchor.utils.bytes.utf8.encode("did-account"),
@@ -29,37 +30,64 @@ describe("sol-did", () => {
       );
 
 
-    const tx = await program.methods.initialize([{
-      alias: "default",
-      publicKey: authority.publicKey,
-      flags: 0,
-      }], [])
+    const tx = await program.methods.initialize(ACCOUNT_SIZE)
       .accounts({
-        data,
+        didData,
         authority: authority.publicKey
       })
       .rpc();
 
     // check data
-    const didDataAccount = await program.account.didAccount.fetch(data)
+    const didDataAccount = await program.account.didAccount.fetch(didData)
     expect(didDataAccount.version).to.equal(0)
-    expect(didDataAccount.bump).to.equal(dataPDABump)
+    expect(didDataAccount.bump).to.equal(didDataPDABump)
+    expect(didDataAccount.nonce.eq(new anchor.BN(0))).to.be.true;
+
     expect(didDataAccount.nativeControllers.length).to.equal(0)
-    expect(didDataAccount.nativeVerificationMethods.length).to.equal(1)
+    expect(didDataAccount.verificationMethods.length).to.equal(0)
+    expect(didDataAccount.initialAuthority.toBase58()).to.equal(authority.publicKey.toBase58())
+
     expect(didDataAccount.otherControllers.length).to.equal(0)
-    const rawDidDataAccount = await programProvider.connection.getAccountInfo(data)
-    expect(rawDidDataAccount.data.length).to.equal(10_000)
+    const rawDidDataAccount = await programProvider.connection.getAccountInfo(didData)
+    expect(rawDidDataAccount.data.length).to.equal(ACCOUNT_SIZE)
 
 
     console.log("Your transaction signature", tx);
   });
 
 
-  it("Can add a Key to an account", async () => {
+  it("can add a Key to an account", async () => {
     // Add your test here.
     const newKey = anchor.web3.Keypair.generate();
 
-    const tx = await program.methods.addVerificationMethod(newKey.publicKey).rpc();
+    const authority = programProvider.wallet;
+
+    const [didData, _] = await PublicKey
+      .findProgramAddress(
+        [
+          anchor.utils.bytes.utf8.encode("did-account"),
+          authority.publicKey.toBuffer()
+        ],
+        program.programId
+      );
+
+    const tx = await program.methods.addVerificationMethod({
+      alias: "new-key",
+      keyData: newKey.publicKey.toBytes(),
+      method: 0,
+      flags: 0,
+    }).accounts({
+      didData,
+      payer: authority.publicKey
+    }).rpc();
     console.log("Your transaction signature", tx);
+
+    const didDataAccount = await program.account.didAccount.fetch(didData)
+
+    expect(didDataAccount.verificationMethods.length).to.equal(1)
+    expect(didDataAccount.verificationMethods[0].alias).to.equal("new-key")
+    expect(didDataAccount.verificationMethods[0].keyData).to.deep.equal(newKey.publicKey.toBytes())
+    expect(didDataAccount.verificationMethods[0].method).to.deep.equal( { ed25519VerificationKey2018: {} })
+    expect(didDataAccount.verificationMethods[0].flags).to.equal(0)
   });
 });

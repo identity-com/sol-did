@@ -1,11 +1,9 @@
+mod instructions;
+mod state;
+
 use anchor_lang::prelude::*;
-
 use instructions::*;
-use state::{VerificationMethod};
-
-
-pub mod state;
-pub mod instructions;
+use state::{VerificationMethodArg};
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
@@ -13,8 +11,18 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 pub mod sol_did {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>, initial_verification_methods: Vec<VerificationMethod>) -> Result<()> {
-        instructions::initialize(ctx, initial_verification_methods)
+    pub fn initialize(
+        ctx: Context<Initialize>,
+        size: u32,
+    ) -> Result<()> {
+        instructions::initialize(ctx, size)
+    }
+
+    pub fn resize(
+        ctx: Context<Resize>,
+        size: u32,
+    ) -> Result<()> {
+        instructions::resize(ctx, size)
     }
 
     // TODO implement
@@ -23,7 +31,7 @@ pub mod sol_did {
         Ok(())
     }
 
-    pub fn add_verification_method(ctx: Context<AddVerificationMethod>, verification_method: VerificationMethod) -> Result<()> {
+    pub fn add_verification_method(ctx: Context<AddVerificationMethod>, verification_method: VerificationMethodArg) -> Result<()> {
         instructions::add_verification_method(ctx, verification_method)
     }
 
