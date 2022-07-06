@@ -19,7 +19,7 @@ pub struct DidAccount {
     /// TODO: Is there a general way to support other keys? (non-on-chain keys).
     /// Move that into a "free-text-extension" and merge back on client side.
     /// Services
-    pub services: Vec<ServiceDefinition>,
+    pub services: Vec<Service>,
     /// Controller (native) - did:sol:<controller>
     pub native_controllers: Vec<Pubkey>,
     /// Controller (others) - all others
@@ -101,10 +101,9 @@ pub struct VerificationMethodArg {
 }
 
 /// A Service Definition [`DidAccount`]
-#[derive(Debug, AnchorSerialize, AnchorDeserialize, Clone)]
-pub struct ServiceDefinition {
-    /// The permissions this key has
-    pub key: String,
-    /// The eth wallet address
-    pub value: String,
+#[derive(Debug, AnchorSerialize, AnchorDeserialize, Default, Clone)]
+pub struct Service {
+    pub id: String,
+    pub service_type: String,
+    pub service_endpoint: String,
 }

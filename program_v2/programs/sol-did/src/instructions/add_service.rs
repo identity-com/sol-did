@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use crate::errors::*;
 
 pub fn add_service(ctx: Context<AddService>, service: Service) -> Result<()> {
-    let data = &mut ctx.accounts.data;
+    let data = &mut ctx.accounts.did_data;
     if data.services.iter().all(|x| x.id != service.id) {
         data.services.push(service);
         Ok(())
@@ -14,6 +14,10 @@ pub fn add_service(ctx: Context<AddService>, service: Service) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct AddService<'info> {
-    #[account(mut)]
-    pub data: Account<'info, DidAccount>,
+    #[account(
+        mut,
+        seeds = [b"did-account", did_data.initial_authority.key().as_ref()],
+        bump = did_data.bump,
+    )]
+    pub did_data: Account<'info, DidAccount>,
 }

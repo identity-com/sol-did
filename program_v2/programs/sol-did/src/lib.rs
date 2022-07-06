@@ -1,9 +1,10 @@
 mod instructions;
 mod state;
+mod errors;
 
 use anchor_lang::prelude::*;
 use instructions::*;
-use state::{VerificationMethodArg};
+use state::{VerificationMethodArg, Service};
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
