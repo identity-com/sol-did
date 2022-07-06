@@ -1,5 +1,6 @@
-use crate::state::{DidAccount, Service};
+use crate::state::{DidAccount};
 use anchor_lang::prelude::*;
+use crate::errors::*;
 
 pub fn remove_service(ctx: Context<RemoveService>, service_id: String) -> Result<()> {
     let data = &mut ctx.accounts.data;
@@ -9,21 +10,12 @@ pub fn remove_service(ctx: Context<RemoveService>, service_id: String) -> Result
     if length_after != length_before {
         Ok(())
     } else {
-        Err(error!(ErrorCode::NonExistingService))
+        Err(error!(NonExistingServiceError::NonExistingService))
     }
-}
-
-#[error_code]
-pub enum ErrorCode {
-    #[msg("serviceID doesn't exists in current service")]
-    NonExistingService,
 }
 
 #[derive(Accounts)]
 pub struct RemoveService<'info> {
-    #[account(mut, seeds = [b"did-account", authority.key().as_ref()], bump )]
-    pub data: Account<'info, DidAccount>,
     #[account(mut)]
-    pub authority: Signer<'info>,
-    pub system_program: Program<'info, System>,
+    pub data: Account<'info, DidAccount>,
 }

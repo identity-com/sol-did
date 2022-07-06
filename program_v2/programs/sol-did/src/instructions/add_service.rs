@@ -1,5 +1,6 @@
 use crate::state::{DidAccount, Service};
 use anchor_lang::prelude::*;
+use crate::errors::*;
 
 pub fn add_service(ctx: Context<AddService>, service: Service) -> Result<()> {
     let data = &mut ctx.accounts.data;
@@ -7,22 +8,12 @@ pub fn add_service(ctx: Context<AddService>, service: Service) -> Result<()> {
         data.services.push(service);
         Ok(())
     } else {
-        Err(error!(ErrorCode::RepetitiveService))
+        Err(error!(RepetitiveServiceError::RepetitiveService))
     }
 }
-
-#[error_code]
-pub enum ErrorCode {
-    #[msg("serviceID already exists in current service")]
-    RepetitiveService,
-}
-
 
 #[derive(Accounts)]
 pub struct AddService<'info> {
     #[account(mut)]
     pub data: Account<'info, DidAccount>,
-    #[account(mut)]
-    pub authority: Signer<'info>,
-    pub system_program: Program<'info, System>,
 }

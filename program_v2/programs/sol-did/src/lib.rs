@@ -5,6 +5,7 @@ use crate::state::{DidAccount, Service};
 
 pub mod state;
 pub mod instructions;
+pub mod errors;
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
@@ -68,3 +69,4 @@ pub enum VerificationMethodTypes {
     /// Verification Method for a full 32 bytes Secp256k1 Verification Key
     EcdsaSecp256k1VerificationKey2019,
 }
+

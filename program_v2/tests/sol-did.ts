@@ -47,11 +47,11 @@ describe("sol-did", () => {
     expect(rawDidDataAccount.data.length).to.equal(10_000)
 
 
-    console.log("Your transaction signature1", tx);
+    console.log("Your transaction signature", tx);
   });
 
   //add data
-  it("Service added!", async () => {
+  it("add a new service to the data.services", async () => {
     const authority = programProvider.wallet;
     const [data, _] = await PublicKey
       .findProgramAddress(
@@ -87,14 +87,13 @@ describe("sol-did", () => {
     }).accounts({
       data: data
     }).rpc()} catch(error) {
-      assert(error instanceof AnchorError)
       return 1;
     }
     return 0;
   }
 
   //add service with the same key, expect an error to pass the test
-  it("Add service with the same ID", async () => {
+  it("should fail to add service with the same ID", async () => {
     const authority = programProvider.wallet;
     const [data, _] = await PublicKey
       .findProgramAddress(
@@ -105,11 +104,11 @@ describe("sol-did", () => {
         program.programId
       );
     const result = testAddServiceError(data);
-    expect(await result ).to.equal(1);
+    expect(await result).to.equal(1);
   });
 
   //delete a service
-  it("Service deleted!", async () => {
+  it("delete a service from the data.services", async () => {
     const authority = programProvider.wallet;
     const [data, _] = await PublicKey
       .findProgramAddress(
@@ -136,14 +135,13 @@ describe("sol-did", () => {
     try{const tx = await program.methods.removeService("aws",).accounts({
       data: data,
     }).rpc()} catch(error) {
-      assert(error instanceof AnchorError)
       return 1;
     }
     return 0;
   }
 
   //delete a service that doesn't exist, expect an error to pass the test.
-  it("Delete non-existing service", async () => {
+  it("should fail to delete non-existing service", async () => {
     const authority = programProvider.wallet;
     const [data, _] = await PublicKey
       .findProgramAddress(
@@ -154,7 +152,7 @@ describe("sol-did", () => {
         program.programId
       );
     const result = testRemoveServiceError(data);
-    expect(await result ).to.equal(1);
+    expect(await result).to.equal(1);
   });
 });
 
