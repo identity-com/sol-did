@@ -27,7 +27,7 @@ pub mod sol_did {
 
     // TODO implement
     // TODO this should respect
-    pub fn authenticate(ctx: Context<DidAccount>) -> Result<()> {
+    pub fn authenticate(ctx: Context<DummyInstruction>) -> Result<()> {
         Ok(())
     }
 
@@ -36,31 +36,32 @@ pub mod sol_did {
     }
 
     // TODO implement
-    pub fn remove_verification_method(ctx: Context<DidAccount>) -> Result<()> {
+    pub fn remove_verification_method(ctx: Context<DummyInstruction>) -> Result<()> {
+        Ok(())
+    }
+
+    pub fn add_service(ctx: Context<AddService>, service: Service) -> Result<()> {
+        instructions::add_service(ctx, service)
+    }
+
+    // TODO implement
+    pub fn remove_service(ctx: Context<RemoveService>, service_id: String) -> Result<()> {
+        instructions::remove_service(ctx, service_id)
+    }
+
+    // TODO implement
+    pub fn proof_key_ownership(ctx: Context<DummyInstruction>) -> Result<()> {
+        msg!("reached proof");
         Ok(())
     }
 
     // TODO implement
-    pub fn addService(ctx: Context<DidAccount>) -> Result<()> {
-        Ok(())
-    }
-
-    // TODO implement
-    pub fn removeService(ctx: Context<DidAccount>) -> Result<()> {
-        Ok(())
-    }
-
-    // TODO implement
-    pub fn proofKeyOwnership(ctx: Context<DidAccount>) -> Result<()> {
-        Ok(())
-    }
-
-    // TODO implement
-    pub fn removeKeyOwnership(ctx: Context<DidAccount>) -> Result<()> {
+    pub fn remove_key_ownership(ctx: Context<DummyInstruction>) -> Result<()> {
         Ok(())
     }
 }
 
 #[derive(Accounts)]
-pub struct DidAccount {} // TODO Replace with
+pub struct DummyInstruction {
 
+}
