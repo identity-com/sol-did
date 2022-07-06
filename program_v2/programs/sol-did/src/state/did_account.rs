@@ -3,6 +3,7 @@ use num_derive::*;
 use num_traits::*;
 
 #[account]
+// #[derive(Default)]
 pub struct DidAccount {
     /// Version identifier
     pub version: u8,
@@ -42,6 +43,31 @@ impl DidAccount {
     pub fn add_verification_method(&mut self, verification_method: VerificationMethod) {
         self.verification_methods.push(verification_method);
     }
+
+    pub fn size(&self) -> usize {
+        1 // version
+        + 1 // bump
+        + 4 // nonce
+        + 32 // initial_authority
+        + 4 + &self.verification_methods.iter().fold(0, | accum, item| { accum + item.size() }) // verification_methods
+        + 4 + &self.services.iter().fold(0, | accum, item| { accum + item.size() }) // services
+        + 4 + &self.native_controllers.len() * 32 // native_controllers
+        + 4 + &self.other_controllers.iter().fold(0, | accum, item| { accum + 4 + item.len() }) // other_controllers
+    }
+
+    pub fn initial_size() -> usize {
+        1 // version
+        + 1 // bump
+        + 4 // nonce
+        + 32 // initial_authority
+        + 4 // verification_methods
+        + 4 // services
+        + 4 // native_controllers
+        + 4 // other_controllers
+    }
+
+
+
 }
 
 #[derive(Debug, AnchorSerialize, AnchorDeserialize, Clone, FromPrimitive, ToPrimitive)]
@@ -76,6 +102,15 @@ pub struct VerificationMethod {
     pub key_data: Vec<u8>,
 }
 
+impl VerificationMethod {
+    pub fn size(&self) -> usize {
+        4 + &self.alias.len()
+        + 2 // flags
+        + 1 // method
+        + 4 + &self.key_data.len()
+    }
+}
+
 impl From<VerificationMethodArg> for VerificationMethod {
     fn from(item: VerificationMethodArg) -> Self {
         VerificationMethod {
@@ -106,4 +141,12 @@ pub struct Service {
     pub id: String,
     pub service_type: String,
     pub service_endpoint: String,
+}
+
+impl Service {
+    pub fn size(&self) -> usize {
+        4 + &self.id.len()
+        + 4 + &self.service_type.len()
+        + 4 + &self.service_endpoint.len()
+    }
 }

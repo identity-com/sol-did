@@ -22,7 +22,7 @@ pub fn initialize(
 
     // TODO: Check uniqueness of alias.
     // let converted_verification_methods: Vec<VerificationMethod> =
-    //     additonal_verification_methods.into_iter().map(VerificationMethod::from).collect();
+    //     additonal_verification_methods.iter().map(VerificationMethod::from).collect();
 
     // data.verificationMethods.extend(converted_verification_methods);
 
