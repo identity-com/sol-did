@@ -24,12 +24,6 @@ pub mod sol_did {
         instructions::close(ctx)
     }
 
-    // TODO implement
-    // TODO this should respect
-    pub fn authenticate(ctx: Context<DummyInstruction>) -> Result<()> {
-        Ok(())
-    }
-
     pub fn add_verification_method(
         ctx: Context<AddVerificationMethod>,
         verification_method: VerificationMethodArg,
@@ -38,7 +32,7 @@ pub mod sol_did {
     }
 
     // TODO implement
-    pub fn remove_verification_method(ctx: Context<DummyInstruction>) -> Result<()> {
+    pub fn remove_verification_method(_ctx: Context<DummyInstruction>) -> Result<()> {
         Ok(())
     }
 
@@ -52,13 +46,13 @@ pub mod sol_did {
     }
 
     // TODO implement
-    pub fn proof_key_ownership(ctx: Context<DummyInstruction>) -> Result<()> {
+    pub fn proof_key_ownership(_ctx: Context<DummyInstruction>) -> Result<()> {
         msg!("reached proof");
         Ok(())
     }
 
     // TODO implement
-    pub fn remove_key_ownership(ctx: Context<DummyInstruction>) -> Result<()> {
+    pub fn remove_key_ownership(_ctx: Context<DummyInstruction>) -> Result<()> {
         Ok(())
     }
 }

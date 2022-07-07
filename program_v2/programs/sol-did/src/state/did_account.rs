@@ -29,16 +29,16 @@ pub struct DidAccount {
 
 impl DidAccount {
     // TODO: Easy way to return a non-mutable reference to the data?
-    fn verification_methods(&self) -> Vec<VerificationMethod> {
-        let ret_vector = vec![VerificationMethod {
-            alias: String::from("default"),
-            flags: 0,
-            method: Default::default(),
-            key_data: self.initial_authority.to_bytes().to_vec(),
-        }];
-
-        [ret_vector.as_slice(), &self.verification_methods.as_slice()].concat()
-    }
+    // fn verification_methods(&self) -> Vec<VerificationMethod> {
+    //     let ret_vector = vec![VerificationMethod {
+    //         alias: String::from("default"),
+    //         flags: 0,
+    //         method: Default::default(),
+    //         key_data: self.initial_authority.to_bytes().to_vec(),
+    //     }];
+    //
+    //     [ret_vector.as_slice(), self.verification_methods.as_slice()].concat()
+    // }
 
     pub fn add_verification_method(&mut self, verification_method: VerificationMethod) {
         self.verification_methods.push(verification_method);
@@ -49,10 +49,10 @@ impl DidAccount {
         + 1 // bump
         + 8 // nonce
         + 32 // initial_authority
-        + 4 + &self.verification_methods.iter().fold(0, | accum, item| { accum + item.size() }) // verification_methods
-        + 4 + &self.services.iter().fold(0, | accum, item| { accum + item.size() }) // services
-        + 4 + &self.native_controllers.len() * 32 // native_controllers
-        + 4 + &self.other_controllers.iter().fold(0, | accum, item| { accum + 4 + item.len() })
+        + 4 + self.verification_methods.iter().fold(0, | accum, item| { accum + item.size() }) // verification_methods
+        + 4 + self.services.iter().fold(0, | accum, item| { accum + item.size() }) // services
+        + 4 + self.native_controllers.len() * 32 // native_controllers
+        + 4 + self.other_controllers.iter().fold(0, | accum, item| { accum + 4 + item.len() })
         // other_controllers
     }
 
@@ -101,10 +101,10 @@ pub struct VerificationMethod {
 
 impl VerificationMethod {
     pub fn size(&self) -> usize {
-        4 + &self.alias.len()
+        4 + self.alias.len()
         + 2 // flags
         + 1 // method
-        + 4 + &self.key_data.len()
+        + 4 + self.key_data.len()
     }
 }
 
@@ -142,6 +142,6 @@ pub struct Service {
 
 impl Service {
     pub fn size(&self) -> usize {
-        4 + &self.id.len() + 4 + &self.service_type.len() + 4 + &self.service_endpoint.len()
+        4 + self.id.len() + 4 + self.service_type.len() + 4 + self.service_endpoint.len()
     }
 }

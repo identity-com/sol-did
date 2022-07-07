@@ -8,7 +8,7 @@ pub fn initialize(ctx: Context<Initialize>, _size: Option<u32>) -> Result<()> {
     did_data.nonce = 0;
 
     // Add the authority as a default verification method.
-    did_data.initial_authority = ctx.accounts.authority.key().clone();
+    did_data.initial_authority = ctx.accounts.authority.key();
     // data.verificationMethods.push(VerificationMethod {
     //     alias: String::from("default"),
     //     flags: 0,

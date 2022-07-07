@@ -1,6 +1,5 @@
 use crate::state::DidAccount;
 use anchor_lang::prelude::*;
-use std::convert::TryInto;
 
 pub fn close(_ctx: Context<Close>) -> Result<()> {
     Ok(())
