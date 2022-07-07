@@ -36,7 +36,8 @@ describe("sol-did alloc operations", () => {
     const tx = await program.methods.close()
       .accounts({
         didData,
-        refund: authority.publicKey
+        authority: authority.publicKey,
+        destination: authority.publicKey
       })
       .rpc();
 
@@ -50,14 +51,15 @@ describe("sol-did alloc operations", () => {
   })
 
   it("fails when trying to close a did:sol account that does not exist", async () => {
-    const refund = anchor.web3.Keypair.generate();
+    const destination = anchor.web3.Keypair.generate();
 
     return expect(program.methods.close()
       .accounts({
         didData,
-        refund: refund.publicKey,
+        authority: authority.publicKey,
+        destination: destination.publicKey,
       })
-      .signers([refund])
+      .signers([destination])
       .rpc()).to.be.rejectedWith('Error Code: AccountNotInitialized');
   });
 
@@ -86,6 +88,8 @@ describe("sol-did alloc operations", () => {
     expect(didDataAccount.services.length).to.equal(0)
     expect(didDataAccount.verificationMethods.length).to.equal(0)
     expect(didDataAccount.initialAuthority.toBase58()).to.equal(authority.publicKey.toBase58())
+    expect(didDataAccount.initialAuthorityFlags).to.equal(0b0000000001001000)
+
 
     expect(didDataAccount.otherControllers.length).to.equal(0)
     const rawDidDataAccount = await programProvider.connection.getAccountInfo(didData)
@@ -100,6 +104,20 @@ describe("sol-did alloc operations", () => {
       })
       .rpc()).to.be.rejectedWith('custom program error: 0x0');
   });
+
+  it("fails when trying to close a did:sol account with a wrong authority", async () => {
+    const wrongAuthority = anchor.web3.Keypair.generate();
+
+    return expect(program.methods.close()
+      .accounts({
+        didData,
+        authority: wrongAuthority.publicKey,
+        destination: wrongAuthority.publicKey,
+      })
+      .signers([wrongAuthority])
+      .rpc()).to.be.rejectedWith(' Error Number: 2003. Error Message: A raw constraint was violated');
+  });
+
 
   it("can successfully resize an account", async () => {
     const NEW_ACCOUNT_SIZE = 10_000;
@@ -120,7 +138,7 @@ describe("sol-did alloc operations", () => {
 
 
 
-    it("can add a Key to an account", async () => {
+  it("can add a Key to an account", async () => {
     // Add your test here.
     const newKey = anchor.web3.Keypair.generate();
 

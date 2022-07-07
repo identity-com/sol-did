@@ -1,9 +1,9 @@
 {
   "pubkey": "8rhC9T5iNbeaEixVDMs35dduzPgB9KBNTwAxvqn8opXu",
   "account": {
-    "lamports": 1350240,
+    "lamports": 1364160,
     "data": [
-      "TVjvjfsd7fMA/wAAAAAAAAAA5u+Ztwj1x+zRpskVgbO06k9hJT9bn7WXOg9LUpaCGDUAAAAAAAAAAAAAAAAAAAAA",
+      "TVjvjfsd7fMA/wAAAAAAAAAA5u+Ztwj1x+zRpskVgbO06k9hJT9bn7WXOg9LUpaCGDVIAAAAAAAAAAAAAAAAAAAAAAA=",
       "base64"
     ],
     "owner": "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS",

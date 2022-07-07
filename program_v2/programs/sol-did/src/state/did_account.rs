@@ -1,9 +1,9 @@
 use anchor_lang::prelude::*;
 use num_derive::*;
 use num_traits::*;
+use bitflags::bitflags;
 
 #[account]
-// #[derive(Default)]
 pub struct DidAccount {
     /// Version identifier
     pub version: u8,
@@ -13,12 +13,10 @@ pub struct DidAccount {
     pub nonce: u64,
     /// The initial authority key, automatically being added to the array of all Verification Methods.
     pub initial_authority: Pubkey,
-    /// All native verification keys
+    /// the VM flags for the initial authority key
+    pub initial_authority_flags: u16,
+    /// All verification methods
     pub verification_methods: Vec<VerificationMethod>,
-    /// all ethereum verification methods
-
-    /// TODO: Is there a general way to support other keys? (non-on-chain keys).
-    /// Move that into a "free-text-extension" and merge back on client side.
     /// Services
     pub services: Vec<Service>,
     /// Controller (native) - did:sol:<controller>
@@ -29,19 +27,29 @@ pub struct DidAccount {
 
 impl DidAccount {
     // TODO: Easy way to return a non-mutable reference to the data?
-    // fn verification_methods(&self) -> Vec<VerificationMethod> {
-    //     let ret_vector = vec![VerificationMethod {
-    //         alias: String::from("default"),
-    //         flags: 0,
-    //         method: Default::default(),
-    //         key_data: self.initial_authority.to_bytes().to_vec(),
-    //     }];
-    //
-    //     [ret_vector.as_slice(), self.verification_methods.as_slice()].concat()
-    // }
+    fn verification_methods(&self) -> Vec<VerificationMethod> {
+        let ret_vector = vec![VerificationMethod {
+            alias: String::from("default"),
+            flags: self.initial_authority_flags,
+            method: Default::default(),
+            key_data: self.initial_authority.to_bytes().to_vec(),
+        }];
+
+        [ret_vector.as_slice(), self.verification_methods.as_slice()].concat()
+    }
 
     pub fn add_verification_method(&mut self, verification_method: VerificationMethod) {
         self.verification_methods.push(verification_method);
+    }
+
+    pub fn is_authority(&self, authority: Pubkey) -> bool {
+        // TODO: Filter for VM type (e.g. key agreement etc)
+        msg!("Checking if {} is an authority", authority.to_string());
+        let ret = self.verification_methods()
+            .iter()
+            .any(|v| v.key_data == authority.to_bytes());
+
+        ret
     }
 
     pub fn size(&self) -> usize {
@@ -49,6 +57,7 @@ impl DidAccount {
         + 1 // bump
         + 8 // nonce
         + 32 // initial_authority
+        + 2 // initial_authority_flags
         + 4 + self.verification_methods.iter().fold(0, | accum, item| { accum + item.size() }) // verification_methods
         + 4 + self.services.iter().fold(0, | accum, item| { accum + item.size() }) // services
         + 4 + self.native_controllers.len() * 32 // native_controllers
@@ -61,6 +70,7 @@ impl DidAccount {
         + 1 // bump
         + 8 // nonce
         + 32 // initial_authority
+        + 2 // initial_authority_flags
         + 4 // verification_methods
         + 4 // services
         + 4 // native_controllers
@@ -91,7 +101,6 @@ pub struct VerificationMethod {
     /// alias
     pub alias: String,
     /// The permissions this key has
-    /// TODO: DID-Powo via separate account. E.g. Requirement reverse key lookup.
     pub flags: u16,
     /// The actual verification method
     pub method: VerificationMethodType,
@@ -145,3 +154,23 @@ impl Service {
         4 + self.id.len() + 4 + self.service_type.len() + 4 + self.service_endpoint.len()
     }
 }
+
+bitflags! {
+    pub struct VerificationMethodFlags: u16 {
+        /// The VM is able to authenticate the subject
+        const AUTHENTICATION = 1 << 0;
+        /// The VM is able to proof assertions on the subject
+        const ASSERTION = 1 << 1;
+        /// The VM can be used for encryption
+        const KEY_AGREEMENT = 1 << 2;
+        /// The VM can be used for issuing capabilities. Required for DID Update
+        const CAPABILITY_INVOCATION = 1 << 3;
+        /// The VM can be used for delegating capabilities.
+        const CAPABILITY_DELEGATION = 1 << 4;
+        /// The VM is hidden from the DID Document (off-chain only)
+        const DID_DOC_HIDDEN = 1 << 5;
+        /// The subject did proof to be in possession of the private key
+        const OWNERSHIP_PROOF = 1 << 6;
+    }
+}
+

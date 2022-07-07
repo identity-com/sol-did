@@ -1114,6 +1114,7 @@ name = "sol-did"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
+ "bitflags",
  "num-derive",
  "num-traits",
 ]

@@ -23,9 +23,9 @@ pub struct AddVerificationMethod<'info> {
         mut,
         seeds = [b"did-account", did_data.initial_authority.key().as_ref()],
         bump = did_data.bump,
+        constraint = did_data.is_authority(authority.key())
     )]
     pub did_data: Account<'info, DidAccount>,
-
-    pub payer: Signer<'info>,
+    pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
 }

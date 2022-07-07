@@ -17,10 +17,12 @@ pub struct Resize<'info> {
         bump = did_data.bump,
         realloc = TryInto::<usize>::try_into(size).unwrap(),
         realloc::payer = payer,
-        realloc::zero = false
+        realloc::zero = false,
+        constraint = did_data.is_authority(authority.key()),
     )]
     pub did_data: Account<'info, DidAccount>,
     #[account(mut)]
     pub payer: Signer<'info>,
+    pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
 }

@@ -29,6 +29,8 @@ describe("sol-did-service", () => {
     const dataAccountBefore = await program.account.didAccount.fetch(didData);
     expect(dataAccountBefore.services.length).to.equal(0);
 
+    const wrongAuthority = anchor.web3.Keypair.generate();
+
     const tx = await program.methods.addService({
       id: "aws",
       serviceType: "serviceType",
