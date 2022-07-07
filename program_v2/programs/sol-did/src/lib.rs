@@ -1,10 +1,10 @@
+mod errors;
 mod instructions;
 mod state;
-mod errors;
 
 use anchor_lang::prelude::*;
 use instructions::*;
-use state::{VerificationMethodArg, Service};
+use state::{Service, VerificationMethodArg};
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
@@ -12,23 +12,15 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 pub mod sol_did {
     use super::*;
 
-    pub fn initialize(
-        ctx: Context<Initialize>,
-        size: Option<u32>,
-    ) -> Result<()> {
+    pub fn initialize(ctx: Context<Initialize>, size: Option<u32>) -> Result<()> {
         instructions::initialize(ctx, size)
     }
 
-    pub fn resize(
-        ctx: Context<Resize>,
-        size: u32,
-    ) -> Result<()> {
+    pub fn resize(ctx: Context<Resize>, size: u32) -> Result<()> {
         instructions::resize(ctx, size)
     }
 
-    pub fn close(
-        ctx: Context<Close>
-    ) -> Result<()> {
+    pub fn close(ctx: Context<Close>) -> Result<()> {
         instructions::close(ctx)
     }
 
@@ -38,7 +30,10 @@ pub mod sol_did {
         Ok(())
     }
 
-    pub fn add_verification_method(ctx: Context<AddVerificationMethod>, verification_method: VerificationMethodArg) -> Result<()> {
+    pub fn add_verification_method(
+        ctx: Context<AddVerificationMethod>,
+        verification_method: VerificationMethodArg,
+    ) -> Result<()> {
         instructions::add_verification_method(ctx, verification_method)
     }
 
@@ -69,6 +64,4 @@ pub mod sol_did {
 }
 
 #[derive(Accounts)]
-pub struct DummyInstruction {
-
-}
+pub struct DummyInstruction {}

@@ -1,6 +1,6 @@
+use crate::errors::*;
 use crate::state::{DidAccount, Service};
 use anchor_lang::prelude::*;
-use crate::errors::*;
 
 pub fn add_service(ctx: Context<AddService>, service: Service) -> Result<()> {
     let data = &mut ctx.accounts.did_data;

@@ -37,7 +37,7 @@ impl DidAccount {
             key_data: self.initial_authority.to_bytes().to_vec(),
         }];
 
-       [ret_vector.as_slice(), &self.verification_methods.as_slice()].concat()
+        [ret_vector.as_slice(), &self.verification_methods.as_slice()].concat()
     }
 
     pub fn add_verification_method(&mut self, verification_method: VerificationMethod) {
@@ -52,7 +52,8 @@ impl DidAccount {
         + 4 + &self.verification_methods.iter().fold(0, | accum, item| { accum + item.size() }) // verification_methods
         + 4 + &self.services.iter().fold(0, | accum, item| { accum + item.size() }) // services
         + 4 + &self.native_controllers.len() * 32 // native_controllers
-        + 4 + &self.other_controllers.iter().fold(0, | accum, item| { accum + 4 + item.len() }) // other_controllers
+        + 4 + &self.other_controllers.iter().fold(0, | accum, item| { accum + 4 + item.len() })
+        // other_controllers
     }
 
     pub fn initial_size() -> usize {
@@ -65,9 +66,6 @@ impl DidAccount {
         + 4 // native_controllers
         + 4 // other_controllers
     }
-
-
-
 }
 
 #[derive(Debug, AnchorSerialize, AnchorDeserialize, Clone, FromPrimitive, ToPrimitive)]
@@ -86,7 +84,6 @@ impl Default for VerificationMethodType {
         VerificationMethodType::Ed25519VerificationKey2018
     }
 }
-
 
 /// The native authority key for a [`DidAccount`]
 #[derive(Debug, AnchorSerialize, AnchorDeserialize, Clone)]
@@ -145,8 +142,6 @@ pub struct Service {
 
 impl Service {
     pub fn size(&self) -> usize {
-        4 + &self.id.len()
-        + 4 + &self.service_type.len()
-        + 4 + &self.service_endpoint.len()
+        4 + &self.id.len() + 4 + &self.service_type.len() + 4 + &self.service_endpoint.len()
     }
 }

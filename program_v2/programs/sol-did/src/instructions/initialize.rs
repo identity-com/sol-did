@@ -1,11 +1,7 @@
-use crate::state::{DidAccount};
+use crate::state::DidAccount;
 use anchor_lang::prelude::*;
 
-pub fn initialize(
-    ctx: Context<Initialize>,
-    _size: Option<u32>,
-) -> Result<()> {
-
+pub fn initialize(ctx: Context<Initialize>, _size: Option<u32>) -> Result<()> {
     let did_data = &mut ctx.accounts.did_data;
     did_data.version = 0;
     did_data.bump = *ctx.bumps.get("did_data").unwrap();
@@ -30,8 +26,6 @@ pub fn initialize(
     Ok(())
 }
 
-
-
 #[derive(Accounts)]
 #[instruction(size: Option<u32>)]
 pub struct Initialize<'info> {
@@ -46,5 +40,3 @@ pub struct Initialize<'info> {
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
-
-

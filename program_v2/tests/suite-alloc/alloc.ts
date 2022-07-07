@@ -80,6 +80,10 @@ describe("sol-did alloc operations", () => {
     expect(didDataAccount.nonce.eq(new anchor.BN(0))).to.be.true;
 
     expect(didDataAccount.nativeControllers.length).to.equal(0)
+    expect(didDataAccount.otherControllers.length).to.equal(0)
+
+    // TODO: It seems like anchor does not support custom structs in Vec mapping.
+    expect(didDataAccount.services.length).to.equal(0)
     expect(didDataAccount.verificationMethods.length).to.equal(0)
     expect(didDataAccount.initialAuthority.toBase58()).to.equal(authority.publicKey.toBase58())
 

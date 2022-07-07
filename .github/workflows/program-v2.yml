@@ -1,4 +1,4 @@
-name: Program
+name: Program V2
 on:
   push:
     paths:

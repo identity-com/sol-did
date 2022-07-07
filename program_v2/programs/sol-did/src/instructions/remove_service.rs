@@ -1,6 +1,6 @@
-use crate::state::{DidAccount};
-use anchor_lang::prelude::*;
 use crate::errors::*;
+use crate::state::DidAccount;
+use anchor_lang::prelude::*;
 
 pub fn remove_service(ctx: Context<RemoveService>, service_id: String) -> Result<()> {
     let data = &mut ctx.accounts.did_data;

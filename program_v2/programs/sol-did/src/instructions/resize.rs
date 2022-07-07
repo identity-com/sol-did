@@ -1,12 +1,10 @@
-use crate::state::{DidAccount};
+use crate::state::DidAccount;
 use anchor_lang::prelude::*;
 use std::convert::TryInto;
 
 pub fn resize(_ctx: Context<Resize>, _size: u32) -> Result<()> {
     Ok(())
 }
-
-
 
 #[derive(Accounts)]
 #[instruction(size: u32)]
@@ -21,7 +19,6 @@ pub struct Resize<'info> {
         realloc::payer = payer,
         realloc::zero = false
     )]
-
     pub did_data: Account<'info, DidAccount>,
     #[account(mut)]
     pub payer: Signer<'info>,
