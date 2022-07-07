@@ -3,9 +3,11 @@ mod initialize;
 mod resize;
 mod add_service;
 mod remove_service;
+mod close;
 
 pub use add_verification_method::*;
 pub use initialize::*;
 pub use resize::*;
 pub use add_service::*;
 pub use remove_service::*;
+pub use close::*;

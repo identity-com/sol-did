@@ -3,6 +3,9 @@ import { Program } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import { expect } from "chai";
 
+import { SolDid } from "../../target/types/sol_did";
+
+
 describe("sol-did-service", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());

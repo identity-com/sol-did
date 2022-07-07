@@ -1,8 +1,0 @@
-extends = ["../Test.base.toml"]
-
-[[test.validator.account]]
-address = "8rhC9T5iNbeaEixVDMs35dduzPgB9KBNTwAxvqn8opXu"
-filename = "../fixtures/did-account-10000.json"
-
-[scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/suite-services/**/*.ts"

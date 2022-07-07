@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 
 pub fn initialize(
     ctx: Context<Initialize>,
-    _size: u32,
+    _size: Option<u32>,
 ) -> Result<()> {
 
     let did_data = &mut ctx.accounts.did_data;
@@ -33,9 +33,14 @@ pub fn initialize(
 
 
 #[derive(Accounts)]
-#[instruction(size: u32)]
+#[instruction(size: Option<u32>)]
 pub struct Initialize<'info> {
-    #[account(init, payer = authority, space = size.try_into().unwrap(), seeds = [b"did-account", authority.key().as_ref()], bump )]
+    #[account(
+        init,
+        payer = authority,
+        space = size.unwrap_or(8 + DidAccount::initial_size() as u32).try_into().unwrap(),
+        seeds = [b"did-account", authority.key().as_ref()],
+        bump )]
     pub did_data: Account<'info, DidAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,

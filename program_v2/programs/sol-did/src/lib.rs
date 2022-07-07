@@ -14,7 +14,7 @@ pub mod sol_did {
 
     pub fn initialize(
         ctx: Context<Initialize>,
-        size: u32,
+        size: Option<u32>,
     ) -> Result<()> {
         instructions::initialize(ctx, size)
     }
@@ -24,6 +24,12 @@ pub mod sol_did {
         size: u32,
     ) -> Result<()> {
         instructions::resize(ctx, size)
+    }
+
+    pub fn close(
+        ctx: Context<Close>
+    ) -> Result<()> {
+        instructions::close(ctx)
     }
 
     // TODO implement

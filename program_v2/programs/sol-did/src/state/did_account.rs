@@ -47,7 +47,7 @@ impl DidAccount {
     pub fn size(&self) -> usize {
         1 // version
         + 1 // bump
-        + 4 // nonce
+        + 8 // nonce
         + 32 // initial_authority
         + 4 + &self.verification_methods.iter().fold(0, | accum, item| { accum + item.size() }) // verification_methods
         + 4 + &self.services.iter().fold(0, | accum, item| { accum + item.size() }) // services
@@ -58,7 +58,7 @@ impl DidAccount {
     pub fn initial_size() -> usize {
         1 // version
         + 1 // bump
-        + 4 // nonce
+        + 8 // nonce
         + 32 // initial_authority
         + 4 // verification_methods
         + 4 // services
