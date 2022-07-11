@@ -1,4 +1,4 @@
-use crate::errors::*;
+use crate::errors::DidSolError::NonExistingService;
 use crate::state::DidAccount;
 use anchor_lang::prelude::*;
 
@@ -10,7 +10,7 @@ pub fn remove_service(ctx: Context<RemoveService>, service_id: String) -> Result
     if length_after != length_before {
         Ok(())
     } else {
-        Err(error!(NonExistingServiceError::NonExistingService))
+        Err(error!(NonExistingService))
     }
 }
 

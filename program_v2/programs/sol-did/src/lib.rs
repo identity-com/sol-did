@@ -31,16 +31,14 @@ pub mod sol_did {
         instructions::add_verification_method(ctx, verification_method)
     }
 
-    // TODO implement
-    pub fn remove_verification_method(_ctx: Context<DummyInstruction>) -> Result<()> {
-        Ok(())
+    pub fn remove_verification_method(ctx: Context<RemoveVerificationMethod>, alias: String) -> Result<()> {
+       instructions::remove_verification_method(ctx, alias)
     }
 
     pub fn add_service(ctx: Context<AddService>, service: Service) -> Result<()> {
         instructions::add_service(ctx, service)
     }
 
-    // TODO implement
     pub fn remove_service(ctx: Context<RemoveService>, service_id: String) -> Result<()> {
         instructions::remove_service(ctx, service_id)
     }

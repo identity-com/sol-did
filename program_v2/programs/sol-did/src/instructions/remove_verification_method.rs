@@ -1,19 +1,17 @@
-use crate::errors::DidSolError;
-use crate::state::{DidAccount, Service};
+use crate::state::{DidAccount};
 use anchor_lang::prelude::*;
 
-pub fn add_service(ctx: Context<AddService>, service: Service) -> Result<()> {
+pub fn remove_verification_method(
+    ctx: Context<RemoveVerificationMethod>,
+    alias: String,
+) -> Result<()> {
     let data = &mut ctx.accounts.did_data;
-    if data.services.iter().all(|x| x.id != service.id) {
-        data.services.push(service);
-        Ok(())
-    } else {
-        Err(error!(DidSolError::RepetitiveService))
-    }
+
+    data.remove_verification_method(&alias)
 }
 
 #[derive(Accounts)]
-pub struct AddService<'info> {
+pub struct RemoveVerificationMethod<'info> {
     #[account(
         mut,
         seeds = [b"did-account", did_data.initial_authority.key().as_ref()],
@@ -22,4 +20,5 @@ pub struct AddService<'info> {
     )]
     pub did_data: Account<'info, DidAccount>,
     pub authority: Signer<'info>,
+    pub system_program: Program<'info, System>,
 }

@@ -1,3 +1,4 @@
+use crate::errors::DidSolError;
 use anchor_lang::prelude::*;
 use num_derive::*;
 use num_traits::*;
@@ -38,15 +39,41 @@ impl DidAccount {
         [ret_vector.as_slice(), self.verification_methods.as_slice()].concat()
     }
 
-    pub fn add_verification_method(&mut self, verification_method: VerificationMethod) {
+    pub fn add_verification_method(&mut self, verification_method: VerificationMethod) -> Result<()> {
         self.verification_methods.push(verification_method);
+        Ok(())
+    }
+
+    pub fn remove_verification_method(&mut self, alias: &String) -> Result<()> {
+        // default case
+        if alias == "default" {
+            self.initial_authority_flags = 0;
+            return Ok(());
+        }
+
+        // general case
+        let vm_length_before = self.verification_methods.len();
+        self.verification_methods.retain(|x| x.alias != *alias);
+        let vm_length_after = self.verification_methods.len();
+
+        if vm_length_after != vm_length_before {
+            Ok(())
+        } else {
+            Err(error!(DidSolError::VmDoesNotExists))
+        }
+    }
+
+    pub fn has_verification_method(&mut self, alias: &String) -> bool {
+       self.verification_methods().iter().any(|x| x.alias == *alias)
     }
 
     pub fn is_authority(&self, authority: Pubkey) -> bool {
-        // TODO: Filter for VM type (e.g. key agreement etc)
-        msg!("Checking if {} is an authority", authority.to_string());
+
+        msg!("Checking if {} is an Ed25519VerificationKey2018 authority", authority.to_string());
         let ret = self.verification_methods()
             .iter()
+            .filter(|x| x.method == VerificationMethodType::Ed25519VerificationKey2018)
+            .filter(|x| VerificationMethodFlags::from_bits(x.flags).unwrap().contains(VerificationMethodFlags::CAPABILITY_INVOCATION))
             .any(|v| v.key_data == authority.to_bytes());
 
         ret
@@ -78,7 +105,14 @@ impl DidAccount {
     }
 }
 
-#[derive(Debug, AnchorSerialize, AnchorDeserialize, Clone, FromPrimitive, ToPrimitive)]
+#[derive(
+    Debug,
+    AnchorSerialize,
+    AnchorDeserialize,
+    Clone,
+    FromPrimitive,
+    ToPrimitive,
+    PartialEq)]
 pub enum VerificationMethodType {
     /// The main Ed25519Verification Method.
     /// https://w3c-ccg.github.io/lds-ed25519-2018/

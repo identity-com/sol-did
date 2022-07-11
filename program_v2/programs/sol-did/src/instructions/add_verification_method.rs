@@ -1,20 +1,27 @@
-use crate::state::{DidAccount, VerificationMethod, VerificationMethodArg};
+use crate::errors::DidSolError;
+use crate::state::{DidAccount, VerificationMethod, VerificationMethodArg, VerificationMethodFlags};
 use anchor_lang::prelude::*;
 
 pub fn add_verification_method(
     ctx: Context<AddVerificationMethod>,
     verification_method: VerificationMethodArg,
 ) -> Result<()> {
-    // TODO: Check alias uniqueness
-    ctx.accounts
-        .did_data
-        .add_verification_method(VerificationMethod::from(verification_method));
 
-    // let mut did = ctx.accounts.did.try_borrow_mut_data();
-    // did.nativeVerificationKeys.append(newVMEntry);
+    let vm = VerificationMethod::from(verification_method);
+    let data = &mut ctx.accounts.did_data;
 
-    msg!("Successfully added a key.");
-    Ok(())
+    require!(
+        !VerificationMethodFlags::from_bits(vm.flags).unwrap()
+        .contains(VerificationMethodFlags::OWNERSHIP_PROOF),
+        DidSolError::VmOwnershipOnAdd
+    );
+
+    require!(
+        !data.has_verification_method(&vm.alias),
+        DidSolError::VmAliasAlreadyInUse
+    );
+
+    data.add_verification_method(vm)
 }
 
 #[derive(Accounts)]
