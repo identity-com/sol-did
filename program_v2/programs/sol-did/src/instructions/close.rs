@@ -18,6 +18,8 @@ pub struct Close<'info> {
     )]
     pub did_data: Account<'info, DidAccount>,
     pub authority: Signer<'info>,
-    pub destination: Signer<'info>,
+    /// CHECK: Rent destination account does not need to satisfy the any constraints.
+    #[account(mut)]
+    pub destination: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
 }

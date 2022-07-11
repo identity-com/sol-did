@@ -29,23 +29,24 @@ describe("sol-did alloc operations", () => {
   })
 
   it("can successfully close an did:sol account ", async () => {
+    const destination = anchor.web3.Keypair.generate();
+
     // Accounts Before
     const rawDidDataAccountBefore = await programProvider.connection.getAccountInfo(didData);
-    const authorityAccountBefore = await programProvider.connection.getAccountInfo(authority.publicKey);
 
     const tx = await program.methods.close()
       .accounts({
         didData,
         authority: authority.publicKey,
-        destination: authority.publicKey
+        destination: destination.publicKey
       })
       .rpc();
 
     // Accounts After
     const rawDidDataAccountAfter = await programProvider.connection.getAccountInfo(didData);
-    const authorityAccountAfter = await programProvider.connection.getAccountInfo(authority.publicKey);
+    const destinationAccountAfter = await programProvider.connection.getAccountInfo(destination.publicKey);
     expect(rawDidDataAccountAfter).to.be.null;
-    expect(authorityAccountAfter.lamports).to.equal(authorityAccountBefore.lamports + rawDidDataAccountBefore.lamports);
+    expect(destinationAccountAfter.lamports).to.equal(rawDidDataAccountBefore.lamports);
 
     // console.log("Your transaction signature", tx);
   })
@@ -59,7 +60,6 @@ describe("sol-did alloc operations", () => {
         authority: authority.publicKey,
         destination: destination.publicKey,
       })
-      .signers([destination])
       .rpc()).to.be.rejectedWith('Error Code: AccountNotInitialized');
   });
 
@@ -105,19 +105,6 @@ describe("sol-did alloc operations", () => {
         authority: authority.publicKey
       })
       .rpc()).to.be.rejectedWith('custom program error: 0x0');
-  });
-
-  it("fails when trying to close a did:sol account with a wrong authority", async () => {
-    const wrongAuthority = anchor.web3.Keypair.generate();
-
-    return expect(program.methods.close()
-      .accounts({
-        didData,
-        authority: wrongAuthority.publicKey,
-        destination: wrongAuthority.publicKey,
-      })
-      .signers([wrongAuthority])
-      .rpc()).to.be.rejectedWith(' Error Number: 2003. Error Message: A raw constraint was violated');
   });
 
 

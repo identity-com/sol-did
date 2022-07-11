@@ -18,8 +18,8 @@ pub struct AddService<'info> {
         mut,
         seeds = [b"did-account", did_data.initial_authority.key().as_ref()],
         bump = did_data.bump,
-        constraint = did_data.is_authority(lalala.key()),
+        constraint = did_data.is_authority(authority.key())
     )]
     pub did_data: Account<'info, DidAccount>,
-    pub lalala: Signer<'info>
+    pub authority: Signer<'info>,
 }
