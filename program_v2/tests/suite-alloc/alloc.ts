@@ -47,7 +47,7 @@ describe("sol-did alloc operations", () => {
     expect(rawDidDataAccountAfter).to.be.null;
     expect(authorityAccountAfter.lamports).to.equal(authorityAccountBefore.lamports + rawDidDataAccountBefore.lamports);
 
-    console.log("Your transaction signature", tx);
+    // console.log("Your transaction signature", tx);
   })
 
   it("fails when trying to close a did:sol account that does not exist", async () => {
@@ -65,6 +65,8 @@ describe("sol-did alloc operations", () => {
 
 
   it("can successfully initialize an did:sol account with default size", async () => {
+    // console.log(`didData: ${didData.toBase58()}`);
+
     const tx = await program.methods.initialize(null)
       .accounts({
         didData,
@@ -72,7 +74,7 @@ describe("sol-did alloc operations", () => {
       })
       .rpc();
 
-    console.log("Your transaction signature", tx);
+    // console.log("Your transaction signature", tx);
 
 
     // check data
@@ -134,31 +136,5 @@ describe("sol-did alloc operations", () => {
     const rawDidDataAccount = await programProvider.connection.getAccountInfo(didData)
     expect(rawDidDataAccount.data.length).to.equal(NEW_ACCOUNT_SIZE)
 
-  });
-
-
-
-  it("can add a Key to an account", async () => {
-    // Add your test here.
-    const newKey = anchor.web3.Keypair.generate();
-
-    const tx = await program.methods.addVerificationMethod({
-      alias: "new-key",
-      keyData: newKey.publicKey.toBytes(),
-      method: 0,
-      flags: 0,
-    }).accounts({
-      didData,
-      payer: authority.publicKey
-    }).rpc();
-    console.log("Your transaction signature", tx);
-
-    const didDataAccount = await program.account.didAccount.fetch(didData)
-
-    expect(didDataAccount.verificationMethods.length).to.equal(1)
-    expect(didDataAccount.verificationMethods[0].alias).to.equal("new-key")
-    expect(didDataAccount.verificationMethods[0].keyData).to.deep.equal(newKey.publicKey.toBytes())
-    expect(didDataAccount.verificationMethods[0].method).to.deep.equal( { ed25519VerificationKey2018: {} })
-    expect(didDataAccount.verificationMethods[0].flags).to.equal(0)
   });
 });

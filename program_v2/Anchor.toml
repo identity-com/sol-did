@@ -1,7 +1,7 @@
 [features]
 seeds = false
 [programs.localnet]
-sol_did = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+sol_did = "didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc"
 
 [registry]
 url = "https://anchor.projectserum.com"

@@ -6,7 +6,7 @@ use anchor_lang::prelude::*;
 use instructions::*;
 use state::{Service, VerificationMethodArg};
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc");
 
 #[program]
 pub mod sol_did {
