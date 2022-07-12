@@ -103,38 +103,38 @@ impl DidAccount {
     pub fn is_eth_authority(
         &self,
         message: Vec<u8>,
-        rawSignature: Option<Secp256k1RawSignature>,
+        raw_signature: Option<Secp256k1RawSignature>,
     ) -> bool {
-        if rawSignature.is_none() {
+        if raw_signature.is_none() {
             return false;
         }
 
-        let rawSignature = rawSignature.unwrap();
+        let raw_signature = raw_signature.unwrap();
         let message_with_nonce = [message.as_ref(), self.nonce.to_le_bytes().as_ref()].concat();
         // Ethereum conforming Message Input
         // https://docs.ethers.io/v4/api-utils.html?highlight=hashmessage#hash-function-helpers
-        let signMessageInput = [
+        let sign_message_input = [
             "\x19Ethereum Signed Message:\n".as_bytes(),
             message_with_nonce.len().to_string().as_bytes(),
             message_with_nonce.as_ref(),
         ]
         .concat();
 
-        let hash = keccak::hash(signMessageInput.as_ref());
+        let hash = keccak::hash(sign_message_input.as_ref());
         msg!("Hash: {:x?}", hash.as_ref());
         msg!("Message: {:x?}", message);
         msg!(
-            "signMessageInput: {:x?}, Length: {}",
-            signMessageInput,
-            signMessageInput.len()
+            "sign_message_input: {:x?}, Length: {}",
+            sign_message_input,
+            sign_message_input.len()
         );
-        msg!("Signature: {:x?}", rawSignature.signature);
-        msg!("RecoveryId: {:x}", rawSignature.recovery_id);
+        msg!("Signature: {:x?}", raw_signature.signature);
+        msg!("RecoveryId: {:x}", raw_signature.recovery_id);
 
         let secp256k1_pubkey = secp256k1_recover(
             hash.as_ref(),
-            rawSignature.recovery_id,
-            rawSignature.signature.as_ref(),
+            raw_signature.recovery_id,
+            raw_signature.signature.as_ref(),
         )
         .unwrap();
         msg!("Recovered: {:?}", secp256k1_pubkey.to_bytes());
@@ -151,7 +151,7 @@ impl DidAccount {
             return true;
         }
 
-        let address = convert_secp256k1PubKey_to_address(&secp256k1_pubkey);
+        let address = convert_secp256k1pub_key_to_address(&secp256k1_pubkey);
         msg!("Address: {:?}", address);
         // Check EcdsaSecp256k1VerificationKey2019 matches
         msg!(
@@ -195,7 +195,7 @@ impl DidAccount {
 }
 
 // TODO Move
-pub fn convert_secp256k1PubKey_to_address(pubkey: &Secp256k1Pubkey) -> [u8; 20] {
+pub fn convert_secp256k1pub_key_to_address(pubkey: &Secp256k1Pubkey) -> [u8; 20] {
     let mut address = [0u8; 20];
     address.copy_from_slice(&keccak::hash(pubkey.to_bytes().as_ref()).to_bytes()[12..]);
     address
@@ -284,11 +284,6 @@ impl Service {
 pub struct Secp256k1RawSignature {
     signature: [u8; 64],
     recovery_id: u8,
-}
-
-pub struct Secp256k1SignatureAndMessage {
-    message: Vec<u8>,
-    rawSignature: Secp256k1RawSignature,
 }
 
 bitflags! {
