@@ -27,15 +27,18 @@ pub mod sol_did {
     pub fn add_verification_method(
         ctx: Context<AddVerificationMethod>,
         verification_method: VerificationMethodArg,
+        eth_signature: Option<Secp256k1RawSignature>,
     ) -> Result<()> {
-        instructions::add_verification_method(ctx, verification_method)
+        instructions::add_verification_method(ctx, verification_method, eth_signature)
     }
 
     pub fn remove_verification_method(ctx: Context<RemoveVerificationMethod>, alias: String) -> Result<()> {
        instructions::remove_verification_method(ctx, alias)
     }
 
-    pub fn add_service(ctx: Context<AddService>, service: Service, eth_signature: Option<Secp256k1RawSignature>) -> Result<()> {
+    pub fn add_service(ctx: Context<AddService>,
+                       service: Service,
+                       eth_signature: Option<Secp256k1RawSignature>) -> Result<()> {
         instructions::add_service(ctx, service, eth_signature)
     }
 

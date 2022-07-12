@@ -109,14 +109,12 @@ describe("sol-did alloc operations", () => {
   it("can successfully resize an account", async () => {
     const NEW_ACCOUNT_SIZE = 10_000;
 
-    const tx = await program.methods.resize(NEW_ACCOUNT_SIZE)
+    await program.methods.resize(NEW_ACCOUNT_SIZE)
       .accounts({
         didData,
         payer: authority.publicKey
       })
       .rpc();
-
-    console.log("Your transaction signature", tx);
 
     const rawDidDataAccount = await programProvider.connection.getAccountInfo(didData)
     expect(rawDidDataAccount.data.length).to.equal(NEW_ACCOUNT_SIZE)

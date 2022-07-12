@@ -68,7 +68,7 @@ impl DidAccount {
         }
     }
 
-    pub fn has_verification_method(&mut self, alias: &String) -> bool {
+    pub fn has_verification_method(&self, alias: &String) -> bool {
        self.verification_methods().iter().any(|x| x.alias == *alias)
     }
 
@@ -91,13 +91,15 @@ impl DidAccount {
         }
 
         let rawSignature = rawSignature.unwrap();
+        let message_with_nonce = [message.as_ref(), self.nonce.to_le_bytes().as_ref()].concat();
         // Ethereum conforming Message Input
         // https://docs.ethers.io/v4/api-utils.html?highlight=hashmessage#hash-function-helpers
-        let signMessageInput = ["\x19Ethereum Signed Message:\n".as_bytes(), message.len().to_string().as_bytes(), message.as_ref()].concat();
+        let signMessageInput = ["\x19Ethereum Signed Message:\n".as_bytes(), message_with_nonce.len().to_string().as_bytes(), message_with_nonce.as_ref()].concat();
 
         let hash = keccak::hash(signMessageInput.as_ref());
         msg!("Hash: {:x?}", hash.as_ref());
         msg!("Message: {:x?}", message);
+        msg!("signMessageInput: {:x?}, Length: {}", signMessageInput, signMessageInput.len());
         msg!("Signature: {:x?}", rawSignature.signature);
         msg!("RecoveryId: {:x}", rawSignature.recovery_id);
 

@@ -6,7 +6,7 @@ import { expect } from "chai";
 import { SolDid } from "../../target/types/sol_did";
 
 
-describe("sol-did-service", () => {
+describe("sol-did service operations", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
@@ -35,7 +35,7 @@ describe("sol-did-service", () => {
       id: "aws",
       serviceType: "serviceType",
       serviceEndpoint: "test"
-    }).accounts({
+    }, null).accounts({
       didData,
     }).rpc()
 
@@ -52,7 +52,7 @@ describe("sol-did-service", () => {
         id: "aws",
         serviceType: "serviceType2",
         serviceEndpoint: "test2"
-      }).accounts({
+      }, null).accounts({
         didData,
       }).rpc()
     } catch(error) {

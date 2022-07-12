@@ -3,7 +3,12 @@ import * as anchor from "@project-serum/anchor";
 import { DEFAULT_SEED_STRING } from "./const";
 import { Program } from "@project-serum/anchor";
 import { SolDid } from "../../target/types/sol_did";
-import { utils as ethersUtils, Signer } from "ethers";
+import { utils as ethersUtils, Signer, Wallet } from "ethers";
+import { keccak256 } from "@ethersproject/keccak256";
+import { concat } from "@ethersproject/bytes";
+import { toUtf8Bytes } from "@ethersproject/strings";
+
+export const messagePrefix = "\x19Ethereum Signed Message:\n";
 
 const program = anchor.workspace.SolDid as Program<SolDid>;
 
@@ -17,9 +22,10 @@ export const findProgramAddress = async (authority: PublicKey) => PublicKey
   );
 
 // This message expects an ethereum-capable did:sol instruction and will return the expected signature payload.
-export const ethSignPayload = async (instruction: TransactionInstruction, signer: Signer) => {
+export const ethSignPayload = async (instruction: TransactionInstruction, nonce: anchor.BN, signer: Wallet) => {
   // Anchor 8 bytes prefix, Option<T> byte suffix
-  const message = instruction.data.subarray(8,-1)
+  const nonceBytes = nonce.toBuffer('le', 8);
+  const message = Buffer.concat([instruction.data.subarray(8,-1), nonceBytes]);
 
   const signatureFull = await signer.signMessage(message)
   // add signature to payload
@@ -29,6 +35,22 @@ export const ethSignPayload = async (instruction: TransactionInstruction, signer
   // https://docs.ethers.io/v4/api-utils.html#signatures
   const recoveryId = signatureBytes.at(-1) - 27;
 
+  // const rawMessage = concat([
+  //   toUtf8Bytes(messagePrefix),
+  //   toUtf8Bytes(String(message.length)),
+  //   message
+  // ])
+  // const hash = ethersUtils.hashMessage(message);
+  // console.log(`rawMessage: ${ethersUtils.hexlify(rawMessage)} length: ${rawMessage.length}`)
+  // console.log(`message: ${ethersUtils.hexlify(message)} length: ${message.length}`)
+  // console.log(`hash: ${ethersUtils.hexlify(hash)} hash: ${hash.length}`)
+  // console.log(`signature: ${ethersUtils.hexlify(signature)} length: ${signature.length}`)
+  // console.log(`recoveryId: ${ethersUtils.hexlify(recoveryId)}`)
+  // console.log("Eth Address: ", ethersUtils.arrayify(signer.address))
+  // console.log("Eth Address (full): ", ethersUtils.arrayify(signer.publicKey))
+  // const recPubKey = ethersUtils.verifyMessage(message, signature)
+  // console.log("Recovered Eth Address (full): ", ethersUtils.arrayify(recPubKey))
+
   // update data & return instruction
   instruction.data = Buffer.concat([
     instruction.data.slice(0, -1), // Remove Option<T> == None
@@ -36,6 +58,7 @@ export const ethSignPayload = async (instruction: TransactionInstruction, signer
     new Uint8Array(signature),
     new Uint8Array([recoveryId])
   ])
+  // return { signature, recoveryId };
 
   return instruction
 }
