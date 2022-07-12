@@ -5,6 +5,26 @@
     "lib": ["es2015"],
     "module": "commonjs",
     "target": "es6",
-    "esModuleInterop": true
-  }
+    "esModuleInterop": true,
+    "strict": true,
+    "sourceMap": true,
+    "declaration": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "rootDir": "."
+  },
+  "include": [
+    "src/**/*",
+    "target/types/gateway_derive.ts"
+  ],
+  "exclude": [
+    "ui",
+    "node_modules",
+    "dist"
+  ]
 }

@@ -1,8 +1,8 @@
-name: Program
+name: Program V2
 on:
   push:
     paths:
-    - 'program'
+    - 'program_v2'
   pull_request:
 jobs:
   program-lint:
@@ -30,7 +30,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --manifest-path program/Cargo.toml --all -- --check
+          args: --manifest-path program_v2/Cargo.toml --all -- --check
 
       - name: Cache dependencies
         uses: actions/cache@v2
@@ -38,14 +38,14 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ./program/target
-          key: cargo-clippy-${{ hashFiles('program/Cargo.lock') }}
+            ./program_v2/target
+          key: cargo-clippy-${{ hashFiles('program_v2/Cargo.lock') }}
 
       - name: Run Clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --manifest-path program/Cargo.toml --tests --features test-bpf --workspace --all-targets -- --deny=warnings
+          args: --manifest-path program_v2/Cargo.toml --tests --workspace --all-targets -- --deny=warnings
 
   program-unit-test:
     name: Unit test program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
@@ -73,14 +73,14 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ./program/target
-          key: cargo-test-${{ hashFiles('program/Cargo.lock') }}
+            ./program_v2/target
+          key: cargo-test-${{ hashFiles('program_v2/Cargo.lock') }}
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --manifest-path program/Cargo.toml
+          args: --manifest-path program_v2/Cargo.toml
 
   program-build:
     name: Build and test the sol on-chain program on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
@@ -109,8 +109,8 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ./program/target
-          key: cargo-build-${{ hashFiles('program/Cargo.lock') }}
+            ./program_v2/target
+          key: cargo-build-${{ hashFiles('program_v2/Cargo.lock') }}
 
       - name: Cache Solana version
         uses: actions/cache@v2
@@ -124,8 +124,12 @@ jobs:
           sh -c "$(curl -sSfL https://release.solana.com/${{ matrix.solana }}/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
+      - name: Install Anchor
+        run: |
+          cargo install --git https://github.com/project-serum/anchor avm --locked --force
+          avm install latest
+          avm use latest
+
       - name: Build program and run integration tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test-bpf
-          args: --manifest-path program/Cargo.toml
+        run: |
+          anchor test

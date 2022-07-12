@@ -1,72 +1,67 @@
+mod errors;
+mod instructions;
+mod state;
+
 use anchor_lang::prelude::*;
-
 use instructions::*;
-use crate::state::{DidAccount, Service};
+use state::{Secp256k1RawSignature, Service, VerificationMethodArg};
 
-pub mod state;
-pub mod instructions;
-pub mod errors;
-
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc");
 
 #[program]
 pub mod sol_did {
-
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        instructions::initialize(ctx)
+    pub fn initialize(ctx: Context<Initialize>, size: Option<u32>) -> Result<()> {
+        instructions::initialize(ctx, size)
     }
 
-    // TODO implement
-    // TODO this should respect
-    pub fn authenticate(ctx: Context<DummyInstruction>) -> Result<()> {
-        Ok(())
+    pub fn resize(ctx: Context<Resize>, size: u32) -> Result<()> {
+        instructions::resize(ctx, size)
     }
 
-    pub fn add_verification_method(ctx: Context<AddVerificationMethod>, newKey: Pubkey) -> Result<()> {
-        instructions::add_verification_method(ctx, newKey)
+    pub fn close(ctx: Context<Close>, eth_signature: Option<Secp256k1RawSignature>) -> Result<()> {
+        instructions::close(ctx, eth_signature)
     }
 
-    // TODO implement
-    pub fn remove_verification_method(ctx: Context<DummyInstruction>) -> Result<()> {
-        Ok(())
+    pub fn add_verification_method(
+        ctx: Context<AddVerificationMethod>,
+        verification_method: VerificationMethodArg,
+        eth_signature: Option<Secp256k1RawSignature>,
+    ) -> Result<()> {
+        instructions::add_verification_method(ctx, verification_method, eth_signature)
     }
 
-    pub fn add_service(ctx: Context<AddService>, service: Service) -> Result<()> {
-        instructions::add_service(ctx, service)
+    pub fn remove_verification_method(
+        ctx: Context<RemoveVerificationMethod>,
+        alias: String,
+    ) -> Result<()> {
+        instructions::remove_verification_method(ctx, alias)
     }
 
-    // TODO implement
+    pub fn add_service(
+        ctx: Context<AddService>,
+        service: Service,
+        eth_signature: Option<Secp256k1RawSignature>,
+    ) -> Result<()> {
+        instructions::add_service(ctx, service, eth_signature)
+    }
+
     pub fn remove_service(ctx: Context<RemoveService>, service_id: String) -> Result<()> {
         instructions::remove_service(ctx, service_id)
     }
 
     // TODO implement
-    pub fn proof_key_ownership(ctx: Context<DummyInstruction>) -> Result<()> {
+    pub fn set_key_ownership(_ctx: Context<DummyInstruction>) -> Result<()> {
         msg!("reached proof");
         Ok(())
     }
 
     // TODO implement
-    pub fn remove_key_ownership(ctx: Context<DummyInstruction>) -> Result<()> {
+    pub fn unset_key_ownership(_ctx: Context<DummyInstruction>) -> Result<()> {
         Ok(())
     }
 }
 
 #[derive(Accounts)]
-pub struct DummyInstruction {
-
-}
-
-#[derive(Debug, AnchorSerialize, AnchorDeserialize,Clone)]
-pub enum VerificationMethodTypes {
-    /// The main Ed25519Verification Method.
-    /// https://w3c-ccg.github.io/lds-ed25519-2018/
-    Ed25519VerificationKey2018,
-    /// Verification Method for For 20-bytes Ethereum Keys
-    EcdsaSecp256k1RecoveryMethod2020,
-    /// Verification Method for a full 32 bytes Secp256k1 Verification Key
-    EcdsaSecp256k1VerificationKey2019,
-}
-
+pub struct DummyInstruction {}

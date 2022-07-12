@@ -1,14 +1,14 @@
 [features]
 seeds = false
 [programs.localnet]
-sol_did = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+sol_did = "didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [provider]
 cluster = "localnet"
-wallet = "~/.config/solana/id.json"
+wallet = "./tests/fixtures/GYUg7UEDo2VtitTrvA7RGqWjBWmy8wuSApDqcCWKoVW4.json"
 
 [scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+createTestFixtureAccount = "yarn run createTestFixtureAccount"

@@ -1,18 +1,35 @@
 {
+    "name": "@identity/did-sol",
+    "version": "0.0.1",
+    "description": "A powerful DID-method on Solana",
+    "main": "dist/src/index.js",
+    "author": "Martin Riedel <martin@identity.org>",
     "scripts": {
         "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
-        "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
+        "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+        "test": "anchor test",
+        "clean": "rimraf -rf ./dist",
+        "compile": "tsc -p tsconfig.json",
+        "build": "yarn clean && anchor build && yarn compile",
+        "prepare": "yarn build",
+        "createTestFixtureAccount": "ts-node scripts/createTestFixtureAccount.ts"
     },
     "dependencies": {
-        "@project-serum/anchor": "0.25.0-beta.1"
+        "@project-serum/anchor": "0.25.0",
+        "did-resolver": "^3.2.2"
     },
     "devDependencies": {
         "@types/bn.js": "^5.1.0",
         "@types/chai": "^4.3.0",
+        "@types/chai-as-promised": "^7.1.5",
         "@types/mocha": "^9.0.0",
+        "borsh": "^0.7.0",
         "chai": "^4.3.4",
+        "chai-as-promised": "^7.1.1",
+        "ethers": "^5.6.9",
         "mocha": "^9.0.3",
         "prettier": "^2.6.2",
+        "rimraf": "^3.0.2",
         "ts-mocha": "^10.0.0",
         "typescript": "^4.3.5"
     }
