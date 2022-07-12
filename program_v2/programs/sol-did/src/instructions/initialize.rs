@@ -10,18 +10,7 @@ pub fn initialize(ctx: Context<Initialize>, _size: Option<u32>) -> Result<()> {
     // Add the authority as a default verification method.
     did_data.initial_authority = ctx.accounts.authority.key();
     did_data.initial_authority_flags = (VerificationMethodFlags::CAPABILITY_INVOCATION | VerificationMethodFlags::OWNERSHIP_PROOF).bits();
-    // data.verificationMethods.push(VerificationMethod {
-    //     alias: String::from("default"),
-    //     flags: 0,
-    //     method: Default::default(),
-    //     key_data: ctx.accounts.authority.key().to_bytes().to_vec(),
-    // });
 
-    // TODO: Check uniqueness of alias.
-    // let converted_verification_methods: Vec<VerificationMethod> =
-    //     additonal_verification_methods.iter().map(VerificationMethod::from).collect();
-
-    // data.verificationMethods.extend(converted_verification_methods);
 
     msg!("Successfully initialized DID account.");
     Ok(())

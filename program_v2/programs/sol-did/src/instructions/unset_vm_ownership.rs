@@ -10,7 +10,6 @@ pub fn add_verification_method(
     let vm = VerificationMethod::from(verification_method);
     let data = &mut ctx.accounts.did_data;
 
-    // TODO: Should we move those to an anchor constraint?
     require!(
         !VerificationMethodFlags::from_bits(vm.flags).unwrap()
         .contains(VerificationMethodFlags::OWNERSHIP_PROOF),

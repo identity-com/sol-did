@@ -1,18 +1,20 @@
-use crate::state::{DidAccount};
+use crate::errors::DidSolError;
+use crate::state::{DidAccount, VerificationMethod, VerificationMethodArg, VerificationMethodFlags};
 use anchor_lang::prelude::*;
 
-pub fn remove_verification_method(
-    ctx: Context<RemoveVerificationMethod>,
-    alias: String,
+pub fn set_key_ownership(
+    ctx: Context<AddVerificationMethod>,
+    verification_method: VerificationMethodArg,
 ) -> Result<()> {
+
+    let vm = VerificationMethod::from(verification_method);
     let data = &mut ctx.accounts.did_data;
 
-    data.remove_verification_method(&alias)
-    // TODO: Prevent Lockout
+    data.add_verification_method(vm)
 }
 
 #[derive(Accounts)]
-pub struct RemoveVerificationMethod<'info> {
+pub struct SetMethod<'info> {
     #[account(
         mut,
         seeds = [b"did-account", did_data.initial_authority.key().as_ref()],

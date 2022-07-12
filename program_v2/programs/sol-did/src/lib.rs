@@ -4,7 +4,7 @@ mod state;
 
 use anchor_lang::prelude::*;
 use instructions::*;
-use state::{Service, VerificationMethodArg};
+use state::{Service, VerificationMethodArg, Secp256k1RawSignature};
 
 declare_id!("didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc");
 
@@ -35,8 +35,8 @@ pub mod sol_did {
        instructions::remove_verification_method(ctx, alias)
     }
 
-    pub fn add_service(ctx: Context<AddService>, service: Service) -> Result<()> {
-        instructions::add_service(ctx, service)
+    pub fn add_service(ctx: Context<AddService>, service: Service, eth_signature: Option<Secp256k1RawSignature>) -> Result<()> {
+        instructions::add_service(ctx, service, eth_signature)
     }
 
     pub fn remove_service(ctx: Context<RemoveService>, service_id: String) -> Result<()> {
@@ -44,13 +44,13 @@ pub mod sol_did {
     }
 
     // TODO implement
-    pub fn proof_key_ownership(_ctx: Context<DummyInstruction>) -> Result<()> {
+    pub fn set_key_ownership(_ctx: Context<DummyInstruction>) -> Result<()> {
         msg!("reached proof");
         Ok(())
     }
 
     // TODO implement
-    pub fn remove_key_ownership(_ctx: Context<DummyInstruction>) -> Result<()> {
+    pub fn unset_key_ownership(_ctx: Context<DummyInstruction>) -> Result<()> {
         Ok(())
     }
 }

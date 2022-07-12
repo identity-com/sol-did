@@ -1,14 +1,12 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { SolDid } from "../../target/types/sol_did";
-import { PublicKey } from '@solana/web3.js';
 
-import chai from "chai";
+import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { expect } from "chai";
 
-import { DEFAULT_SEED_STRING, INITIAL_ACCOUNT_SIZE } from "../utils/const";
-import { findProgramAddress } from "../utils/utils";
+import { INITIAL_ACCOUNT_SIZE } from "../utils/const";
+import { findProgramAddress, VerificationMethodFlags } from "../utils/utils";
 import { before } from "mocha";
 
 
@@ -90,7 +88,7 @@ describe("sol-did alloc operations", () => {
     expect(didDataAccount.services.length).to.equal(0)
     expect(didDataAccount.verificationMethods.length).to.equal(0)
     expect(didDataAccount.initialAuthority.toBase58()).to.equal(authority.publicKey.toBase58())
-    expect(didDataAccount.initialAuthorityFlags).to.equal(0b0000000001001000)
+    expect(didDataAccount.initialAuthorityFlags).to.equal(VerificationMethodFlags.CapabilityInvocation | VerificationMethodFlags.OwnershipProof)
 
 
     expect(didDataAccount.otherControllers.length).to.equal(0)

@@ -4,6 +4,11 @@ use num_derive::*;
 use num_traits::*;
 use bitflags::bitflags;
 
+use solana_program::{
+    keccak,
+    secp256k1_recover::{secp256k1_recover, Secp256k1Pubkey},
+};
+
 #[account]
 pub struct DidAccount {
     /// Version identifier
@@ -67,16 +72,57 @@ impl DidAccount {
        self.verification_methods().iter().any(|x| x.alias == *alias)
     }
 
-    pub fn is_authority(&self, authority: Pubkey) -> bool {
-
-        msg!("Checking if {} is an Ed25519VerificationKey2018 authority", authority.to_string());
-        let ret = self.verification_methods()
+    fn is_verification_method_match(&self, vm_type: VerificationMethodType, key: &[u8]) -> bool {
+        self.verification_methods()
             .iter()
-            .filter(|x| x.method == VerificationMethodType::Ed25519VerificationKey2018)
+            .filter(|x| x.method == vm_type)
             .filter(|x| VerificationMethodFlags::from_bits(x.flags).unwrap().contains(VerificationMethodFlags::CAPABILITY_INVOCATION))
-            .any(|v| v.key_data == authority.to_bytes());
+            .any(|v| v.key_data == key)
+    }
 
-        ret
+    pub fn is_authority(&self, authority: Pubkey) -> bool {
+        msg!("Checking if {} is an Ed25519VerificationKey2018 authority", authority.to_string());
+        self.is_verification_method_match(VerificationMethodType::Ed25519VerificationKey2018, &authority.to_bytes())
+    }
+
+    pub fn is_eth_authority(&self, message: Vec<u8>, rawSignature: Option<Secp256k1RawSignature>) -> bool {
+        if rawSignature.is_none() {
+            return false;
+        }
+
+        let rawSignature = rawSignature.unwrap();
+        // Ethereum conforming Message Input
+        // https://docs.ethers.io/v4/api-utils.html?highlight=hashmessage#hash-function-helpers
+        let signMessageInput = ["\x19Ethereum Signed Message:\n".as_bytes(), message.len().to_string().as_bytes(), message.as_ref()].concat();
+
+        let hash = keccak::hash(signMessageInput.as_ref());
+        msg!("Hash: {:x?}", hash.as_ref());
+        msg!("Message: {:x?}", message);
+        msg!("Signature: {:x?}", rawSignature.signature);
+        msg!("RecoveryId: {:x}", rawSignature.recovery_id);
+
+        let secp256k1_pubkey = secp256k1_recover(hash.as_ref(), rawSignature.recovery_id, rawSignature.signature.as_ref()).unwrap();
+        msg!("Recovered: {:?}", secp256k1_pubkey.to_bytes());
+
+        // Check EcdsaSecp256k1VerificationKey2019 matches
+        msg!("Checking if {:x?} is an EcdsaSecp256k1VerificationKey2019 authority", secp256k1_pubkey.to_bytes());
+        if self.is_verification_method_match(
+            VerificationMethodType::EcdsaSecp256k1VerificationKey2019,
+            &secp256k1_pubkey.to_bytes()) {
+            return true;
+        }
+
+        let address = convert_secp256k1PubKey_to_address(&secp256k1_pubkey);
+        msg!("Address: {:?}", address);
+        // Check EcdsaSecp256k1VerificationKey2019 matches
+        msg!("Checking if {:x?} is an EcdsaSecp256k1RecoveryMethod2020 authority", address);
+        if self.is_verification_method_match(
+            VerificationMethodType::EcdsaSecp256k1RecoveryMethod2020,
+            &address) {
+            return true;
+        }
+
+        false
     }
 
     pub fn size(&self) -> usize {
@@ -103,6 +149,13 @@ impl DidAccount {
         + 4 // native_controllers
         + 4 // other_controllers
     }
+}
+
+// TODO Move
+pub fn convert_secp256k1PubKey_to_address(pubkey: &Secp256k1Pubkey) -> [u8; 20] {
+    let mut address = [0u8; 20];
+    address.copy_from_slice(&keccak::hash(pubkey.to_bytes().as_ref()).to_bytes()[12..]);
+    address
 }
 
 #[derive(
@@ -187,6 +240,17 @@ impl Service {
     pub fn size(&self) -> usize {
         4 + self.id.len() + 4 + self.service_type.len() + 4 + self.service_endpoint.len()
     }
+}
+
+#[derive(Debug, AnchorSerialize, AnchorDeserialize)]
+pub struct Secp256k1RawSignature {
+    signature: [u8; 64],
+    recovery_id: u8,
+}
+
+pub struct Secp256k1SignatureAndMessage {
+    message: Vec<u8>,
+    rawSignature: Secp256k1RawSignature,
 }
 
 bitflags! {
