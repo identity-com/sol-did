@@ -11,6 +11,7 @@ import { expect } from "chai";
 import { ethSignPayload, findProgramAddress, VerificationMethodFlags, VerificationMethodType } from "../utils/utils";
 import { before } from "mocha";
 import { Wallet, utils } from "ethers";
+import { DidSolService } from "../../src";
 
 
 chai.use(chaiAsPromised);
@@ -19,6 +20,7 @@ describe("sol-did auth operations", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
   let didData, didDataPDABump;
+  let service: DidSolService;
 
   const program = anchor.workspace.SolDid as Program<SolDid>;
   const programProvider = program.provider as anchor.AnchorProvider;
@@ -34,6 +36,9 @@ describe("sol-did auth operations", () => {
 
   before(async () => {
     [didData, didDataPDABump] = await findProgramAddress(authority.publicKey);
+    service = new DidSolService(program, authority.publicKey, didData, programProvider);
+
+    // Fund nonAuthoritySigner
     const sigAirdrop = await programProvider.connection.requestAirdrop(
       nonAuthoritySigner.publicKey,
       anchor.web3.LAMPORTS_PER_SOL
@@ -42,7 +47,7 @@ describe("sol-did auth operations", () => {
   })
 
   it("fails when trying to close a did:sol account with a wrong authority", async () => {
-    return expect(program.methods.close()
+    return expect(program.methods.close(null)
       .accounts({
         didData,
         authority: nonAuthoritySigner.publicKey,

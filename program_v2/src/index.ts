@@ -1,0 +1,2 @@
+export { DidSolService } from "./DidSolService";
+

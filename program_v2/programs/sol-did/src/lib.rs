@@ -20,8 +20,9 @@ pub mod sol_did {
         instructions::resize(ctx, size)
     }
 
-    pub fn close(ctx: Context<Close>) -> Result<()> {
-        instructions::close(ctx)
+    pub fn close(ctx: Context<Close>,
+                 eth_signature: Option<Secp256k1RawSignature>) -> Result<()> {
+        instructions::close(ctx, eth_signature)
     }
 
     pub fn add_verification_method(

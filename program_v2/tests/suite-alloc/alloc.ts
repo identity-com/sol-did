@@ -8,6 +8,7 @@ import chaiAsPromised from "chai-as-promised";
 import { INITIAL_ACCOUNT_SIZE } from "../utils/const";
 import { findProgramAddress, VerificationMethodFlags } from "../utils/utils";
 import { before } from "mocha";
+import { DidSolService } from "../../src";
 
 
 chai.use(chaiAsPromised);
@@ -16,6 +17,7 @@ describe("sol-did alloc operations", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
   let didData, didDataPDABump;
+  let service: DidSolService;
 
   const program = anchor.workspace.SolDid as Program<SolDid>;
   const programProvider = program.provider as anchor.AnchorProvider;
@@ -24,6 +26,10 @@ describe("sol-did alloc operations", () => {
 
   before(async () => {
     [didData, didDataPDABump] = await findProgramAddress(authority.publicKey);
+    service = new DidSolService(program, authority.publicKey, didData, programProvider);
+
+    // init with correct signer
+    // service.setSolSigner(authority);
   })
 
   it("can successfully close an did:sol account ", async () => {
@@ -32,7 +38,7 @@ describe("sol-did alloc operations", () => {
     // Accounts Before
     const rawDidDataAccountBefore = await programProvider.connection.getAccountInfo(didData);
 
-    const tx = await program.methods.close()
+    const tx = await program.methods.close(null)
       .accounts({
         didData,
         authority: authority.publicKey,
@@ -52,7 +58,7 @@ describe("sol-did alloc operations", () => {
   it("fails when trying to close a did:sol account that does not exist", async () => {
     const destination = anchor.web3.Keypair.generate();
 
-    return expect(program.methods.close()
+    return expect(program.methods.close(null)
       .accounts({
         didData,
         authority: authority.publicKey,
