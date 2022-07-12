@@ -55,7 +55,7 @@ jobs:
         node: ['16.x']
         os: [ubuntu-latest]
         solana: ['v1.10.29']
-        rust: ['1.61']
+        rust: ['nightly-2022-05-18']
 
     steps:
       - name: Checkout repo
