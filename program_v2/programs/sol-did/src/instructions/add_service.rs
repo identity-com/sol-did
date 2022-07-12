@@ -2,7 +2,11 @@ use crate::errors::DidSolError;
 use crate::state::{DidAccount, Secp256k1RawSignature, Service};
 use anchor_lang::prelude::*;
 
-pub fn add_service(ctx: Context<AddService>, service: Service, eth_signature: Option<Secp256k1RawSignature>) -> Result<()> {
+pub fn add_service(
+    ctx: Context<AddService>,
+    service: Service,
+    eth_signature: Option<Secp256k1RawSignature>,
+) -> Result<()> {
     let data = &mut ctx.accounts.did_data;
 
     // increase the nonce. TODO: check if this can be moved to a constraint.

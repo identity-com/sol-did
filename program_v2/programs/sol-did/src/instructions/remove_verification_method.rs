@@ -1,4 +1,4 @@
-use crate::state::{DidAccount};
+use crate::state::DidAccount;
 use anchor_lang::prelude::*;
 
 pub fn remove_verification_method(

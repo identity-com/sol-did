@@ -1,8 +1,8 @@
 use crate::errors::DidSolError;
 use anchor_lang::prelude::*;
+use bitflags::bitflags;
 use num_derive::*;
 use num_traits::*;
-use bitflags::bitflags;
 
 use solana_program::{
     keccak,
@@ -44,7 +44,10 @@ impl DidAccount {
         [ret_vector.as_slice(), self.verification_methods.as_slice()].concat()
     }
 
-    pub fn add_verification_method(&mut self, verification_method: VerificationMethod) -> Result<()> {
+    pub fn add_verification_method(
+        &mut self,
+        verification_method: VerificationMethod,
+    ) -> Result<()> {
         self.verification_methods.push(verification_method);
         Ok(())
     }
@@ -69,23 +72,39 @@ impl DidAccount {
     }
 
     pub fn has_verification_method(&self, alias: &String) -> bool {
-       self.verification_methods().iter().any(|x| x.alias == *alias)
+        self.verification_methods()
+            .iter()
+            .any(|x| x.alias == *alias)
     }
 
     fn is_verification_method_match(&self, vm_type: VerificationMethodType, key: &[u8]) -> bool {
         self.verification_methods()
             .iter()
             .filter(|x| x.method == vm_type)
-            .filter(|x| VerificationMethodFlags::from_bits(x.flags).unwrap().contains(VerificationMethodFlags::CAPABILITY_INVOCATION))
+            .filter(|x| {
+                VerificationMethodFlags::from_bits(x.flags)
+                    .unwrap()
+                    .contains(VerificationMethodFlags::CAPABILITY_INVOCATION)
+            })
             .any(|v| v.key_data == key)
     }
 
     pub fn is_authority(&self, authority: Pubkey) -> bool {
-        msg!("Checking if {} is an Ed25519VerificationKey2018 authority", authority.to_string());
-        self.is_verification_method_match(VerificationMethodType::Ed25519VerificationKey2018, &authority.to_bytes())
+        msg!(
+            "Checking if {} is an Ed25519VerificationKey2018 authority",
+            authority.to_string()
+        );
+        self.is_verification_method_match(
+            VerificationMethodType::Ed25519VerificationKey2018,
+            &authority.to_bytes(),
+        )
     }
 
-    pub fn is_eth_authority(&self, message: Vec<u8>, rawSignature: Option<Secp256k1RawSignature>) -> bool {
+    pub fn is_eth_authority(
+        &self,
+        message: Vec<u8>,
+        rawSignature: Option<Secp256k1RawSignature>,
+    ) -> bool {
         if rawSignature.is_none() {
             return false;
         }
@@ -94,33 +113,55 @@ impl DidAccount {
         let message_with_nonce = [message.as_ref(), self.nonce.to_le_bytes().as_ref()].concat();
         // Ethereum conforming Message Input
         // https://docs.ethers.io/v4/api-utils.html?highlight=hashmessage#hash-function-helpers
-        let signMessageInput = ["\x19Ethereum Signed Message:\n".as_bytes(), message_with_nonce.len().to_string().as_bytes(), message_with_nonce.as_ref()].concat();
+        let signMessageInput = [
+            "\x19Ethereum Signed Message:\n".as_bytes(),
+            message_with_nonce.len().to_string().as_bytes(),
+            message_with_nonce.as_ref(),
+        ]
+        .concat();
 
         let hash = keccak::hash(signMessageInput.as_ref());
         msg!("Hash: {:x?}", hash.as_ref());
         msg!("Message: {:x?}", message);
-        msg!("signMessageInput: {:x?}, Length: {}", signMessageInput, signMessageInput.len());
+        msg!(
+            "signMessageInput: {:x?}, Length: {}",
+            signMessageInput,
+            signMessageInput.len()
+        );
         msg!("Signature: {:x?}", rawSignature.signature);
         msg!("RecoveryId: {:x}", rawSignature.recovery_id);
 
-        let secp256k1_pubkey = secp256k1_recover(hash.as_ref(), rawSignature.recovery_id, rawSignature.signature.as_ref()).unwrap();
+        let secp256k1_pubkey = secp256k1_recover(
+            hash.as_ref(),
+            rawSignature.recovery_id,
+            rawSignature.signature.as_ref(),
+        )
+        .unwrap();
         msg!("Recovered: {:?}", secp256k1_pubkey.to_bytes());
 
         // Check EcdsaSecp256k1VerificationKey2019 matches
-        msg!("Checking if {:x?} is an EcdsaSecp256k1VerificationKey2019 authority", secp256k1_pubkey.to_bytes());
+        msg!(
+            "Checking if {:x?} is an EcdsaSecp256k1VerificationKey2019 authority",
+            secp256k1_pubkey.to_bytes()
+        );
         if self.is_verification_method_match(
             VerificationMethodType::EcdsaSecp256k1VerificationKey2019,
-            &secp256k1_pubkey.to_bytes()) {
+            &secp256k1_pubkey.to_bytes(),
+        ) {
             return true;
         }
 
         let address = convert_secp256k1PubKey_to_address(&secp256k1_pubkey);
         msg!("Address: {:?}", address);
         // Check EcdsaSecp256k1VerificationKey2019 matches
-        msg!("Checking if {:x?} is an EcdsaSecp256k1RecoveryMethod2020 authority", address);
+        msg!(
+            "Checking if {:x?} is an EcdsaSecp256k1RecoveryMethod2020 authority",
+            address
+        );
         if self.is_verification_method_match(
             VerificationMethodType::EcdsaSecp256k1RecoveryMethod2020,
-            &address) {
+            &address,
+        ) {
             return true;
         }
 
@@ -161,13 +202,8 @@ pub fn convert_secp256k1PubKey_to_address(pubkey: &Secp256k1Pubkey) -> [u8; 20] 
 }
 
 #[derive(
-    Debug,
-    AnchorSerialize,
-    AnchorDeserialize,
-    Clone,
-    FromPrimitive,
-    ToPrimitive,
-    PartialEq)]
+    Debug, AnchorSerialize, AnchorDeserialize, Clone, FromPrimitive, ToPrimitive, PartialEq,
+)]
 pub enum VerificationMethodType {
     /// The main Ed25519Verification Method.
     /// https://w3c-ccg.github.io/lds-ed25519-2018/
@@ -273,4 +309,3 @@ bitflags! {
         const OWNERSHIP_PROOF = 1 << 6;
     }
 }
-

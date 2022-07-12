@@ -9,8 +9,9 @@ pub fn initialize(ctx: Context<Initialize>, _size: Option<u32>) -> Result<()> {
 
     // Add the authority as a default verification method.
     did_data.initial_authority = ctx.accounts.authority.key();
-    did_data.initial_authority_flags = (VerificationMethodFlags::CAPABILITY_INVOCATION | VerificationMethodFlags::OWNERSHIP_PROOF).bits();
-
+    did_data.initial_authority_flags = (VerificationMethodFlags::CAPABILITY_INVOCATION
+        | VerificationMethodFlags::OWNERSHIP_PROOF)
+        .bits();
 
     msg!("Successfully initialized DID account.");
     Ok(())

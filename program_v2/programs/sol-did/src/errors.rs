@@ -13,4 +13,3 @@ pub enum DidSolError {
     #[msg("ServiceID doesn't exists in current service")]
     NonExistingService,
 }
-

@@ -1,5 +1,8 @@
 use crate::errors::DidSolError;
-use crate::state::{DidAccount, VerificationMethod, VerificationMethodArg, VerificationMethodFlags, Secp256k1RawSignature};
+use crate::state::{
+    DidAccount, Secp256k1RawSignature, VerificationMethod, VerificationMethodArg,
+    VerificationMethodFlags,
+};
 use anchor_lang::prelude::*;
 
 pub fn add_verification_method(
@@ -7,7 +10,6 @@ pub fn add_verification_method(
     verification_method: VerificationMethodArg,
     eth_signature: Option<Secp256k1RawSignature>,
 ) -> Result<()> {
-
     let vm = VerificationMethod::from(verification_method);
     let data = &mut ctx.accounts.did_data;
 
@@ -18,8 +20,9 @@ pub fn add_verification_method(
 
     // TODO: Should we move those to an anchor constraint?
     require!(
-        !VerificationMethodFlags::from_bits(vm.flags).unwrap()
-        .contains(VerificationMethodFlags::OWNERSHIP_PROOF),
+        !VerificationMethodFlags::from_bits(vm.flags)
+            .unwrap()
+            .contains(VerificationMethodFlags::OWNERSHIP_PROOF),
         DidSolError::VmOwnershipOnAdd
     );
 
