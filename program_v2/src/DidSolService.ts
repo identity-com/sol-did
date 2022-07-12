@@ -1,16 +1,18 @@
 import { SolDid } from "../target/types/sol_did";
-import { AnchorProvider, Program, web3, BN } from "@project-serum/anchor";
+import { AnchorProvider, Program, web3, Wallet } from "@project-serum/anchor";
 import { ethSignPayload, fetchProgram, findProgramAddress } from "./lib/utils";
 import { DIDDocument } from "did-resolver";
 import * as ethers from "ethers";
 
-
 export class DidSolService {
   private program: Program<SolDid>;
-  private solSigner: web3.Signer;
-  private ethSigner: ethers.Signer | null = null;
+  private solSigner: Wallet;
+  private ethSigner: ethers.Wallet | null = null;
 
-  static async build(provider: AnchorProvider, didIdentifier: web3.PublicKey): Promise<DidSolService> {
+  static async build(
+    provider: AnchorProvider,
+    didIdentifier: web3.PublicKey
+  ): Promise<DidSolService> {
     const program = await fetchProgram(provider);
     const [didDataAccount, _] = await findProgramAddress(didIdentifier);
 
@@ -30,14 +32,14 @@ export class DidSolService {
       program.coder
     );
 
-    this.solSigner = web3.Keypair.generate();
+    this.solSigner = new Wallet(web3.Keypair.generate());
   }
 
-  setSolSigner(signer: web3.Signer) {
+  setSolSigner(signer: Wallet) {
     this.solSigner = signer;
   }
 
-  setEthSigner(signer: ethers.Signer) {
+  setEthSigner(signer: ethers.Wallet) {
     this.ethSigner = signer;
   }
 
@@ -46,27 +48,31 @@ export class DidSolService {
     let ethSignature = null;
     if (this.ethSigner) {
       // read the nonce from the solana account
-      const nonce = await this.program.account.didAccount.fetch(this.didDataAccount).then(account => account.nonce);
+      const nonce = await this.program.account.didAccount
+        .fetch(this.didDataAccount)
+        .then((account) => account.nonce);
       const instruction = await this.program.methods.close(null).instruction();
-      ethSignature = await ethSignPayload(instruction, nonce, this.ethSigner)
+      ethSignature = await ethSignPayload(instruction, nonce, this.ethSigner);
     }
 
-    const tx = this.program.methods.close(ethSignature)
+    const tx = this.program.methods
+      .close(ethSignature)
       .accounts({
         didData: this.didDataAccount,
         authority: this.solSigner.publicKey,
         destination: destination,
       })
-      .signers([this.solSigner])
-      .rpc()
+      .signers([])
+      .rpc();
 
     return tx;
   }
 
-
   // TODO Implement
   async resolve(): Promise<DIDDocument> {
-    const didDataAccount = await this.program.account.didAccount.fetch(this.didDataAccount);
+    const didDataAccount = await this.program.account.didAccount.fetch(
+      this.didDataAccount
+    );
 
     return {
       "@context": undefined,
@@ -80,9 +86,7 @@ export class DidSolService {
       keyAgreement: [],
       publicKey: [],
       service: [],
-      verificationMethod: []
+      verificationMethod: [],
     };
   }
-
-
 }
