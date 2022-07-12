@@ -90,7 +90,7 @@ describe("sol-did service operations", () => {
     const dataAccountBefore = await program.account.didAccount.fetch(didData);
     expect(dataAccountBefore.services.length).to.equal(1);
 
-    const tx = await program.methods.removeService("aws").accounts({
+    const tx = await program.methods.removeService("aws", null).accounts({
       didData,
     }).rpc()
 
@@ -102,7 +102,7 @@ describe("sol-did service operations", () => {
 
   async function testRemoveServiceError(didData: anchor.web3.PublicKey) {
     try {
-      const tx = await program.methods.removeService("aws",).accounts({
+      const tx = await program.methods.removeService("aws", null).accounts({
         didData,
       }).rpc()
     } catch(error) {
