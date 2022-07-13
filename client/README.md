@@ -7,12 +7,12 @@ A typescript client library for registering and resolving DIDs using [the 'sol' 
 ### Command line tool
 
 ```shell
-npm install -g @identity.com/sol-did-client
+npm install @identity.com/sol-did-client
 # or
 yarn global add @identity.com/sol-did-client  
 ```
 
-Then to resolve a DID document for a given did: 
+Then to resolve a DID document for a given DID: 
 ```shell
 npx sol did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
 ```
