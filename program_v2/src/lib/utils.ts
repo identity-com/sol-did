@@ -2,12 +2,7 @@ import { AnchorProvider, Program, Provider, web3 } from "@project-serum/anchor";
 import { SolDid } from "../../target/types/sol_did";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
-import { Signer, Wallet } from "ethers";
-import {
-  Signature,
-  Transaction,
-  utils as ethersUtils,
-} from "ethers/lib/ethers";
+import { Bytes, utils as ethersUtils } from "ethers/lib/ethers";
 
 export const INITIAL_ACCOUNT_SIZE = 8 + 60;
 export const DEFAULT_SEED_STRING = "did-account";
@@ -35,7 +30,7 @@ export const findProgramAddress = async (authority: PublicKey) =>
 export const ethSignPayload = async (
   instruction: TransactionInstruction,
   nonce: anchor.BN,
-  signer: Signer
+  signer: EthSigner
 ) => {
   // Anchor 8 bytes prefix, Option<T> byte suffix
   const nonceBytes = nonce.toBuffer("le", 8);
@@ -60,30 +55,29 @@ export const ethSignPayload = async (
 
 export const signAndConfirmTransactionInstruction = async (
   provider: AnchorProvider,
-  signer: anchor.Wallet,
+  signer: SolSigner,
   instruction: web3.TransactionInstruction
 ) => {
   const transaction = new web3.Transaction().add(instruction);
 
-  // TODO Sign Transaction With Wallet
+  const latestBlockhash = await provider.connection.getLatestBlockhash();
+  transaction.recentBlockhash = latestBlockhash.blockhash;
+  transaction.feePayer = signer.publicKey;
   const signedTransaction = await signer.signTransaction(transaction);
   const signature = await provider.connection.sendRawTransaction(
     signedTransaction.serialize()
   );
+
   await provider.connection.confirmTransaction(signature);
   return signature;
 };
 
-export type SignCallback = (
-  instruction: web3.TransactionInstruction
-) => Promise<string>;
+export type SolSigner = {
+  publicKey: web3.PublicKey;
+  signTransaction: (instruction: web3.Transaction) => Promise<web3.Transaction>;
+};
 
-export interface SolSigner {
-  publicKey: PublicKey;
-  signTransaction: SignCallback;
-}
-
-export interface EthSigner {
-  publicKey: PublicKey;
-  signMessage: SignCallback;
-}
+export type EthSigner = {
+  publicKey: string;
+  signMessage: (message: Bytes | string) => Promise<string>;
+};

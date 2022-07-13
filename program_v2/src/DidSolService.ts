@@ -1,18 +1,19 @@
 import { SolDid } from "../target/types/sol_did";
 import { AnchorProvider, Program, web3, Wallet } from "@project-serum/anchor";
 import {
+  EthSigner,
   ethSignPayload,
   fetchProgram,
   findProgramAddress,
   signAndConfirmTransactionInstruction,
+  SolSigner,
 } from "./lib/utils";
 import { DIDDocument } from "did-resolver";
-import * as ethers from "ethers";
 
 export class DidSolService {
   private program: Program<SolDid>;
-  private solSigner: Wallet;
-  private ethSigner: ethers.Signer | null = null;
+  private solSigner: SolSigner;
+  private ethSigner: EthSigner | null = null;
 
   static async build(
     provider: AnchorProvider,
@@ -40,11 +41,11 @@ export class DidSolService {
     this.solSigner = new Wallet(web3.Keypair.generate());
   }
 
-  setSolSigner(signer: Wallet) {
+  setSolSigner(signer: SolSigner) {
     this.solSigner = signer;
   }
 
-  setEthSigner(signer: ethers.Signer) {
+  setEthSigner(signer: EthSigner) {
     this.ethSigner = signer;
   }
 
