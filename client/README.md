@@ -1,6 +1,6 @@
-# SOL DID Client
+# `sol` DID Client
 
-A typescript client library for registering and resolving DIDs using [the 'sol' DID method](https://identity-com.github.io/sol-did/did-method-spec.html).
+A TypeScript client for registering and resolving DIDs using [the `sol` DID method](https://identity-com.github.io/sol-did/did-method-spec.html).
 
 ## Getting Started
 
