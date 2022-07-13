@@ -16,8 +16,8 @@ pub mod sol_did {
         instructions::initialize(ctx, size)
     }
 
-    pub fn resize(ctx: Context<Resize>, size: u32) -> Result<()> {
-        instructions::resize(ctx, size)
+    pub fn resize(ctx: Context<Resize>, size: u32, eth_signature: Option<Secp256k1RawSignature>,) -> Result<()> {
+        instructions::resize(ctx, size, eth_signature)
     }
 
     pub fn close(ctx: Context<Close>, eth_signature: Option<Secp256k1RawSignature>) -> Result<()> {
@@ -35,8 +35,9 @@ pub mod sol_did {
     pub fn remove_verification_method(
         ctx: Context<RemoveVerificationMethod>,
         alias: String,
+        eth_signature: Option<Secp256k1RawSignature>,
     ) -> Result<()> {
-        instructions::remove_verification_method(ctx, alias)
+        instructions::remove_verification_method(ctx, alias, eth_signature)
     }
 
     pub fn add_service(
@@ -47,7 +48,7 @@ pub mod sol_did {
         instructions::add_service(ctx, service, eth_signature)
     }
 
-    pub fn remove_service(ctx: Context<RemoveService>, service_id: String) -> Result<()> {
+    pub fn remove_service(ctx: Context<RemoveService>, service_id: String, eth_signature: Option<Secp256k1RawSignature>,) -> Result<()> {
         instructions::remove_service(ctx, service_id)
     }
 

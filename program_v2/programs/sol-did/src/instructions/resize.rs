@@ -1,13 +1,18 @@
-use crate::state::DidAccount;
+use crate::state::{DidAccount, Secp256k1RawSignature};
 use anchor_lang::prelude::*;
 use std::convert::TryInto;
 
-pub fn resize(_ctx: Context<Resize>, _size: u32) -> Result<()> {
+pub fn resize(_ctx: Context<Resize>, _size: u32, eth_signature: Option<Secp256k1RawSignature>,) -> Result<()> {
+    let data = &mut _ctx.accounts.did_data;
+
+    if eth_signature.is_some() {
+        data.nonce += 1;
+    }
     Ok(())
 }
 
 #[derive(Accounts)]
-#[instruction(size: u32)]
+#[instruction(size: u32, eth_signature: Option<Secp256k1RawSignature>)]
 pub struct Resize<'info> {
     // TODO: prevent from resizing to less data
     // TODO: Authority can be different to initial authority.
@@ -18,7 +23,7 @@ pub struct Resize<'info> {
         realloc = TryInto::<usize>::try_into(size).unwrap(),
         realloc::payer = payer,
         realloc::zero = false,
-        constraint = did_data.is_authority(authority.key()),
+        constraint = did_data.is_authority(authority.key()) || did_data.is_eth_authority(vec![(size as u8)], eth_signature),
     )]
     pub did_data: Account<'info, DidAccount>,
     #[account(mut)]
