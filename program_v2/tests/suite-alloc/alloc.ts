@@ -115,7 +115,7 @@ describe("sol-did alloc operations", () => {
   it("can successfully resize an account", async () => {
     const NEW_ACCOUNT_SIZE = 10_000;
 
-    await program.methods.resize(NEW_ACCOUNT_SIZE)
+    await program.methods.resize(NEW_ACCOUNT_SIZE, null)
       .accounts({
         didData,
         payer: authority.publicKey
