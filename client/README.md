@@ -1,14 +1,20 @@
 # SOL DID Client
 
-A typescript client library for registering and resolving DIDs using the SOL method
+A typescript client library for registering and resolving DIDs using [the 'sol' DID method](https://identity-com.github.io/sol-did/did-method-spec.html).
 
 ## Getting Started
 
 ### Command line tool
 
 ```shell
-yarn global add @identity.com/sol-did-client # or npm install -g @identity.com/sol-did-client
-sol did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
+npm install -g @identity.com/sol-did-client
+# or
+yarn global add @identity.com/sol-did-client  
+```
+
+Then to resolve a DID document for a given did: 
+```shell
+npx sol did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
 ```
 
 ### Client library
@@ -22,7 +28,7 @@ import {
   addController, 
   removeController, 
   addService, 
-  removeSerice
+  removeService
 } from '@identity.com/sol-did-client';
 
 // generate an X25519 key, eg using 'tweetnacl'
