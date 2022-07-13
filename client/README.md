@@ -42,8 +42,7 @@ const keyPair = nacl.sign.keyPair();
 
 ```typescript
 const did = await register({
-  payer: keyPair.secretKey,
-  delet,
+  payer: keyPair.secretKey
 });
 ```
 
