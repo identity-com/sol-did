@@ -3,7 +3,11 @@ import { SolDid } from "../../target/types/sol_did";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { Signer, Wallet } from "ethers";
-import { utils as ethersUtils } from "ethers/lib/ethers";
+import {
+  Signature,
+  Transaction,
+  utils as ethersUtils,
+} from "ethers/lib/ethers";
 
 export const INITIAL_ACCOUNT_SIZE = 8 + 60;
 export const DEFAULT_SEED_STRING = "did-account";
@@ -70,10 +74,14 @@ export const signAndConfirmTransactionInstruction = async (
   return signature;
 };
 
+export type SignCallback = (transaction: Transaction) => Promise<string>;
+
 export interface SolSigner {
-  signTransaction(): Promise<string>;
+  publicKey: PublicKey;
+  signTransaction: SignCallback;
 }
 
 export interface EthSigner {
-  signMessage(): Promise<string>;
+  publicKey: PublicKey;
+  signMessage: SignCallback;
 }
