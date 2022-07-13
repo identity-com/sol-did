@@ -74,7 +74,9 @@ export const signAndConfirmTransactionInstruction = async (
   return signature;
 };
 
-export type SignCallback = (transaction: Transaction) => Promise<string>;
+export type SignCallback = (
+  instruction: web3.TransactionInstruction
+) => Promise<string>;
 
 export interface SolSigner {
   publicKey: PublicKey;
