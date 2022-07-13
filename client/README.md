@@ -46,7 +46,7 @@ const did = await register({
 });
 ```
 
-## Resolve a DID to a DID document
+## Reading a DID (resolving a DID to a DID document)
 
 ```typescript
 const document = await resolve(did);
