@@ -4,19 +4,24 @@ mod state;
 
 use anchor_lang::prelude::*;
 use instructions::*;
-use state::{Secp256k1RawSignature, Service, VerificationMethodArg};
+use state::{DidAccount, Secp256k1RawSignature, Service, VerificationMethodArg};
 
 declare_id!("didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc");
 
 #[program]
 pub mod sol_did {
+
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>, size: Option<u32>) -> Result<()> {
         instructions::initialize(ctx, size)
     }
 
-    pub fn resize(ctx: Context<Resize>, size: u32, eth_signature: Option<Secp256k1RawSignature>,) -> Result<()> {
+    pub fn resize(
+        ctx: Context<Resize>,
+        size: u32,
+        eth_signature: Option<Secp256k1RawSignature>,
+    ) -> Result<()> {
         instructions::resize(ctx, size, eth_signature)
     }
 
@@ -48,7 +53,11 @@ pub mod sol_did {
         instructions::add_service(ctx, service, eth_signature)
     }
 
-    pub fn remove_service(ctx: Context<RemoveService>, service_id: String, eth_signature: Option<Secp256k1RawSignature>,) -> Result<()> {
+    pub fn remove_service(
+        ctx: Context<RemoveService>,
+        service_id: String,
+        eth_signature: Option<Secp256k1RawSignature>,
+    ) -> Result<()> {
         instructions::remove_service(ctx, service_id)
     }
 
@@ -61,6 +70,14 @@ pub mod sol_did {
     // TODO implement
     pub fn unset_key_ownership(_ctx: Context<DummyInstruction>) -> Result<()> {
         Ok(())
+    }
+
+    pub fn update_data(
+        ctx: Context<Update>,
+        information: DidAccount,
+        eth_signature: Option<Secp256k1RawSignature>,
+    ) -> Result<()> {
+        instructions::update(ctx, information, eth_signature)
     }
 }
 

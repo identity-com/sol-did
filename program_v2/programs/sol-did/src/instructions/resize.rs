@@ -2,7 +2,11 @@ use crate::state::{DidAccount, Secp256k1RawSignature};
 use anchor_lang::prelude::*;
 use std::convert::TryInto;
 
-pub fn resize(_ctx: Context<Resize>, _size: u32, eth_signature: Option<Secp256k1RawSignature>,) -> Result<()> {
+pub fn resize(
+    _ctx: Context<Resize>,
+    _size: u32,
+    eth_signature: Option<Secp256k1RawSignature>,
+) -> Result<()> {
     let data = &mut _ctx.accounts.did_data;
 
     if eth_signature.is_some() {

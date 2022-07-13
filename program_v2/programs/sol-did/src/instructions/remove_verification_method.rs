@@ -1,6 +1,4 @@
-use crate::state::{
-    DidAccount, Secp256k1RawSignature, VerificationMethodArg,
-};
+use crate::state::{DidAccount, Secp256k1RawSignature, VerificationMethodArg};
 use anchor_lang::prelude::*;
 
 pub fn remove_verification_method(
@@ -13,7 +11,7 @@ pub fn remove_verification_method(
     if eth_signature.is_some() {
         data.nonce += 1;
     }
-    
+
     data.remove_verification_method(&alias)
     // TODO: Prevent Lockout
 }
@@ -27,7 +25,6 @@ pub struct RemoveVerificationMethod<'info> {
         bump = did_data.bump,
         constraint = did_data.is_authority(authority.key()) || did_data.is_eth_authority(verification_method.try_to_vec().unwrap(), eth_signature),
     )]
-    
     pub did_data: Account<'info, DidAccount>,
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
