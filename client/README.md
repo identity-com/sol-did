@@ -9,104 +9,138 @@ A typescript client library for registering and resolving DIDs using [the 'sol' 
 ```shell
 npm install @identity.com/sol-did-client
 # or
-yarn add @identity.com/sol-did-client  
+yarn add @identity.com/sol-did-client
 ```
 
-Then to resolve a DID document for a given DID: 
+Then to resolve a DID document for a given DID:
+
 ```shell
 npx sol did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
 ```
 
 ### Client library
 
-```js
+```typescript
 import {
-  register, 
-  resolve, 
-  addKey, 
-  removeKey, 
-  addController, 
-  removeController, 
-  addService, 
-  removeService
-} from '@identity.com/sol-did-client';
+  register,
+  resolve,
+  addKey,
+  removeKey,
+  addController,
+  removeController,
+  addService,
+  removeService,
+} from "@identity.com/sol-did-client";
 
-// generate an X25519 key, eg using 'tweetnacl'
-import nacl from 'tweetnacl';
+# generate an X25519 key, eg using 'tweetnacl'
 
+import nacl from "tweetnacl";
 const keyPair = nacl.sign.keyPair();
+```
 
-// register a DID
+## register a DID
+
+```typescript
 const did = await register({
   payer: keyPair.secretKey,
+  delet,
 });
+```
 
-// resolve a DID
+## resolve a DID
+
+```typescript
 const document = await resolve(did);
+```
 
-// update a DID
+## update a DID
+
+```typescript
 const request = {
   payer: keyPair.secretKey,
   did,
   document: {
-    service: [{
-      description: 'Messaging Service',
-      id: `${did}#service1`,
-      serviceEndpoint: `https://dummmy.dummy/${did}`,
-      type: 'Messaging',
-    }],
+    service: [
+      {
+        description: "Messaging Service",
+        id: `${did}#service1`,
+        serviceEndpoint: `https://dummmy.dummy/${did}`,
+        type: "Messaging",
+      },
+    ],
   },
 };
 await update(request);
+```
 
-// deactivate a DID
+## deactivate a DID
+
+```typescript
 await deactivate({
   payer: keyPair.secretKey,
   did,
 });
+```
 
-// Add a key to the DID
+## Add a key to the DID
+
+```typescript
 addKey({
   payer: keyPair.secretKey,
   did,
-  fragment: 'ledger',
-  key
+  fragment: "ledger",
+  key,
 });
+```
 
-// Remove a key from the DID
+## Remove a key from the DID
+
+```typescript
 removeKey({
   payer: keyPair.secretKey,
   did,
-  fragment: 'ledger',
+  fragment: "ledger",
 });
+```
 
-// Add a controller to the DID
+## Add a controller to the DID
+
+```typescript
 addController({
   payer: keyPair.secretKey,
   did,
   controller,
 });
+```
 
-// Remove a controller from the DID
+## Remove a controller from the DID
+
+```typescript
 removeController({
   payer: keyPair.secretKey,
   did,
   controller,
 });
+```
 
-// Add a service to the DID
+## Add a service to the DID
+
+```typescript
 addService({
   payer: keyPair.secretKey,
   did,
   service: {
     id: `${did}#${fragment}`,
-    type: 'Service',
+    type: "Service",
     serviceEndpoint: `https://service.com/${did}`,
-    description: 'Service'
+    description: "Service",
   },
 });
+```
 
-// Remove a service from the DID
+## Remove a service from the DID
+
+```typescript
 removeService({
   payer: keyPair.secretKey,
   did,
