@@ -1,13 +1,18 @@
 import { SolDid } from "../target/types/sol_did";
 import { AnchorProvider, Program, web3, Wallet } from "@project-serum/anchor";
-import { ethSignPayload, fetchProgram, findProgramAddress } from "./lib/utils";
+import {
+  ethSignPayload,
+  fetchProgram,
+  findProgramAddress,
+  signAndConfirmTransactionInstruction,
+} from "./lib/utils";
 import { DIDDocument } from "did-resolver";
 import * as ethers from "ethers";
 
 export class DidSolService {
   private program: Program<SolDid>;
   private solSigner: Wallet;
-  private ethSigner: ethers.Wallet | null = null;
+  private ethSigner: ethers.Signer | null = null;
 
   static async build(
     provider: AnchorProvider,
@@ -39,7 +44,7 @@ export class DidSolService {
     this.solSigner = signer;
   }
 
-  setEthSigner(signer: ethers.Wallet) {
+  setEthSigner(signer: ethers.Signer) {
     this.ethSigner = signer;
   }
 
@@ -55,17 +60,22 @@ export class DidSolService {
       ethSignature = await ethSignPayload(instruction, nonce, this.ethSigner);
     }
 
-    const tx = this.program.methods
+    const instruction = await this.program.methods
       .close(ethSignature)
       .accounts({
         didData: this.didDataAccount,
         authority: this.solSigner.publicKey,
         destination: destination,
       })
-      .signers([])
-      .rpc();
+      .instruction();
 
-    return tx;
+    const confirmedTransaction = signAndConfirmTransactionInstruction(
+      this.provider,
+      this.solSigner,
+      instruction
+    );
+
+    return confirmedTransaction;
   }
 
   // TODO Implement
