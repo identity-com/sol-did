@@ -38,7 +38,7 @@ import nacl from "tweetnacl";
 const keyPair = nacl.sign.keyPair();
 ```
 
-## register a DID
+## Register (create) a DID
 
 ```typescript
 const did = await register({
@@ -47,13 +47,13 @@ const did = await register({
 });
 ```
 
-## resolve a DID
+## Resolve a DID to a DID document
 
 ```typescript
 const document = await resolve(did);
 ```
 
-## update a DID
+## Update a DID
 
 ```typescript
 const request = {
@@ -73,7 +73,7 @@ const request = {
 await update(request);
 ```
 
-## deactivate a DID
+## Deactivate a DID
 
 ```typescript
 await deactivate({
