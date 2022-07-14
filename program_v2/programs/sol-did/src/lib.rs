@@ -16,7 +16,11 @@ pub mod sol_did {
         instructions::initialize(ctx, size)
     }
 
-    pub fn resize(ctx: Context<Resize>, size: u32, eth_signature: Option<Secp256k1RawSignature>,) -> Result<()> {
+    pub fn resize(
+        ctx: Context<Resize>,
+        size: u32,
+        eth_signature: Option<Secp256k1RawSignature>,
+    ) -> Result<()> {
         instructions::resize(ctx, size, eth_signature)
     }
 
@@ -48,8 +52,12 @@ pub mod sol_did {
         instructions::add_service(ctx, service, eth_signature)
     }
 
-    pub fn remove_service(ctx: Context<RemoveService>, service_id: String, eth_signature: Option<Secp256k1RawSignature>,) -> Result<()> {
-        instructions::remove_service(ctx, service_id)
+    pub fn remove_service(
+        ctx: Context<RemoveService>,
+        service_id: String,
+        eth_signature: Option<Secp256k1RawSignature>,
+    ) -> Result<()> {
+        instructions::remove_service(ctx, service_id, eth_signature)
     }
 
     // TODO implement
