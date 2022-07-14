@@ -89,6 +89,18 @@ impl DidAccount {
             .any(|v| v.key_data == key)
     }
 
+    pub fn has_authority_verification_methods(&self) -> bool {
+        self.verification_methods()
+            .iter()
+            .filter(|x| VerificationMethodType::is_authority_type(x.method_type))
+            .filter(|x| {
+                VerificationMethodFlags::from_bits(x.flags)
+                    .unwrap()
+                    .contains(VerificationMethodFlags::CAPABILITY_INVOCATION)
+            })
+            .any(|_x| true) // TODO: there must be a nicer way here.
+    }
+
     pub fn is_authority(&self, authority: Pubkey) -> bool {
         msg!(
             "Checking if {} is an Ed25519VerificationKey2018 authority",
@@ -121,15 +133,15 @@ impl DidAccount {
         .concat();
 
         let hash = keccak::hash(sign_message_input.as_ref());
-        msg!("Hash: {:x?}", hash.as_ref());
-        msg!("Message: {:x?}", message);
-        msg!(
-            "sign_message_input: {:x?}, Length: {}",
-            sign_message_input,
-            sign_message_input.len()
-        );
-        msg!("Signature: {:x?}", raw_signature.signature);
-        msg!("RecoveryId: {:x}", raw_signature.recovery_id);
+        // msg!("Hash: {:x?}", hash.as_ref());
+        // msg!("Message: {:x?}", message);
+        // msg!(
+        //     "sign_message_input: {:x?}, Length: {}",
+        //     sign_message_input,
+        //     sign_message_input.len()
+        // );
+        // msg!("Signature: {:x?}", raw_signature.signature);
+        // msg!("RecoveryId: {:x}", raw_signature.recovery_id);
 
         let secp256k1_pubkey = secp256k1_recover(
             hash.as_ref(),
@@ -137,13 +149,13 @@ impl DidAccount {
             raw_signature.signature.as_ref(),
         )
         .unwrap();
-        msg!("Recovered: {:?}", secp256k1_pubkey.to_bytes());
-
-        // Check EcdsaSecp256k1VerificationKey2019 matches
-        msg!(
-            "Checking if {:x?} is an EcdsaSecp256k1VerificationKey2019 authority",
-            secp256k1_pubkey.to_bytes()
-        );
+        // msg!("Recovered: {:?}", secp256k1_pubkey.to_bytes());
+        //
+        // // Check EcdsaSecp256k1VerificationKey2019 matches
+        // msg!(
+        //     "Checking if {:x?} is an EcdsaSecp256k1VerificationKey2019 authority",
+        //     secp256k1_pubkey.to_bytes()
+        // );
         if self.is_verification_method_match(
             VerificationMethodType::EcdsaSecp256k1VerificationKey2019,
             &secp256k1_pubkey.to_bytes(),
@@ -152,12 +164,12 @@ impl DidAccount {
         }
 
         let address = convert_secp256k1pub_key_to_address(&secp256k1_pubkey);
-        msg!("Address: {:?}", address);
-        // Check EcdsaSecp256k1VerificationKey2019 matches
-        msg!(
-            "Checking if {:x?} is an EcdsaSecp256k1RecoveryMethod2020 authority",
-            address
-        );
+        // msg!("Address: {:?}", address);
+        // // Check EcdsaSecp256k1VerificationKey2019 matches
+        // msg!(
+        //     "Checking if {:x?} is an EcdsaSecp256k1RecoveryMethod2020 authority",
+        //     address
+        // );
         if self.is_verification_method_match(
             VerificationMethodType::EcdsaSecp256k1RecoveryMethod2020,
             &address,
@@ -202,7 +214,7 @@ pub fn convert_secp256k1pub_key_to_address(pubkey: &Secp256k1Pubkey) -> [u8; 20]
 }
 
 #[derive(
-    Debug, AnchorSerialize, AnchorDeserialize, Clone, FromPrimitive, ToPrimitive, PartialEq,
+    Debug, AnchorSerialize, AnchorDeserialize, Copy, Clone, FromPrimitive, ToPrimitive, PartialEq,
 )]
 pub enum VerificationMethodType {
     /// The main Ed25519Verification Method.
@@ -212,6 +224,17 @@ pub enum VerificationMethodType {
     EcdsaSecp256k1RecoveryMethod2020,
     /// Verification Method for a full 32 bytes Secp256k1 Verification Key
     EcdsaSecp256k1VerificationKey2019,
+}
+
+impl VerificationMethodType {
+    pub fn is_authority_type(vm_type: VerificationMethodType) -> bool {
+        matches!(
+            vm_type,
+            VerificationMethodType::Ed25519VerificationKey2018
+                | VerificationMethodType::EcdsaSecp256k1RecoveryMethod2020
+                | VerificationMethodType::EcdsaSecp256k1VerificationKey2019
+        )
+    }
 }
 
 impl Default for VerificationMethodType {
