@@ -8,7 +8,13 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { expect } from "chai";
 
-import { ethSignPayload, findProgramAddress, VerificationMethodFlags, VerificationMethodType } from "../utils/utils";
+import {
+  airdrop,
+  ethSignPayload,
+  findProgramAddress,
+  VerificationMethodFlags,
+  VerificationMethodType
+} from "../utils/utils";
 import { before } from "mocha";
 import { Wallet, utils } from "ethers";
 import { DidSolService } from "../../src";
@@ -39,40 +45,37 @@ describe("sol-did auth operations", () => {
     service = new DidSolService(program, authority.publicKey, didData, programProvider);
 
     // Fund nonAuthoritySigner
-    const sigAirdrop = await programProvider.connection.requestAirdrop(
-      nonAuthoritySigner.publicKey,
-      anchor.web3.LAMPORTS_PER_SOL
-    );
-    await program.provider.connection.confirmTransaction(sigAirdrop);
+    airdrop(programProvider.connection, nonAuthoritySigner.publicKey);
   })
 
   it("fails when trying to close a did:sol account with a wrong authority", async () => {
-    return expect(program.methods.close(null)
-      .accounts({
-        didData,
-        authority: nonAuthoritySigner.publicKey,
-        destination: nonAuthoritySigner.publicKey,
-      })
-      .signers([nonAuthoritySigner])
-      .rpc()).to.be.rejectedWith(' Error Number: 2003. Error Message: A raw constraint was violated');
+    const instruction = await service.close(nonAuthoritySigner.publicKey, nonAuthoritySigner.publicKey);
+    const tx = new Transaction().add(instruction);
+
+    return expect(programProvider.sendAndConfirm(tx, [nonAuthoritySigner])).to.be.rejectedWith(
+      `Error processing Instruction 0: custom program error: 0x${LangErrorCode.ConstraintRaw.toString(
+        16
+      )}`
+    );
   });
 
   it("can add a new Ed25519VerificationKey2018 Key with CapabilityInvocation to an account", async () => {
-    const tx = await program.methods.addVerificationMethod({
-      alias: "new-key",
-      keyData: newSolKey.publicKey.toBytes(),
-      method: VerificationMethodType.Ed25519VerificationKey2018,
-      flags: VerificationMethodFlags.CapabilityInvocation,
-    }, null).accounts({
-      didData,
-    }).rpc();
+    const instruction = await service.addVerificationMethod(
+      {
+        alias: "new-key",
+        keyData: newSolKey.publicKey.toBytes(),
+        type: VerificationMethodType.Ed25519VerificationKey2018,
+        flags: VerificationMethodFlags.CapabilityInvocation,
+      });
+    const tx = new Transaction().add(instruction);
+    await programProvider.sendAndConfirm(tx);
 
     const didDataAccount = await program.account.didAccount.fetch(didData)
 
     expect(didDataAccount.verificationMethods.length).to.equal(1)
     expect(didDataAccount.verificationMethods[0].alias).to.equal("new-key")
     expect(didDataAccount.verificationMethods[0].keyData).to.deep.equal(newSolKey.publicKey.toBytes())
-    expect(didDataAccount.verificationMethods[0].method).to.deep.equal( { ed25519VerificationKey2018: {} })
+    expect(didDataAccount.verificationMethods[0].methodType).to.deep.equal( { ed25519VerificationKey2018: {} })
     expect(didDataAccount.verificationMethods[0].flags).to.equal(VerificationMethodFlags.CapabilityInvocation)
   });
 
@@ -97,38 +100,54 @@ describe("sol-did auth operations", () => {
   });
 
   it("can not add a new key with OwnershipProof to an account", async () => {
-    return expect(program.methods.addVerificationMethod({
-      alias: "new-key",
-      keyData: newSolKey.publicKey.toBytes(),
-      method: VerificationMethodType.Ed25519VerificationKey2018,
-      flags: VerificationMethodFlags.OwnershipProof,
-    }, null).accounts({
-      didData,
-    }).rpc()).to.be.rejectedWith('Error Message: Cannot add a verification method with OwnershipProof flag');
+    const instruction = await service.addVerificationMethod(
+      {
+        alias: "new-key",
+        keyData: newSolKey.publicKey.toBytes(),
+        type: VerificationMethodType.Ed25519VerificationKey2018,
+        flags: VerificationMethodFlags.OwnershipProof,
+      });
+    const tx = new Transaction().add(instruction);
+
+    return expect(
+      programProvider.sendAndConfirm(tx)
+    ).to.be.rejectedWith(
+      `Error processing Instruction 0: custom program error: 0x${DidSolService.getErrorCode('VmOwnershipOnAdd').toString(
+        16
+      )}`
+    );
   });
 
   it("can not add a key if the alias already exists", async () => {
-    return expect(program.methods.addVerificationMethod({
-      alias: "default",
-      keyData: newSolKey.publicKey.toBytes(),
-      method: VerificationMethodType.Ed25519VerificationKey2018,
-      flags: VerificationMethodFlags.CapabilityInvocation,
-    }, null).accounts({
-      didData,
-    }).rpc()).to.be.rejectedWith('Error Message: Given VM alias is already in use');
+    const instruction = await service.addVerificationMethod(
+      {
+        alias: "default",
+        keyData: newSolKey.publicKey.toBytes(),
+        type: VerificationMethodType.Ed25519VerificationKey2018,
+        flags: VerificationMethodFlags.CapabilityInvocation,
+      });
+    const tx = new Transaction().add(instruction);
+    return expect(
+      programProvider.sendAndConfirm(tx)
+    ).to.be.rejectedWith(
+      `Error processing Instruction 0: custom program error: 0x${DidSolService.getErrorCode('VmAliasAlreadyInUse').toString(
+        16
+      )}`
+    );
   });
 
   it("can add a new EcdsaSecp256k1RecoveryMethod2020 Key with CapabilityInvocation to an account", async () => {
     const ethAddressAsBytes = utils.arrayify(newEthKey.address)
 
-    await program.methods.addVerificationMethod({
-      alias: "new-eth-key",
-      keyData: Buffer.from(ethAddressAsBytes),
-      method: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
-      flags: VerificationMethodFlags.CapabilityInvocation,
-    }, null).accounts({
-      didData,
-    }).rpc();
+    const instruction = await service.addVerificationMethod(
+      {
+        alias: "new-eth-key",
+        keyData: Buffer.from(ethAddressAsBytes),
+        type: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
+        flags: VerificationMethodFlags.CapabilityInvocation,
+      });
+    const tx = new Transaction().add(instruction);
+    await programProvider.sendAndConfirm(tx);
 
     const didDataAccount = await program.account.didAccount.fetch(didData)
 
@@ -136,7 +155,7 @@ describe("sol-did auth operations", () => {
     expect(didDataAccount.verificationMethods[1].alias).to.equal("new-eth-key")
     expect(didDataAccount.verificationMethods[1].keyData.length).to.equal(20)
     expect(didDataAccount.verificationMethods[1].keyData).to.deep.equal(ethAddressAsBytes)
-    expect(didDataAccount.verificationMethods[1].method).to.deep.equal( { ecdsaSecp256K1RecoveryMethod2020: {} })
+    expect(didDataAccount.verificationMethods[1].methodType).to.deep.equal( { ecdsaSecp256K1RecoveryMethod2020: {} })
     expect(didDataAccount.verificationMethods[1].flags).to.equal(VerificationMethodFlags.CapabilityInvocation)
   });
 
@@ -198,21 +217,19 @@ describe("sol-did auth operations", () => {
 
   it("can use the new EcdsaSecp256k1RecoveryMethod2020 Key add another EcdsaSecp256k1VerificationKey2019 to the account", async () => {
     const didDataAccountBefore = await program.account.didAccount.fetch(didData)
-
     const keyData = Buffer.from(utils.arrayify(newEthKey2.publicKey).slice(1))
-    const instruction = await program.methods.addVerificationMethod({
-      alias: "new-eth-key2",
-      keyData,
-      method: VerificationMethodType.EcdsaSecp256k1VerificationKey2019,
-      flags: VerificationMethodFlags.CapabilityInvocation,
-    }, null).accounts({
-      didData,
-      authority: nonAuthoritySigner.publicKey
-    }).instruction()
 
-    const ethSignedInstruction = await ethSignPayload(instruction, didDataAccountBefore.nonce, newEthKey)
+    const instruction = await service.addVerificationMethod(
+      {
+        alias: "new-eth-key2",
+        keyData,
+        type: VerificationMethodType.EcdsaSecp256k1VerificationKey2019,
+        flags: VerificationMethodFlags.CapabilityInvocation,
+      }, nonAuthoritySigner.publicKey);
+    // sign
+    const ethSignedInstruction = await service.ethSignInstruction(instruction, newEthKey)
     const transaction = new Transaction().add(ethSignedInstruction);
-    await programProvider.sendAndConfirm(transaction, [nonAuthoritySigner])
+    await programProvider.sendAndConfirm(transaction, [nonAuthoritySigner]);
 
     const didDataAccount = await program.account.didAccount.fetch(didData)
 
@@ -221,7 +238,7 @@ describe("sol-did auth operations", () => {
     expect(didDataAccount.verificationMethods[2].alias).to.equal("new-eth-key2")
     expect(didDataAccount.verificationMethods[2].keyData.length).to.equal(64)
     expect(didDataAccount.verificationMethods[2].keyData).to.deep.equal(keyData)
-    expect(didDataAccount.verificationMethods[2].method).to.deep.equal( { ecdsaSecp256K1VerificationKey2019: {} })
+    expect(didDataAccount.verificationMethods[2].methodType).to.deep.equal( { ecdsaSecp256K1VerificationKey2019: {} })
     expect(didDataAccount.verificationMethods[2].flags).to.equal(VerificationMethodFlags.CapabilityInvocation)
 
     // it cannot reuse a nonce
@@ -258,8 +275,4 @@ describe("sol-did auth operations", () => {
     return expect(programProvider.sendAndConfirm(transaction, [nonAuthoritySigner]))
       .to.be.rejectedWith(`Error processing Instruction 0: custom program error: 0x${LangErrorCode.ConstraintRaw.toString(16)}`);
   });
-
-
-
-
 });

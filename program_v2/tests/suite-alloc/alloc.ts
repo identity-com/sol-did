@@ -5,7 +5,6 @@ import { SolDid } from "../../target/types/sol_did";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
-import { INITIAL_ACCOUNT_SIZE } from "../utils/const";
 import { checkConnectionLogs, findProgramAddress, VerificationMethodFlags } from "../utils/utils";
 import { before } from "mocha";
 import { DidSolService } from "../../src";
@@ -44,7 +43,7 @@ describe("sol-did alloc operations", () => {
     const rawDidDataAccountBefore =
       await programProvider.connection.getAccountInfo(didData);
 
-    const instruction = await service.close(authority.publicKey, destination.publicKey);
+    const instruction = await service.close(destination.publicKey);
     const tx = new Transaction().add(instruction);
     await programProvider.sendAndConfirm(tx)
 
@@ -64,7 +63,7 @@ describe("sol-did alloc operations", () => {
   it("fails when trying to close a did:sol account that does not exist", async () => {
     const destination = anchor.web3.Keypair.generate();
 
-    const instruction = await service.close(authority.publicKey, destination.publicKey);
+    const instruction = await service.close(destination.publicKey);
     const tx = new Transaction().add(instruction);
 
     return expect(programProvider.sendAndConfirm(tx)).to.be.rejectedWith(
@@ -118,7 +117,7 @@ describe("sol-did alloc operations", () => {
   it("can successfully resize an account", async () => {
     const NEW_ACCOUNT_SIZE = (9_999);
 
-    const instruction = await service.resize(NEW_ACCOUNT_SIZE, authority.publicKey, authority.publicKey);
+    const instruction = await service.resize(NEW_ACCOUNT_SIZE, authority.publicKey);
     const tx = new Transaction().add(instruction);
     await programProvider.sendAndConfirm(tx)
 

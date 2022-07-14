@@ -1,12 +1,12 @@
-import { SolDid } from "../target/types/sol_did";
+import { SolDid, IDL } from "../target/types/sol_did";
 import { AnchorProvider, Program, web3 } from "@project-serum/anchor";
 import {
-  EthSigner,
   ethSignPayload,
   fetchProgram,
   findProgramAddress, INITIAL_DEFAULT_ACCOUNT_SIZE, INITIAL_MIN_ACCOUNT_SIZE,
 } from "./lib/utils";
 import { DIDDocument } from "did-resolver";
+import { EthSigner, VerificationMethod } from "./lib/types";
 
 export class DidSolService {
   private program: Program<SolDid>;
@@ -35,6 +35,9 @@ export class DidSolService {
     );
   }
 
+  static getErrorCode(errorName: string): number | undefined {
+    return IDL.errors.find((error) => error.name === errorName)?.code;
+  }
 
   /**
    * Signs a supported DidSol Instruction with an Ethereum Signer. Every Instruction apart from "initialize" is supported
@@ -74,7 +77,7 @@ export class DidSolService {
    * @param payer The account to pay the rent-exempt fee with.
    * @param authority The Solana Authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  async resize(size: number, payer: web3.PublicKey, authority: web3.PublicKey): Promise<web3.TransactionInstruction> {
+  async resize(size: number, payer: web3.PublicKey, authority: web3.PublicKey = this.didIdentifier): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .resize(size, null)
       .accounts({
@@ -91,7 +94,7 @@ export class DidSolService {
    * @param authority The Solana Authority to use. Can be "wrong" if instruction is later signed with ethSigner
    * @param destination The destination account to move the lamports to.
    */
-  async close(authority: web3.PublicKey, destination: web3.PublicKey): Promise<web3.TransactionInstruction> {
+  async close(destination: web3.PublicKey, authority: web3.PublicKey = this.didIdentifier): Promise<web3.TransactionInstruction> {
     return this.program.methods
       .close(null)
       .accounts({
@@ -100,6 +103,18 @@ export class DidSolService {
         destination,
       })
       .instruction();
+  }
+
+  async addVerificationMethod(method: VerificationMethod, authority: web3.PublicKey = this.didIdentifier): Promise<web3.TransactionInstruction> {
+    return this.program.methods.addVerificationMethod({
+      alias: method.alias,
+      keyData: method.keyData,
+      methodType: method.type,
+      flags: method.flags,
+    }, null).accounts({
+      didData: this.didDataAccount,
+      authority
+    }).instruction();
   }
 
   // TODO Implement

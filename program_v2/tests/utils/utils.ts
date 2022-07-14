@@ -1,12 +1,9 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { DEFAULT_SEED_STRING } from "./const";
-import { AnchorProvider, Program, web3 } from "@project-serum/anchor";
+import { Program, web3 } from "@project-serum/anchor";
 import { SolDid } from "../../target/types/sol_did";
 import { utils as ethersUtils, Signer, Wallet } from "ethers";
-import { keccak256 } from "@ethersproject/keccak256";
-import { concat } from "@ethersproject/bytes";
-import { toUtf8Bytes } from "@ethersproject/strings";
 
 export const messagePrefix = "\x19Ethereum Signed Message:\n";
 
@@ -68,6 +65,23 @@ export const checkConnectionLogs = (connection: web3.Connection) => {
     connection.onLogs("all", (log) =>
       console.log(log.logs)
     );
+}
+
+export const airdrop = async (
+  connection: web3.Connection,
+  account: web3.PublicKey,
+  amount = anchor.web3.LAMPORTS_PER_SOL) => {
+  const sigAirdrop = await connection.requestAirdrop(
+    account,
+    amount
+  );
+  const latestBlockHash = await connection.getLatestBlockhash();
+
+  await connection.confirmTransaction({
+    signature: sigAirdrop,
+    blockhash: latestBlockHash.blockhash,
+    lastValidBlockHeight: latestBlockHash.lastValidBlockHeight
+  });
 }
 
 export enum VerificationMethodFlags {

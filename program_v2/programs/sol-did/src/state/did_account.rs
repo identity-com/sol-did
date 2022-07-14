@@ -37,7 +37,7 @@ impl DidAccount {
         let ret_vector = vec![VerificationMethod {
             alias: String::from("default"),
             flags: self.initial_authority_flags,
-            method: Default::default(),
+            method_type: Default::default(),
             key_data: self.initial_authority.to_bytes().to_vec(),
         }];
 
@@ -80,7 +80,7 @@ impl DidAccount {
     fn is_verification_method_match(&self, vm_type: VerificationMethodType, key: &[u8]) -> bool {
         self.verification_methods()
             .iter()
-            .filter(|x| x.method == vm_type)
+            .filter(|x| x.method_type == vm_type)
             .filter(|x| {
                 VerificationMethodFlags::from_bits(x.flags)
                     .unwrap()
@@ -228,7 +228,7 @@ pub struct VerificationMethod {
     /// The permissions this key has
     pub flags: u16,
     /// The actual verification method
-    pub method: VerificationMethodType,
+    pub method_type: VerificationMethodType,
     /// Dynamically sized key matching the given VerificationType
     pub key_data: Vec<u8>,
 }
@@ -247,7 +247,7 @@ impl From<VerificationMethodArg> for VerificationMethod {
         VerificationMethod {
             alias: item.alias,
             flags: item.flags,
-            method: VerificationMethodType::from_u8(item.method).unwrap(),
+            method_type: VerificationMethodType::from_u8(item.method_type).unwrap(),
             key_data: item.key_data,
         }
     }
@@ -261,7 +261,7 @@ pub struct VerificationMethodArg {
     /// TODO: DID-Powo via separate account. E.g. Requirement reverse key lookup.
     pub flags: u16,
     /// The actual verification method
-    pub method: u8, // Type: VerificationMethodType- Anchor does not yet provide mappings for enums
+    pub method_type: u8, // Type: VerificationMethodType- Anchor does not yet provide mappings for enums
     /// Dynamically sized key matching the given VerificationType
     pub key_data: Vec<u8>,
 }
