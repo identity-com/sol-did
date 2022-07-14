@@ -16,6 +16,7 @@ import { before } from "mocha";
 import { Wallet, utils } from "ethers";
 import { DidSolService, VerificationMethodFlags, VerificationMethodType } from "../../src";
 import { findProgramAddress } from "../../src/lib/utils";
+import { getDerivationPath, MNEMONIC } from "../fixtures/config";
 
 
 chai.use(chaiAsPromised);
@@ -30,7 +31,9 @@ describe("sol-did auth operations", () => {
   let didData, didDataPDABump;
   let service: DidSolService;
 
-  const authority = programProvider.wallet;
+  const solAuthority = programProvider.wallet;
+  const ethAuthority = Wallet.fromMnemonic(MNEMONIC, getDerivationPath());
+
   const nonAuthoritySigner = anchor.web3.Keypair.generate();
 
   const newSolKey = anchor.web3.Keypair.generate();
@@ -38,11 +41,11 @@ describe("sol-did auth operations", () => {
   const newEthKey2 = Wallet.createRandom();
 
   before(async () => {
-    [didData, didDataPDABump] = await findProgramAddress(authority.publicKey);
-    service = new DidSolService(program, authority.publicKey, didData, programProvider);
+    [didData, didDataPDABump] = await findProgramAddress(solAuthority.publicKey);
+    service = new DidSolService(program, solAuthority.publicKey, didData, programProvider);
 
     // Fund nonAuthoritySigner
-    airdrop(programProvider.connection, nonAuthoritySigner.publicKey);
+    await airdrop(programProvider.connection, nonAuthoritySigner.publicKey);
   })
 
   it("fails when trying to close a did:sol account with a wrong authority", async () => {

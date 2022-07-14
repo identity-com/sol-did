@@ -8,7 +8,7 @@ url = "https://anchor.projectserum.com"
 
 [provider]
 cluster = "localnet"
-wallet = "./tests/fixtures/GYUg7UEDo2VtitTrvA7RGqWjBWmy8wuSApDqcCWKoVW4.json"
+wallet = "./tests/fixtures/A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3.json"
 
 [scripts]
 createTestFixtureAccount = "ts-node ./scripts/createTestFixtureAccount"
