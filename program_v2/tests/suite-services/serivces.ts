@@ -1,128 +1,91 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
-import { PublicKey } from "@solana/web3.js";
+import { Transaction } from "@solana/web3.js";
+import { SolDid } from "../../target/types/sol_did";
+import { DidSolService } from "../../src";
+import { before } from "mocha";
+import { findProgramAddress, getTestService } from "../utils/utils";
+
+import chai from "chai";
+import chaiAsPromised from "chai-as-promised";
 import { expect } from "chai";
 
-import { SolDid } from "../../target/types/sol_did";
+chai.use(chaiAsPromised);
 
 
 describe("sol-did service operations", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
-
   const program = anchor.workspace.SolDid as Program<SolDid>;
   const programProvider = program.provider as anchor.AnchorProvider;
 
+  let didData, didDataPDABump;
+  let service: DidSolService;
+
+  const authority = programProvider.wallet;
+
+  before(async () => {
+    [didData, didDataPDABump] = await findProgramAddress(authority.publicKey);
+    service = new DidSolService(program, authority.publicKey, didData, programProvider);
+  })
 
   //add data
   it("add a new service to the data.services", async () => {
-    const authority = programProvider.wallet;
-    const [didData, _] = await PublicKey
-      .findProgramAddress(
-        [
-          anchor.utils.bytes.utf8.encode("did-account"),
-          authority.publicKey.toBuffer()
-        ],
-        program.programId
-      );
     const dataAccountBefore = await program.account.didAccount.fetch(didData);
-    expect(dataAccountBefore.services.length).to.equal(0);
+    const serviceLengthBefore = dataAccountBefore.services.length;
 
-    const wrongAuthority = anchor.web3.Keypair.generate();
-
-    const tx = await program.methods.addService({
-      id: "aws",
-      serviceType: "serviceType",
-      serviceEndpoint: "test"
-    }, null).accounts({
-      didData,
-    }).rpc()
-
-    console.log("Your transaction signature2", tx);
+    const tService = getTestService(1)
+    const instruction = await service.addService(tService);
+    const transaction = new Transaction().add(instruction);
+    await programProvider.sendAndConfirm(transaction);
 
     const dataAccountAfter = await program.account.didAccount.fetch(didData);
-    expect(dataAccountAfter.services.length).to.equal(1);
+    expect(dataAccountAfter.services.length).to.equal(serviceLengthBefore + 1);
   });
-
-  //functions used for following test
-  async function testAddServiceError(didData: anchor.web3.PublicKey) {
-    try {
-      const tx = await program.methods.addService({
-        id: "aws",
-        serviceType: "serviceType2",
-        serviceEndpoint: "test2"
-      }, null).accounts({
-        didData,
-      }).rpc()
-    } catch(error) {
-      return 1;
-    }
-    return 0;
-  }
 
   //add service with the same key, expect an error to pass the test
   it("should fail to add service with the same ID", async () => {
-    const authority = programProvider.wallet;
-    const [didData, _] = await PublicKey
-      .findProgramAddress(
-        [
-          anchor.utils.bytes.utf8.encode("did-account"),
-          authority.publicKey.toBuffer()
-        ],
-        program.programId
-      );
-    const result = testAddServiceError(didData);
-    expect(await result).to.equal(1);
+    const tService = getTestService(1)
+    tService.serviceEndpoint = "serviceEndpoint2"; // change to change payload
+
+    const instruction = await service.addService(tService);
+    const transaction = new Transaction().add(instruction);
+
+    return expect(
+      programProvider.sendAndConfirm(transaction)
+    ).to.be.rejectedWith(
+      `Error processing Instruction 0: custom program error: 0x${DidSolService.getErrorCode('ServiceAlreadyExists').toString(
+        16
+      )}`
+    );
   });
 
-  //delete a service
-  it("delete a service from the data.services", async () => {
-    const authority = programProvider.wallet;
-    const [didData, _] = await PublicKey
-      .findProgramAddress(
-        [
-          anchor.utils.bytes.utf8.encode("did-account"),
-          authority.publicKey.toBuffer()
-        ],
-        program.programId
-      );
+  // delete a service
+  it("can successfully delete a service", async () => {
     const dataAccountBefore = await program.account.didAccount.fetch(didData);
-    expect(dataAccountBefore.services.length).to.equal(1);
+    const serviceLengthBefore = dataAccountBefore.services.length;
 
-    const tx = await program.methods.removeService("aws", null).accounts({
-      didData,
-    }).rpc()
-
-    console.log("Your transaction signature2", tx);
+    const tService = getTestService(1)
+    const instruction = await service.removeService(tService.id);
+    const transaction = new Transaction().add(instruction);
+    await programProvider.sendAndConfirm(transaction);
 
     const dataAccountAfter = await program.account.didAccount.fetch(didData);
-    expect(dataAccountAfter.services.length).to.equal(0);
+    expect(dataAccountAfter.services.length).to.equal(serviceLengthBefore - 1);
   });
 
-  async function testRemoveServiceError(didData: anchor.web3.PublicKey) {
-    try {
-      const tx = await program.methods.removeService("aws", null).accounts({
-        didData,
-      }).rpc()
-    } catch(error) {
-      return 1;
-    }
-    return 0;
-  }
-
-  //delete a service that doesn't exist, expect an error to pass the test.
+  // delete a service that doesn't exist, expect an error to pass the test.
   it("should fail to delete non-existing service", async () => {
-    const authority = programProvider.wallet;
-    const [didData, _] = await PublicKey
-      .findProgramAddress(
-        [
-          anchor.utils.bytes.utf8.encode("did-account"),
-          authority.publicKey.toBuffer()
-        ],
-        program.programId
-      );
-    const result = testRemoveServiceError(didData);
-    expect(await result).to.equal(1);
+    const instruction = await service.removeService('non-existing-service-id');
+    const transaction = new Transaction().add(instruction);
+
+    return expect(
+      programProvider.sendAndConfirm(transaction)
+    ).to.be.rejectedWith(
+      `Error processing Instruction 0: custom program error: 0x${DidSolService.getErrorCode('ServiceNotFound').toString(
+        16
+      )}`
+    );
   });
 });

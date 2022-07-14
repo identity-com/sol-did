@@ -10,14 +10,11 @@ import { expect } from "chai";
 
 import {
   airdrop,
-  ethSignPayload,
-  findProgramAddress,
-  VerificationMethodFlags,
-  VerificationMethodType
+  findProgramAddress, getTestService,
 } from "../utils/utils";
 import { before } from "mocha";
 import { Wallet, utils } from "ethers";
-import { DidSolService } from "../../src";
+import { DidSolService, VerificationMethodFlags, VerificationMethodType } from "../../src";
 
 
 chai.use(chaiAsPromised);
@@ -25,20 +22,19 @@ chai.use(chaiAsPromised);
 describe("sol-did auth operations", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
-  let didData, didDataPDABump;
-  let service: DidSolService;
 
   const program = anchor.workspace.SolDid as Program<SolDid>;
   const programProvider = program.provider as anchor.AnchorProvider;
 
+  let didData, didDataPDABump;
+  let service: DidSolService;
+
   const authority = programProvider.wallet;
+  const nonAuthoritySigner = anchor.web3.Keypair.generate();
+
   const newSolKey = anchor.web3.Keypair.generate();
   const newEthKey = Wallet.createRandom();
   const newEthKey2 = Wallet.createRandom();
-  const nonAuthoritySigner = anchor.web3.Keypair.generate();
-
-
-
 
   before(async () => {
     [didData, didDataPDABump] = await findProgramAddress(authority.publicKey);
@@ -80,23 +76,18 @@ describe("sol-did auth operations", () => {
   });
 
   it("can use the new ed25519VerificationKey2018 Key add a Service to the account", async () => {
-    await program.methods.addService({
-      id: "test",
-      serviceType: "testType",
-      serviceEndpoint: "testEndpoint"
-    }, null).accounts({
-      didData,
-      authority: newSolKey.publicKey
-    }).signers([newSolKey])
-      .rpc()
+    const tService = getTestService(1)
 
+    const instruction = await service.addService(tService, newSolKey.publicKey);
+    const transaction = new Transaction().add(instruction);
+    await programProvider.sendAndConfirm(transaction, [newSolKey])
 
     const didDataAccount = await program.account.didAccount.fetch(didData)
 
     expect(didDataAccount.services.length).to.equal(1)
-    expect(didDataAccount.services[0].id).to.equal("test")
-    expect(didDataAccount.services[0].serviceType).to.equal("testType")
-    expect(didDataAccount.services[0].serviceEndpoint).to.equal("testEndpoint")
+    expect(didDataAccount.services[0].id).to.equal(tService.id)
+    expect(didDataAccount.services[0].serviceType).to.equal(tService.serviceType)
+    expect(didDataAccount.services[0].serviceEndpoint).to.equal(tService.serviceEndpoint)
   });
 
   it("can not add a new key with OwnershipProof to an account", async () => {
@@ -163,18 +154,10 @@ describe("sol-did auth operations", () => {
   it("can use the new EcdsaSecp256k1RecoveryMethod2020 Key add a Service to the account and not reuse nonce", async () => {
     const didDataAccountBefore = await program.account.didAccount.fetch(didData)
     expect(didDataAccountBefore.nonce.toString()).to.be.equal("0");
+    const tService = getTestService(2)
 
-
-    const instruction = await program.methods.addService({
-      id: "test2",
-      serviceType: "testType2",
-      serviceEndpoint: "testEndpoint2"
-    }, null).accounts({
-      didData,
-      authority: nonAuthoritySigner.publicKey
-    }).instruction()
-
-    const ethSignedInstruction = await ethSignPayload(instruction, didDataAccountBefore.nonce, newEthKey)
+    const instruction = await service.addService(tService, nonAuthoritySigner.publicKey);
+    const ethSignedInstruction = await service.ethSignInstruction(instruction, newEthKey);
     const transaction = new Transaction().add(ethSignedInstruction);
     await programProvider.sendAndConfirm(transaction, [nonAuthoritySigner])
 
@@ -182,9 +165,9 @@ describe("sol-did auth operations", () => {
 
     expect(didDataAccount.services.length).to.equal(2)
     expect(didDataAccount.nonce.toString()).to.be.equal(didDataAccountBefore.nonce.addn(1).toString());
-    expect(didDataAccount.services[1].id).to.equal("test2")
-    expect(didDataAccount.services[1].serviceType).to.equal("testType2")
-    expect(didDataAccount.services[1].serviceEndpoint).to.equal("testEndpoint2")
+    expect(didDataAccount.services[1].id).to.equal(tService.id)
+    expect(didDataAccount.services[1].serviceType).to.equal(tService.serviceType)
+    expect(didDataAccount.services[1].serviceEndpoint).to.equal(tService.serviceEndpoint)
 
     // it cannot reuse a nonce
     return expect(programProvider.sendAndConfirm(transaction, [nonAuthoritySigner]))
@@ -193,23 +176,12 @@ describe("sol-did auth operations", () => {
 
   it("cannot add a Service key with a wrong EcdsaSecp256k1RecoveryMethod2020 Key", async () => {
     const wrongEthKey = Wallet.createRandom();
-    const didDataAccountBefore = await program.account.didAccount.fetch(didData)
+    const tService = getTestService(3);
 
+    const instruction = await service.addService(tService, nonAuthoritySigner.publicKey);
+    const ethSignedInstruction = await service.ethSignInstruction(instruction, wrongEthKey);
+    const transaction = new Transaction().add(ethSignedInstruction);
 
-    const instruction = await program.methods.addService({
-      id: "test2",
-      serviceType: "testType2",
-      serviceEndpoint: "testEndpoint2"
-    }, null).accounts({
-      didData,
-      authority: nonAuthoritySigner.publicKey
-    }).instruction()
-
-
-    const signedInstruction = await ethSignPayload(instruction, didDataAccountBefore.nonce, wrongEthKey)
-    const transaction = new Transaction().add(signedInstruction);
-
-    // TODO: Translate Error from IDL
     return expect(programProvider.sendAndConfirm(transaction, [nonAuthoritySigner]))
       .to.be.rejectedWith(`Error processing Instruction 0: custom program error: 0x${LangErrorCode.ConstraintRaw.toString(16)}`);
   });
@@ -249,17 +221,10 @@ describe("sol-did auth operations", () => {
   it("can use the new EcdsaSecp256k1VerificationKey2019 Key add a Service to the account and not reuse nonce", async () => {
     const didDataAccountBefore = await program.account.didAccount.fetch(didData)
 
+    const tService = getTestService(4)
 
-    const instruction = await program.methods.addService({
-      id: "test3",
-      serviceType: "testType3",
-      serviceEndpoint: "testEndpoint3"
-    }, null).accounts({
-      didData,
-      authority: nonAuthoritySigner.publicKey
-    }).instruction()
-
-    const ethSignedInstruction = await ethSignPayload(instruction, didDataAccountBefore.nonce, newEthKey2)
+    const instruction = await service.addService(tService, nonAuthoritySigner.publicKey);
+    const ethSignedInstruction = await service.ethSignInstruction(instruction, newEthKey2);
     const transaction = new Transaction().add(ethSignedInstruction);
     await programProvider.sendAndConfirm(transaction, [nonAuthoritySigner])
 
@@ -267,9 +232,9 @@ describe("sol-did auth operations", () => {
 
     expect(didDataAccount.services.length).to.equal(3)
     expect(didDataAccount.nonce.toString()).to.be.equal(didDataAccountBefore.nonce.addn(1).toString());
-    expect(didDataAccount.services[2].id).to.equal("test3")
-    expect(didDataAccount.services[2].serviceType).to.equal("testType3")
-    expect(didDataAccount.services[2].serviceEndpoint).to.equal("testEndpoint3")
+    expect(didDataAccount.services[2].id).to.equal(tService.id)
+    expect(didDataAccount.services[2].serviceType).to.equal(tService.serviceType)
+    expect(didDataAccount.services[2].serviceEndpoint).to.equal(tService.serviceEndpoint)
 
     // it cannot reuse a nonce
     return expect(programProvider.sendAndConfirm(transaction, [nonAuthoritySigner]))

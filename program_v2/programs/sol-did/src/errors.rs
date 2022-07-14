@@ -9,7 +9,7 @@ pub enum DidSolError {
     #[msg("Cannot add a verification method with OwnershipProof flag")]
     VmOwnershipOnAdd,
     #[msg("ServiceID already exists in current service")]
-    RepetitiveService,
+    ServiceAlreadyExists,
     #[msg("ServiceID doesn't exists in current service")]
-    NonExistingService,
+    ServiceNotFound,
 }

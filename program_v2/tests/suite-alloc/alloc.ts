@@ -5,9 +5,9 @@ import { SolDid } from "../../target/types/sol_did";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
-import { checkConnectionLogs, findProgramAddress, VerificationMethodFlags } from "../utils/utils";
+import { checkConnectionLogs, findProgramAddress } from "../utils/utils";
 import { before } from "mocha";
-import { DidSolService } from "../../src";
+import { DidSolService, VerificationMethodFlags } from "../../src";
 import { Transaction } from "@solana/web3.js";
 import { INITIAL_MIN_ACCOUNT_SIZE } from "../../src/lib/utils";
 

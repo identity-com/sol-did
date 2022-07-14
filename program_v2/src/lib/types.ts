@@ -12,6 +12,12 @@ export type VerificationMethod = {
   flags: VerificationMethodFlags;
 }
 
+export type Service = {
+  id: string;
+  serviceType: string;
+  serviceEndpoint: string;
+}
+
 export enum VerificationMethodFlags {
   None = 0,
   Authentication = 1 << 0,

@@ -18,7 +18,7 @@ pub fn add_service(
         data.services.push(service);
         Ok(())
     } else {
-        Err(error!(DidSolError::RepetitiveService))
+        Err(error!(DidSolError::ServiceAlreadyExists))
     }
 }
 

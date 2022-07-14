@@ -44,6 +44,7 @@ export const ethSignPayload = async (
   const signature = Array.from(signatureBytes.slice(0,-1))
   // // map [0x1b, 0x1c] to [0, 1]
   // https://docs.ethers.io/v4/api-utils.html#signatures
+  // @ts-ignore // can never be 0
   const recoveryId = signatureBytes.at(-1) - 27;
 
   // const rawMessage = concat([

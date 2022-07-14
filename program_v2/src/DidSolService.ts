@@ -6,7 +6,7 @@ import {
   findProgramAddress, INITIAL_DEFAULT_ACCOUNT_SIZE, INITIAL_MIN_ACCOUNT_SIZE,
 } from "./lib/utils";
 import { DIDDocument } from "did-resolver";
-import { EthSigner, VerificationMethod } from "./lib/types";
+import { EthSigner, Service, VerificationMethod } from "./lib/types";
 
 export class DidSolService {
   private program: Program<SolDid>;
@@ -75,7 +75,7 @@ export class DidSolService {
    * Supports ethSignInstruction
    * @param size The new size of the account
    * @param payer The account to pay the rent-exempt fee with.
-   * @param authority The Solana Authority to use. Can be "wrong" if instruction is later signed with ethSigner
+   * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
   async resize(size: number, payer: web3.PublicKey, authority: web3.PublicKey = this.didIdentifier): Promise<web3.TransactionInstruction> {
     return this.program.methods
@@ -91,7 +91,7 @@ export class DidSolService {
   /**
    * Close the did:sol account.
    * Supports ethSignInstruction
-   * @param authority The Solana Authority to use. Can be "wrong" if instruction is later signed with ethSigner
+   * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    * @param destination The destination account to move the lamports to.
    */
   async close(destination: web3.PublicKey, authority: web3.PublicKey = this.didIdentifier): Promise<web3.TransactionInstruction> {
@@ -105,6 +105,12 @@ export class DidSolService {
       .instruction();
   }
 
+  /**
+   * Add a VerificationMethod to the did:sol account.
+   * Supports ethSignInstruction
+   * @param method The new VerificationMethod to add
+   * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
+   */
   async addVerificationMethod(method: VerificationMethod, authority: web3.PublicKey = this.didIdentifier): Promise<web3.TransactionInstruction> {
     return this.program.methods.addVerificationMethod({
       alias: method.alias,
@@ -115,6 +121,32 @@ export class DidSolService {
       didData: this.didDataAccount,
       authority
     }).instruction();
+  }
+
+  /**
+   * Add a Service to the did:sol account.
+   * Supports ethSignInstruction
+   * @param service The service to add
+   * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
+   */
+  async addService(service: Service, authority: web3.PublicKey = this.didIdentifier): Promise<web3.TransactionInstruction> {
+    return this.program.methods.addService(service, null).accounts({
+      didData: this.didDataAccount,
+      authority
+    }).instruction()
+  }
+
+  /**
+   * Removes a Service to the did:sol account.
+   * Supports ethSignInstruction
+   * @param id The id of the service to remove
+   * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
+   */
+  async removeService(id: string, authority: web3.PublicKey = this.didIdentifier): Promise<web3.TransactionInstruction> {
+    return this.program.methods.removeService(id, null).accounts({
+      didData: this.didDataAccount,
+      authority
+    }).instruction()
   }
 
   // TODO Implement
