@@ -21,7 +21,7 @@ pub struct Resize<'info> {
     // TODO: prevent from resizing to less data
     #[account(
         mut,
-        seeds = [b"did-account", did_data.initial_authority.key().as_ref()],
+        seeds = [b"did-account", did_data.initial_verification_method.key_data.as_ref()],
         bump = did_data.bump,
         realloc = TryInto::<usize>::try_into(size).unwrap(),
         realloc::payer = payer,

@@ -5,7 +5,7 @@ import * as anchor from "@project-serum/anchor";
 import { utils as ethersUtils } from "ethers/lib/ethers";
 import { EthSigner } from "./types";
 
-export const INITIAL_MIN_ACCOUNT_SIZE = 8 + 60;
+export const INITIAL_MIN_ACCOUNT_SIZE = 8 + 50 + 26; // anchor + initial_vm + rest
 export const INITIAL_DEFAULT_ACCOUNT_SIZE = 10_000;
 export const DEFAULT_SEED_STRING = "did-account";
 

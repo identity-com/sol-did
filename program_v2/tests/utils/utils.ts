@@ -1,22 +1,6 @@
-import { PublicKey } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
-import { DEFAULT_SEED_STRING } from "./const";
-import { Program, web3 } from "@project-serum/anchor";
-import { SolDid } from "../../target/types/sol_did";
+import { web3 } from "@project-serum/anchor";
 import { Service } from "../../src";
-
-export const messagePrefix = "\x19Ethereum Signed Message:\n";
-
-const program = anchor.workspace.SolDid as Program<SolDid>;
-
-export const findProgramAddress = async (authority: PublicKey) => PublicKey
-  .findProgramAddress(
-    [
-      anchor.utils.bytes.utf8.encode(DEFAULT_SEED_STRING),
-      authority.toBuffer()
-    ],
-    program.programId
-  );
 
 export const checkConnectionLogs = (connection: web3.Connection) => {
   if (process.env.ENABLE_LOGS)

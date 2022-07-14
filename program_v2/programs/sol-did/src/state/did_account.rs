@@ -18,9 +18,7 @@ pub struct DidAccount {
     /// Nonce, for protecting against replay attacks around secp256k1 signatures.
     pub nonce: u64,
     /// The initial authority key, automatically being added to the array of all Verification Methods.
-    pub initial_authority: Pubkey,
-    /// the VM flags for the initial authority key
-    pub initial_authority_flags: u16,
+    pub initial_verification_method: VerificationMethod,
     /// All verification methods
     pub verification_methods: Vec<VerificationMethod>,
     /// Services
@@ -33,15 +31,11 @@ pub struct DidAccount {
 
 impl DidAccount {
     // TODO: Easy way to return a non-mutable reference to the data?
-    fn verification_methods(&self) -> Vec<VerificationMethod> {
-        let ret_vector = vec![VerificationMethod {
-            alias: String::from("default"),
-            flags: self.initial_authority_flags,
-            method_type: Default::default(),
-            key_data: self.initial_authority.to_bytes().to_vec(),
-        }];
-
-        [ret_vector.as_slice(), self.verification_methods.as_slice()].concat()
+    fn verification_methods(&self) -> Vec<&VerificationMethod> {
+        std::iter::once(&self.initial_verification_method)
+            .chain(self.verification_methods.iter())
+            .collect()
+        // self.verification_methods.iter().collect()
     }
 
     pub fn add_verification_method(
@@ -54,8 +48,8 @@ impl DidAccount {
 
     pub fn remove_verification_method(&mut self, alias: &String) -> Result<()> {
         // default case
-        if alias == "default" {
-            self.initial_authority_flags = 0;
+        if alias == &self.initial_verification_method.alias {
+            self.initial_verification_method.flags = 0;
             return Ok(());
         }
 
@@ -77,21 +71,25 @@ impl DidAccount {
             .any(|x| x.alias == *alias)
     }
 
-    fn is_verification_method_match(&self, vm_type: VerificationMethodType, key: &[u8]) -> bool {
+    fn find_verification_method_match(
+        &self,
+        vm_type: VerificationMethodType,
+        key: &[u8],
+    ) -> Option<&VerificationMethod> {
         self.verification_methods()
-            .iter()
+            .into_iter()
             .filter(|x| x.method_type == vm_type)
             .filter(|x| {
                 VerificationMethodFlags::from_bits(x.flags)
                     .unwrap()
                     .contains(VerificationMethodFlags::CAPABILITY_INVOCATION)
             })
-            .any(|v| v.key_data == key)
+            .find(|v| v.key_data == key)
     }
 
     pub fn has_authority_verification_methods(&self) -> bool {
         self.verification_methods()
-            .iter()
+            .into_iter()
             .filter(|x| VerificationMethodType::is_authority_type(x.method_type))
             .filter(|x| {
                 VerificationMethodFlags::from_bits(x.flags)
@@ -106,10 +104,11 @@ impl DidAccount {
             "Checking if {} is an Ed25519VerificationKey2018 authority",
             authority.to_string()
         );
-        self.is_verification_method_match(
+        self.find_verification_method_match(
             VerificationMethodType::Ed25519VerificationKey2018,
             &authority.to_bytes(),
         )
+        .is_some()
     }
 
     pub fn is_eth_authority(
@@ -156,10 +155,13 @@ impl DidAccount {
         //     "Checking if {:x?} is an EcdsaSecp256k1VerificationKey2019 authority",
         //     secp256k1_pubkey.to_bytes()
         // );
-        if self.is_verification_method_match(
-            VerificationMethodType::EcdsaSecp256k1VerificationKey2019,
-            &secp256k1_pubkey.to_bytes(),
-        ) {
+        if self
+            .find_verification_method_match(
+                VerificationMethodType::EcdsaSecp256k1VerificationKey2019,
+                &secp256k1_pubkey.to_bytes(),
+            )
+            .is_some()
+        {
             return true;
         }
 
@@ -170,10 +172,13 @@ impl DidAccount {
         //     "Checking if {:x?} is an EcdsaSecp256k1RecoveryMethod2020 authority",
         //     address
         // );
-        if self.is_verification_method_match(
-            VerificationMethodType::EcdsaSecp256k1RecoveryMethod2020,
-            &address,
-        ) {
+        if self
+            .find_verification_method_match(
+                VerificationMethodType::EcdsaSecp256k1RecoveryMethod2020,
+                &address,
+            )
+            .is_some()
+        {
             return true;
         }
 
@@ -184,8 +189,7 @@ impl DidAccount {
         1 // version
         + 1 // bump
         + 8 // nonce
-        + 32 // initial_authority
-        + 2 // initial_authority_flags
+        + VerificationMethod::default_size() // initial_authority
         + 4 + self.verification_methods.iter().fold(0, | accum, item| { accum + item.size() }) // verification_methods
         + 4 + self.services.iter().fold(0, | accum, item| { accum + item.size() }) // services
         + 4 + self.native_controllers.len() * 32 // native_controllers
@@ -197,8 +201,7 @@ impl DidAccount {
         1 // version
         + 1 // bump
         + 8 // nonce
-        + 32 // initial_authority
-        + 2 // initial_authority_flags
+        + VerificationMethod::default_size() // initial_authority
         + 4 // verification_methods
         + 4 // services
         + 4 // native_controllers
@@ -262,6 +265,22 @@ impl VerificationMethod {
         + 2 // flags
         + 1 // method
         + 4 + self.key_data.len()
+    }
+
+    pub fn default(flags: VerificationMethodFlags, key_data: Vec<u8>) -> VerificationMethod {
+        VerificationMethod {
+            alias: String::from("default"),
+            flags: flags.bits(),
+            method_type: VerificationMethodType::default(),
+            key_data,
+        }
+    }
+
+    pub fn default_size() -> usize {
+        4 + 7 // alias "default"
+        + 2 // flags
+        + 1 // method
+        + 4 + 32 // ed25519 pubkey
     }
 }
 

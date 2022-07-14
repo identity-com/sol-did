@@ -4,11 +4,12 @@ import { Transaction } from "@solana/web3.js";
 import { SolDid } from "../../target/types/sol_did";
 import { DidSolService } from "../../src";
 import { before } from "mocha";
-import { findProgramAddress, getTestService } from "../utils/utils";
+import { getTestService } from "../utils/utils";
 
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { expect } from "chai";
+import { findProgramAddress } from "../../src/lib/utils";
 
 chai.use(chaiAsPromised);
 

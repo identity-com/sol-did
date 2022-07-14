@@ -10,11 +10,12 @@ import { expect } from "chai";
 
 import {
   airdrop,
-  findProgramAddress, getTestService,
+  getTestService,
 } from "../utils/utils";
 import { before } from "mocha";
 import { Wallet, utils } from "ethers";
 import { DidSolService, VerificationMethodFlags, VerificationMethodType } from "../../src";
+import { findProgramAddress } from "../../src/lib/utils";
 
 
 chai.use(chaiAsPromised);

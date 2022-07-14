@@ -5,11 +5,11 @@ import { SolDid } from "../../target/types/sol_did";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
-import { checkConnectionLogs, findProgramAddress } from "../utils/utils";
+import { checkConnectionLogs } from "../utils/utils";
 import { before } from "mocha";
 import { DidSolService, VerificationMethodFlags } from "../../src";
 import { Transaction } from "@solana/web3.js";
-import { INITIAL_MIN_ACCOUNT_SIZE } from "../../src/lib/utils";
+import { findProgramAddress, INITIAL_MIN_ACCOUNT_SIZE } from "../../src/lib/utils";
 
 chai.use(chaiAsPromised);
 
@@ -78,6 +78,7 @@ describe("sol-did alloc operations", () => {
     const tx = new Transaction().add(instruction);
     await programProvider.sendAndConfirm(tx)
 
+
     // check data
     const didDataAccount = await program.account.didAccount.fetch(didData);
     expect(didDataAccount.version).to.equal(0);
@@ -90,10 +91,10 @@ describe("sol-did alloc operations", () => {
     // TODO: It seems like anchor does not support custom structs in Vec mapping.
     expect(didDataAccount.services.length).to.equal(0);
     expect(didDataAccount.verificationMethods.length).to.equal(0);
-    expect(didDataAccount.initialAuthority.toBase58()).to.equal(
-      authority.publicKey.toBase58()
+    expect(didDataAccount.initialVerificationMethod.keyData).to.deep.equal(
+      authority.publicKey.toBytes()
     );
-    expect(didDataAccount.initialAuthorityFlags).to.equal(
+    expect(didDataAccount.initialVerificationMethod.flags).to.equal(
       VerificationMethodFlags.CapabilityInvocation |
         VerificationMethodFlags.OwnershipProof
     );

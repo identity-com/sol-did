@@ -11,4 +11,4 @@ cluster = "localnet"
 wallet = "./tests/fixtures/GYUg7UEDo2VtitTrvA7RGqWjBWmy8wuSApDqcCWKoVW4.json"
 
 [scripts]
-createTestFixtureAccount = "yarn run createTestFixtureAccount"
+createTestFixtureAccount = "ts-node ./scripts/createTestFixtureAccount"
