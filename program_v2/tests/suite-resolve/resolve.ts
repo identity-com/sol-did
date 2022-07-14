@@ -20,8 +20,6 @@ describe("sol-did resolve operations", () => {
   const programProvider = program.provider as anchor.AnchorProvider;
 
   const authority = programProvider.wallet;
-
-
   let service: DidSolService;
 
   before(async () => {

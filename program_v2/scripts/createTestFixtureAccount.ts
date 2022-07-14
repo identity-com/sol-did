@@ -1,10 +1,12 @@
-import { DidSolService } from "../dist/src";
 import { Program } from "@project-serum/anchor";
 import * as anchor from "@project-serum/anchor";
 import { SolDid } from "../dist/target/types/sol_did";
 import { findProgramAddress, INITIAL_MIN_ACCOUNT_SIZE } from "../src/lib/utils";
 import { Transaction } from "@solana/web3.js";
-import { airdrop } from "../tests/utils/utils";
+import { airdrop, getTestService } from "../tests/utils/utils";
+import { utils, Wallet } from "ethers";
+import { DidSolService, VerificationMethodFlags, VerificationMethodType } from "../dist/src";
+import { getDerivationPath, MNEMONIC } from "../tests/fixtures/config";
 
 const { exec } = require("child_process");
 
@@ -27,22 +29,57 @@ const { exec } = require("child_process");
   console.log("DidIdentifier: " + authority.publicKey.toBase58());
   console.log("DidDataAccount: " + didData.toBase58());
 
-
   // Init account
-  const init = await service.initialize(INITIAL_MIN_ACCOUNT_SIZE);
-  const initTx = new Transaction().add(init);
-  await programProvider.sendAndConfirm(initTx)
+
+  let instruction = await service.initialize(INITIAL_MIN_ACCOUNT_SIZE);
+  let tx = new Transaction().add(instruction);
+  await programProvider.sendAndConfirm(tx)
 
   // write account
   exec(`solana account ${didData.toBase58()} -ul -o tests/fixtures/did-account-min.json --output json`);
 
   const DEFAULT_ACCOUNT_SIZE = 10_000;
 
-  const instruction = await service.resize(DEFAULT_ACCOUNT_SIZE, authority.publicKey);
-  const tx = new Transaction().add(instruction);
+  instruction = await service.resize(DEFAULT_ACCOUNT_SIZE, authority.publicKey);
+  tx = new Transaction().add(instruction);
   await programProvider.sendAndConfirm(tx)
 
+  // write account
   exec(`solana account ${didData.toBase58()} -ul -o tests/fixtures/did-account.json --output json`);
+
+  // Multiple Verification Methods to fixture
+  const ethAuthority0 = Wallet.fromMnemonic(MNEMONIC, getDerivationPath());
+  const ethAuthority0AddressAsBytes = utils.arrayify(ethAuthority0.address)
+
+  instruction = await service.addVerificationMethod(
+    {
+      alias: "eth-address",
+      keyData: Buffer.from(ethAuthority0AddressAsBytes),
+      type: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
+      flags: VerificationMethodFlags.CapabilityInvocation,
+    });
+  tx = new Transaction().add(instruction);
+  await programProvider.sendAndConfirm(tx)
+
+
+  const ethAuthority1 = Wallet.fromMnemonic(MNEMONIC, getDerivationPath(1));
+  instruction = await service.addVerificationMethod(
+    {
+      alias: "eth-key",
+      keyData: Buffer.from(utils.arrayify(ethAuthority1.publicKey).slice(1)),
+      type: VerificationMethodType.EcdsaSecp256k1VerificationKey2019,
+      flags: VerificationMethodFlags.CapabilityInvocation,
+    });
+  tx = new Transaction().add(instruction);
+  await programProvider.sendAndConfirm(tx)
+
+  const tService = getTestService(871438247)
+  instruction = await service.addService(tService);
+  tx = new Transaction().add(instruction);
+  await programProvider.sendAndConfirm(tx)
+
+  // write account
+  exec(`solana account ${didData.toBase58()} -ul -o tests/fixtures/did-account-complete.json --output json`);
 
 
   // const [_, derivedPass] = await service.derivePass([constituentPass], {
