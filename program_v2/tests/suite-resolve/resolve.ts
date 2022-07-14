@@ -5,9 +5,9 @@ import { SolDid } from "../../target/types/sol_did";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
-import { findProgramAddress, VerificationMethodFlags } from "../utils/utils";
 import { before } from "mocha";
 import { DidSolService } from "../../src";
+import { findProgramAddress } from "../../src/lib/utils";
 
 
 chai.use(chaiAsPromised);

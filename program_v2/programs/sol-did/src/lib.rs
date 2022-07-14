@@ -58,7 +58,11 @@ pub mod sol_did {
         service_id: String,
         eth_signature: Option<Secp256k1RawSignature>,
     ) -> Result<()> {
+<<<<<<< HEAD
         instructions::remove_service(ctx, service_id)
+=======
+        instructions::remove_service(ctx, service_id, eth_signature)
+>>>>>>> feature/IDCOM-1996-Anchor_Migration
     }
 
     // TODO implement

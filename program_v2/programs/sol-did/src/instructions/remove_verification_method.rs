@@ -1,3 +1,4 @@
+use crate::errors::DidSolError;
 use crate::state::{DidAccount, Secp256k1RawSignature, VerificationMethodArg};
 use anchor_lang::prelude::*;
 
@@ -12,8 +13,15 @@ pub fn remove_verification_method(
         data.nonce += 1;
     }
 
-    data.remove_verification_method(&alias)
-    // TODO: Prevent Lockout
+    let _ = data.remove_verification_method(&alias);
+
+    // prevent lockout
+    require!(
+        data.has_authority_verification_methods(),
+        DidSolError::VmCannotRemoveLastAuthority
+    );
+
+    Ok(())
 }
 
 #[derive(Accounts)]
@@ -21,7 +29,7 @@ pub fn remove_verification_method(
 pub struct RemoveVerificationMethod<'info> {
     #[account(
         mut,
-        seeds = [b"did-account", did_data.initial_authority.key().as_ref()],
+        seeds = [b"did-account", did_data.initial_verification_method.key_data.as_ref()],
         bump = did_data.bump,
         constraint = did_data.is_authority(authority.key()) || did_data.is_eth_authority(verification_method.try_to_vec().unwrap(), eth_signature),
     )]

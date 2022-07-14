@@ -1,17 +1,49 @@
 import { DidSolService } from "../dist/src";
-import { AnchorProvider, web3 } from "@project-serum/anchor";
+import { Program } from "@project-serum/anchor";
+import * as anchor from "@project-serum/anchor";
+import { SolDid } from "../dist/target/types/sol_did";
+import { findProgramAddress, INITIAL_MIN_ACCOUNT_SIZE } from "../src/lib/utils";
+import { Transaction } from "@solana/web3.js";
+import { airdrop } from "../tests/utils/utils";
 
-// Fixture account
-const didIdentifier = new web3.PublicKey(
-  "GYUg7UEDo2VtitTrvA7RGqWjBWmy8wuSApDqcCWKoVW4"
-);
+const { exec } = require("child_process");
 
 (async () => {
-  const provider = AnchorProvider.env();
-  const service = await DidSolService.build(provider, didIdentifier);
+  const program = anchor.workspace.SolDid as Program<SolDid>;
+  const programProvider = program.provider as anchor.AnchorProvider;
 
-  console.log("Authority: " + provider.wallet.publicKey.toBase58());
-  const didDoc = await service.resolve();
+  const authority = programProvider.wallet;
+  const [didData, _] = await findProgramAddress(authority.publicKey);
+
+  await airdrop(programProvider.connection, authority.publicKey, 100 * anchor.web3.LAMPORTS_PER_SOL);
+
+  const service = new DidSolService(
+    program,
+    authority.publicKey,
+    didData,
+    programProvider
+  );
+
+  console.log("DidIdentifier: " + authority.publicKey.toBase58());
+  console.log("DidDataAccount: " + didData.toBase58());
+
+
+  // Init account
+  const init = await service.initialize(INITIAL_MIN_ACCOUNT_SIZE);
+  const initTx = new Transaction().add(init);
+  await programProvider.sendAndConfirm(initTx)
+
+  // write account
+  exec(`solana account ${didData.toBase58()} -ul -o tests/fixtures/did-account-min.json --output json`);
+
+  const DEFAULT_ACCOUNT_SIZE = 10_000;
+
+  const instruction = await service.resize(DEFAULT_ACCOUNT_SIZE, authority.publicKey);
+  const tx = new Transaction().add(instruction);
+  await programProvider.sendAndConfirm(tx)
+
+  exec(`solana account ${didData.toBase58()} -ul -o tests/fixtures/did-account.json --output json`);
+
 
   // const [_, derivedPass] = await service.derivePass([constituentPass], {
   //   expireOnUse: true,
@@ -20,5 +52,5 @@ const didIdentifier = new web3.PublicKey(
   // });
   //
   // console.log("Authority: " + provider.wallet.publicKey.toBase58());
-  console.log("DidDoc: " + JSON.stringify(didDoc, null, 2));
+  // console.log("DidDoc: " + JSON.stringify(didDoc, null, 2));
 })().catch(console.error);

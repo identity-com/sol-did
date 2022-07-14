@@ -19,10 +19,9 @@ pub fn resize(
 #[instruction(size: u32, eth_signature: Option<Secp256k1RawSignature>)]
 pub struct Resize<'info> {
     // TODO: prevent from resizing to less data
-    // TODO: Authority can be different to initial authority.
     #[account(
         mut,
-        seeds = [b"did-account", did_data.initial_authority.key().as_ref()],
+        seeds = [b"did-account", did_data.initial_verification_method.key_data.as_ref()],
         bump = did_data.bump,
         realloc = TryInto::<usize>::try_into(size).unwrap(),
         realloc::payer = payer,

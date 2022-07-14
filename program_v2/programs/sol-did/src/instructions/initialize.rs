@@ -1,4 +1,4 @@
-use crate::state::{DidAccount, VerificationMethodFlags};
+use crate::state::{DidAccount, VerificationMethod, VerificationMethodFlags};
 use anchor_lang::prelude::*;
 
 pub fn initialize(ctx: Context<Initialize>, _size: Option<u32>) -> Result<()> {
@@ -7,11 +7,10 @@ pub fn initialize(ctx: Context<Initialize>, _size: Option<u32>) -> Result<()> {
     did_data.bump = *ctx.bumps.get("did_data").unwrap();
     did_data.nonce = 0;
 
-    // Add the authority as a default verification method.
-    did_data.initial_authority = ctx.accounts.authority.key();
-    did_data.initial_authority_flags = (VerificationMethodFlags::CAPABILITY_INVOCATION
-        | VerificationMethodFlags::OWNERSHIP_PROOF)
-        .bits();
+    did_data.initial_verification_method = VerificationMethod::default(
+        VerificationMethodFlags::CAPABILITY_INVOCATION | VerificationMethodFlags::OWNERSHIP_PROOF,
+        ctx.accounts.authority.key().to_bytes().to_vec(),
+    );
 
     msg!("Successfully initialized DID account.");
     Ok(())
@@ -23,7 +22,7 @@ pub struct Initialize<'info> {
     #[account(
         init,
         payer = authority,
-        space = size.unwrap_or(8 + DidAccount::initial_size() as u32).try_into().unwrap(),
+        space = size.unwrap_or(8 + VerificationMethod::default_size() as u32 + DidAccount::initial_size() as u32).try_into().unwrap(),
         seeds = [b"did-account", authority.key().as_ref()],
         bump )]
     pub did_data: Account<'info, DidAccount>,
