@@ -6,9 +6,11 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
 import { INITIAL_ACCOUNT_SIZE } from "../utils/const";
-import { findProgramAddress, VerificationMethodFlags } from "../utils/utils";
+import { checkConnectionLogs, findProgramAddress, VerificationMethodFlags } from "../utils/utils";
 import { before } from "mocha";
 import { DidSolService } from "../../src";
+import { Transaction } from "@solana/web3.js";
+import { INITIAL_MIN_ACCOUNT_SIZE } from "../../src/lib/utils";
 
 chai.use(chaiAsPromised);
 
@@ -32,8 +34,7 @@ describe("sol-did alloc operations", () => {
       programProvider
     );
 
-    // init with correct signer
-    service.setSolSigner(authority);
+    checkConnectionLogs(programProvider.connection);
   });
 
   it("can successfully close an did:sol account ", async () => {
@@ -43,7 +44,9 @@ describe("sol-did alloc operations", () => {
     const rawDidDataAccountBefore =
       await programProvider.connection.getAccountInfo(didData);
 
-    const tx = await service.close(destination.publicKey);
+    const instruction = await service.close(authority.publicKey, destination.publicKey);
+    const tx = new Transaction().add(instruction);
+    await programProvider.sendAndConfirm(tx)
 
     // Accounts After
     const rawDidDataAccountAfter =
@@ -61,7 +64,10 @@ describe("sol-did alloc operations", () => {
   it("fails when trying to close a did:sol account that does not exist", async () => {
     const destination = anchor.web3.Keypair.generate();
 
-    return expect(service.close(destination.publicKey)).to.be.rejectedWith(
+    const instruction = await service.close(authority.publicKey, destination.publicKey);
+    const tx = new Transaction().add(instruction);
+
+    return expect(programProvider.sendAndConfirm(tx)).to.be.rejectedWith(
       `Error processing Instruction 0: custom program error: 0x${LangErrorCode.AccountNotInitialized.toString(
         16
       )}`
@@ -69,17 +75,9 @@ describe("sol-did alloc operations", () => {
   });
 
   it("can successfully initialize an did:sol account with default size", async () => {
-    // console.log(`didData: ${didData.toBase58()}`);
-
-    const tx = await program.methods
-      .initialize(null)
-      .accounts({
-        didData,
-        authority: authority.publicKey,
-      })
-      .rpc();
-
-    // console.log("Your transaction signature", tx);
+    const instruction = await service.initialize(INITIAL_MIN_ACCOUNT_SIZE);
+    const tx = new Transaction().add(instruction);
+    await programProvider.sendAndConfirm(tx)
 
     // check data
     const didDataAccount = await program.account.didAccount.fetch(didData);
@@ -105,30 +103,24 @@ describe("sol-did alloc operations", () => {
     const rawDidDataAccount = await programProvider.connection.getAccountInfo(
       didData
     );
-    expect(rawDidDataAccount.data.length).to.equal(INITIAL_ACCOUNT_SIZE);
+    expect(rawDidDataAccount.data.length).to.equal(INITIAL_MIN_ACCOUNT_SIZE);
   });
 
   it("fails when trying to initialize a did:sol account twice", async () => {
-    return expect(
-      program.methods
-        .initialize(100)
-        .accounts({
-          didData,
-          authority: authority.publicKey,
-        })
-        .rpc()
-    ).to.be.rejectedWith("custom program error: 0x0");
+    const instruction = await service.initialize(INITIAL_MIN_ACCOUNT_SIZE+1);
+    const tx = new Transaction().add(instruction);
+
+    return expect(programProvider.sendAndConfirm(tx)).to.be.rejectedWith(
+      `Error processing Instruction 0: custom program error: 0x0`
+    );
   });
 
   it("can successfully resize an account", async () => {
-    const NEW_ACCOUNT_SIZE = 10_000;
+    const NEW_ACCOUNT_SIZE = (9_999);
 
-    await program.methods.resize(NEW_ACCOUNT_SIZE, null)
-      .accounts({
-        didData,
-        payer: authority.publicKey,
-      })
-      .rpc();
+    const instruction = await service.resize(NEW_ACCOUNT_SIZE, authority.publicKey, authority.publicKey);
+    const tx = new Transaction().add(instruction);
+    await programProvider.sendAndConfirm(tx)
 
     const rawDidDataAccount = await programProvider.connection.getAccountInfo(
       didData

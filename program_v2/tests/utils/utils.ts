@@ -1,7 +1,7 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { DEFAULT_SEED_STRING } from "./const";
-import { Program } from "@project-serum/anchor";
+import { AnchorProvider, Program, web3 } from "@project-serum/anchor";
 import { SolDid } from "../../target/types/sol_did";
 import { utils as ethersUtils, Signer, Wallet } from "ethers";
 import { keccak256 } from "@ethersproject/keccak256";
@@ -61,6 +61,13 @@ export const ethSignPayload = async (instruction: TransactionInstruction, nonce:
   // return { signature, recoveryId };
 
   return instruction
+}
+
+export const checkConnectionLogs = (connection: web3.Connection) => {
+  if (process.env.ENABLE_LOGS)
+    connection.onLogs("all", (log) =>
+      console.log(log.logs)
+    );
 }
 
 export enum VerificationMethodFlags {

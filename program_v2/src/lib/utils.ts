@@ -4,7 +4,8 @@ import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { Bytes, utils as ethersUtils } from "ethers/lib/ethers";
 
-export const INITIAL_ACCOUNT_SIZE = 8 + 60;
+export const INITIAL_MIN_ACCOUNT_SIZE = 8 + 60;
+export const INITIAL_DEFAULT_ACCOUNT_SIZE = 10_000;
 export const DEFAULT_SEED_STRING = "did-account";
 
 const DID_SOL_PROGRAM = new web3.PublicKey(
@@ -31,7 +32,7 @@ export const ethSignPayload = async (
   instruction: TransactionInstruction,
   nonce: anchor.BN,
   signer: EthSigner
-) => {
+) : Promise<TransactionInstruction> => {
   // Anchor 8 bytes prefix, Option<T> byte suffix
   const nonceBytes = nonce.toBuffer("le", 8);
   const message = Buffer.concat([instruction.data.subarray(8, -1), nonceBytes]);
@@ -47,10 +48,15 @@ export const ethSignPayload = async (
   // @ts-ignore signatureBytes always has length > 1;
   const recoveryId = signatureBytes.at(-1) - 27;
 
-  return {
-    signature,
-    recoveryId,
-  };
+  instruction.data = Buffer.concat([
+    instruction.data.slice(0, -1), // Remove Option<T> == None
+    new Uint8Array([1]), // Add Option<T> == Some
+    new Uint8Array(signature),
+    new Uint8Array([recoveryId])
+  ])
+  // return { signature, recoveryId };
+
+  return instruction
 };
 
 export const signAndConfirmTransactionInstruction = async (
