@@ -1,9 +1,7 @@
 use super::*;
 use anchor_lang::prelude::*;
 
-#[derive(
-    Debug, AnchorSerialize, AnchorDeserialize, Clone
-)]
+#[derive(Debug, AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct UpdateStruct {
     /// All verification methods
     pub verification_methods: Vec<VerificationMethod>,

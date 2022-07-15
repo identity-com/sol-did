@@ -4,7 +4,7 @@ mod state;
 
 use anchor_lang::prelude::*;
 use instructions::*;
-use state::{UpdateStruct, Secp256k1RawSignature, Service, VerificationMethodArg};
+use state::{Secp256k1RawSignature, Service, UpdateStruct, VerificationMethodArg};
 
 declare_id!("didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc");
 

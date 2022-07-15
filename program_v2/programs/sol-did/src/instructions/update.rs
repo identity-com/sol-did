@@ -1,4 +1,4 @@
-use crate::state::{DidAccount,UpdateStruct, Secp256k1RawSignature};
+use crate::state::{DidAccount, Secp256k1RawSignature, UpdateStruct};
 use anchor_lang::prelude::*;
 
 pub fn update(
@@ -11,7 +11,7 @@ pub fn update(
     data.native_controllers = update_information.native_controllers;
     data.other_controllers = update_information.other_controllers;
     data.initial_verification_method.flags = 0;
-    let default_alas = & data.initial_verification_method.alias;
+    let default_alas = &data.initial_verification_method.alias;
     let new_methods = &mut update_information.verification_methods;
 
     for i in new_methods.clone() {
@@ -21,12 +21,12 @@ pub fn update(
             break;
         }
     }
-    data.verification_methods = update_information.verification_methods; 
+    data.verification_methods = update_information.verification_methods;
 
     if eth_signature.is_some() {
         data.nonce += 1;
     }
-    
+
     Ok(())
 }
 
