@@ -4,7 +4,7 @@ mod state;
 
 use anchor_lang::prelude::*;
 use instructions::*;
-use state::{Secp256k1RawSignature, Service, UpdateStruct, VerificationMethodArg, VerificationMethod};
+use state::{Secp256k1RawSignature, Service, UpdateStruct, VerificationMethod};
 
 declare_id!("didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc");
 
@@ -31,7 +31,7 @@ pub mod sol_did {
 
     pub fn add_verification_method(
         ctx: Context<AddVerificationMethod>,
-        verification_method: VerificationMethodArg,
+        verification_method: VerificationMethod,
         eth_signature: Option<Secp256k1RawSignature>,
     ) -> Result<()> {
         instructions::add_verification_method(ctx, verification_method, eth_signature)

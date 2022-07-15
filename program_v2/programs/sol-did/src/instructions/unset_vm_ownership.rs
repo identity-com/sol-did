@@ -1,14 +1,13 @@
 use crate::errors::DidSolError;
-use crate::state::{DidAccount, VerificationMethod, VerificationMethodArg, VerificationMethodFlags};
+use crate::state::{DidAccount, VerificationMethod, VerificationMethodFlags};
 use anchor_lang::prelude::*;
 
 pub fn add_verification_method(
     ctx: Context<AddVerificationMethod>,
-    verification_method: VerificationMethodArg,
+    verification_method: VerificationMethod,
     eth_signature: Option<Secp256k1RawSignature>,
 ) -> Result<()> {
 
-    let vm = VerificationMethod::from(verification_method);
     let data = &mut ctx.accounts.did_data;
 
     if eth_signature.is_some() {
@@ -30,7 +29,7 @@ pub fn add_verification_method(
 }
 
 #[derive(Accounts)]
-#[instruction(verification_method: VerificationMethodArg, eth_signature: Option<Secp256k1RawSignature>)]
+#[instruction(verification_method: VerificationMethod, eth_signature: Option<Secp256k1RawSignature>)]
 pub struct AddVerificationMethod<'info> {
     #[account(
         mut,

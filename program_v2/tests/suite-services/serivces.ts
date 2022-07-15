@@ -2,7 +2,7 @@ import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { Transaction } from "@solana/web3.js";
 import { SolDid } from "../../target/types/sol_did";
-import { DidSolService } from "../../src";
+import { DidDataAccount, DidSolService } from "../../src";
 import { before } from "mocha";
 import { getTestService } from "../utils/utils";
 
@@ -33,7 +33,7 @@ describe("sol-did service operations", () => {
 
   //add data
   it("add a new service to the data.services", async () => {
-    const dataAccountBefore = await program.account.didAccount.fetch(didData);
+    const dataAccountBefore = await program.account.didAccount.fetch(didData) as DidDataAccount;
     const serviceLengthBefore = dataAccountBefore.services.length;
 
     const tService = getTestService(1)
@@ -41,7 +41,7 @@ describe("sol-did service operations", () => {
     const transaction = new Transaction().add(instruction);
     await programProvider.sendAndConfirm(transaction);
 
-    const dataAccountAfter = await program.account.didAccount.fetch(didData);
+    const dataAccountAfter = await program.account.didAccount.fetch(didData) as DidDataAccount;
     expect(dataAccountAfter.services.length).to.equal(serviceLengthBefore + 1);
   });
 
@@ -64,7 +64,7 @@ describe("sol-did service operations", () => {
 
   // delete a service
   it("can successfully delete a service", async () => {
-    const dataAccountBefore = await program.account.didAccount.fetch(didData);
+    const dataAccountBefore = await program.account.didAccount.fetch(didData) as DidDataAccount;
     const serviceLengthBefore = dataAccountBefore.services.length;
 
     const tService = getTestService(1)
@@ -72,7 +72,7 @@ describe("sol-did service operations", () => {
     const transaction = new Transaction().add(instruction);
     await programProvider.sendAndConfirm(transaction);
 
-    const dataAccountAfter = await program.account.didAccount.fetch(didData);
+    const dataAccountAfter = await program.account.didAccount.fetch(didData) as DidDataAccount;
     expect(dataAccountAfter.services.length).to.equal(serviceLengthBefore - 1);
   });
 

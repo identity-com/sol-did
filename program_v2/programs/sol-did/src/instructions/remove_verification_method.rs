@@ -1,5 +1,5 @@
 use crate::errors::DidSolError;
-use crate::state::{DidAccount, Secp256k1RawSignature, VerificationMethodArg};
+use crate::state::{DidAccount, Secp256k1RawSignature};
 use anchor_lang::prelude::*;
 
 pub fn remove_verification_method(
@@ -25,13 +25,13 @@ pub fn remove_verification_method(
 }
 
 #[derive(Accounts)]
-#[instruction(verification_method: VerificationMethodArg, eth_signature: Option<Secp256k1RawSignature>)]
+#[instruction(alias: String, eth_signature: Option<Secp256k1RawSignature>)]
 pub struct RemoveVerificationMethod<'info> {
     #[account(
         mut,
         seeds = [b"did-account", did_data.initial_verification_method.key_data.as_ref()],
         bump = did_data.bump,
-        constraint = did_data.is_authority(authority.key()) || did_data.is_eth_authority(verification_method.try_to_vec().unwrap(), eth_signature),
+        constraint = did_data.is_authority(authority.key()) || did_data.is_eth_authority(alias.try_to_vec().unwrap(), eth_signature),
     )]
     pub did_data: Account<'info, DidAccount>,
     pub authority: Signer<'info>,

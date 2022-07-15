@@ -78,7 +78,7 @@ impl DidAccount {
     ) -> Option<&VerificationMethod> {
         self.verification_methods()
             .into_iter()
-            .filter(|x| x.method_type == vm_type)
+            .filter(|x| x.method_type == vm_type.to_u8().unwrap())
             .filter(|x| {
                 VerificationMethodFlags::from_bits(x.flags)
                     .unwrap()
@@ -230,7 +230,8 @@ pub enum VerificationMethodType {
 }
 
 impl VerificationMethodType {
-    pub fn is_authority_type(vm_type: VerificationMethodType) -> bool {
+    pub fn is_authority_type(vm_type: u8) -> bool {
+        let vm_type = VerificationMethodType::from_u8(vm_type).unwrap();
         matches!(
             vm_type,
             VerificationMethodType::Ed25519VerificationKey2018
@@ -254,7 +255,7 @@ pub struct VerificationMethod {
     /// The permissions this key has
     pub flags: u16,
     /// The actual verification method
-    pub method_type: VerificationMethodType,
+    pub method_type: u8, // Type: VerificationMethodType- Anchor does not yet provide mappings for enums
     /// Dynamically sized key matching the given VerificationType
     pub key_data: Vec<u8>,
 }
@@ -271,7 +272,7 @@ impl VerificationMethod {
         VerificationMethod {
             alias: String::from("default"),
             flags: flags.bits(),
-            method_type: VerificationMethodType::default(),
+            method_type: VerificationMethodType::default().to_u8().unwrap(),
             key_data,
         }
     }
@@ -284,29 +285,29 @@ impl VerificationMethod {
     }
 }
 
-impl From<VerificationMethodArg> for VerificationMethod {
-    fn from(item: VerificationMethodArg) -> Self {
-        VerificationMethod {
-            alias: item.alias,
-            flags: item.flags,
-            method_type: VerificationMethodType::from_u8(item.method_type).unwrap(),
-            key_data: item.key_data,
-        }
-    }
-}
+// impl From<VerificationMethodArg> for VerificationMethod {
+//     fn from(item: VerificationMethodArg) -> Self {
+//         VerificationMethod {
+//             alias: item.alias,
+//             flags: item.flags,
+//             method_type: VerificationMethodType::from_u8(item.method_type).unwrap(),
+//             key_data: item.key_data,
+//         }
+//     }
+// }
 
-#[derive(Debug, AnchorSerialize, AnchorDeserialize, Clone)]
-pub struct VerificationMethodArg {
-    /// alias
-    pub alias: String,
-    /// The permissions this key has
-    /// TODO: DID-Powo via separate account. E.g. Requirement reverse key lookup.
-    pub flags: u16,
-    /// The actual verification method
-    pub method_type: u8, // Type: VerificationMethodType- Anchor does not yet provide mappings for enums
-    /// Dynamically sized key matching the given VerificationType
-    pub key_data: Vec<u8>,
-}
+// #[derive(Debug, AnchorSerialize, AnchorDeserialize, Clone)]
+// pub struct VerificationMethodArg {
+//     /// alias
+//     pub alias: String,
+//     /// The permissions this key has
+//     /// TODO: DID-Powo via separate account. E.g. Requirement reverse key lookup.
+//     pub flags: u16,
+//     /// The actual verification method
+//     pub method_type: u8, // Type: VerificationMethodType- Anchor does not yet provide mappings for enums
+//     /// Dynamically sized key matching the given VerificationType
+//     pub key_data: Vec<u8>,
+// }
 
 /// A Service Definition [`DidAccount`]
 #[derive(Debug, AnchorSerialize, AnchorDeserialize, Default, Clone)]

@@ -1,3 +1,7 @@
+import { BN, web3 } from "@project-serum/anchor";
+import { PublicKey } from "@solana/web3.js";
+import { VerificationMethod as DidVerificationMethod } from "did-resolver";
+import { ExtendedCluster } from "./connection";
 
 export type Bytes = ArrayLike<number>;
 export type EthSigner = {
@@ -5,10 +9,21 @@ export type EthSigner = {
   signMessage: (message: Bytes | string) => Promise<string>;
 };
 
+export type DidDataAccount = {
+  version: number;
+  bump: number;
+  nonce: BN;
+  initialVerificationMethod: VerificationMethod;
+  verificationMethods: VerificationMethod[];
+  services: Service[];
+  nativeControllers: web3.PublicKey[];
+  otherControllers: string[];
+}
+
 export type VerificationMethod = {
   alias: string;
   keyData: Bytes;
-  type: VerificationMethodType;
+  methodType: VerificationMethodType;
   flags: VerificationMethodFlags;
 }
 
@@ -40,3 +55,17 @@ export enum VerificationMethodType {
   EcdsaSecp256k1VerificationKey2019,
 }
 
+export type DecentralizedIdentifierConstructor = {
+  clusterType: ExtendedCluster | undefined;
+  authority: PublicKey;
+  urlField?: string;
+}
+
+export type DidVerificationMethodComponents = {
+  verificationMethod: DidVerificationMethod[]
+  authentication: (string | DidVerificationMethod)[]
+  assertionMethod: (string | DidVerificationMethod)[]
+  keyAgreement: (string | DidVerificationMethod)[]
+  capabilityInvocation: (string | DidVerificationMethod)[]
+  capabilityDelegation: (string | DidVerificationMethod)[]
+}
