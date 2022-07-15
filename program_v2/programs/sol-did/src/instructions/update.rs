@@ -1,22 +1,22 @@
-use crate::state::{DidAccount, Secp256k1RawSignature};
+use crate::state::{DidAccount,UpdateStruct, Secp256k1RawSignature};
 use anchor_lang::prelude::*;
 
 pub fn update(
     ctx: Context<Update>,
-    information: DidAccount,
+    information: UpdateStruct,
     eth_signature: Option<Secp256k1RawSignature>,
 ) -> Result<()> {
     let data = &mut ctx.accounts.did_data;
-    data.version = information.version;
-    data.bump = information.bump;
-    data.nonce = information.nonce;
-    data.initial_authority = information.initial_authority;
-    data.initial_authority_flags = information.initial_authority_flags;
-    data.verification_methods = information.verification_methods;
     data.services = information.services;
     data.native_controllers = information.native_controllers;
     data.other_controllers = information.other_controllers;
-
+    let vms = &mut data.verification_methods;
+    let default_alas = & data.initial_verification_method.alias;
+    vms.retain(|x| x.alias == *default_alas);
+    if vms.len() == 1 {
+        data.initial_verification_method.flags = 0;
+        return Ok(());
+    }
     // increase the nonce. TODO: check if this can be moved to a constraint.
     if eth_signature.is_some() {
         data.nonce += 1;
@@ -26,11 +26,11 @@ pub fn update(
 }
 
 #[derive(Accounts)]
-#[instruction(account: DidAccount, eth_signature: Option<Secp256k1RawSignature>)]
+#[instruction(account: UpdateStruct, eth_signature: Option<Secp256k1RawSignature>)]
 pub struct Update<'info> {
     #[account(
         mut,
-        seeds = [b"did-account", did_data.initial_authority.key().as_ref()],
+        seeds = [b"did-account", did_data.initial_verification_method.key_data.as_ref()],
         bump = did_data.bump,
         constraint = {
             let services =&mut  account.services.try_to_vec().unwrap().clone();
