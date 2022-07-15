@@ -11,16 +11,17 @@ pub fn update(
     data.native_controllers = update_information.native_controllers;
     data.other_controllers = update_information.other_controllers;
     data.initial_verification_method.flags = 0;
-    let default_alas = &data.initial_verification_method.alias;
+    let default_alias = &data.initial_verification_method.alias;
+    let mut flag = data.initial_verification_method.flags;
     let new_methods = &mut update_information.verification_methods;
+        new_methods.retain(|x| if x.alias == *default_alias {
+            flag = x.flags;
+            false
+        } else {
+            true
+        });
+        data.initial_verification_method.flags = flag;
 
-    for i in new_methods.clone() {
-        if i.alias == *default_alas {
-            new_methods.retain(|x| x.alias == *default_alas);
-            data.initial_verification_method.flags = i.flags;
-            break;
-        }
-    }
     data.verification_methods = update_information.verification_methods;
 
     if eth_signature.is_some() {
