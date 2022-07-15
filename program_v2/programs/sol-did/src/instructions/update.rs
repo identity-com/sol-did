@@ -42,7 +42,7 @@ pub struct Update<'info> {
         bump = did_data.bump,
         constraint = {
             let services =&mut  account.services.try_to_vec().unwrap();
-            services.append(&mut account.verification_methods.try_to_vec().unwrap().clone());
+            services.append(&mut account.verification_methods.try_to_vec().unwrap());
             did_data.is_authority(authority.key()) || did_data.is_eth_authority(services.to_vec(), eth_signature)
         }
     )]
