@@ -14,13 +14,15 @@ pub fn update(
     let default_alias = &data.initial_verification_method.alias;
     let mut flag = data.initial_verification_method.flags;
     let new_methods = &mut update_information.verification_methods;
-        new_methods.retain(|x| if x.alias == *default_alias {
+    new_methods.retain(|x| {
+        if x.alias == *default_alias {
             flag = x.flags;
             false
         } else {
             true
-        });
-        data.initial_verification_method.flags = flag;
+        }
+    });
+    data.initial_verification_method.flags = flag;
 
     data.verification_methods = update_information.verification_methods;
 
