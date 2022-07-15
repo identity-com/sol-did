@@ -3,25 +3,30 @@ use anchor_lang::prelude::*;
 
 pub fn update(
     ctx: Context<Update>,
-    information: UpdateStruct,
+    mut update_information: UpdateStruct,
     eth_signature: Option<Secp256k1RawSignature>,
 ) -> Result<()> {
     let data = &mut ctx.accounts.did_data;
-    data.services = information.services;
-    data.native_controllers = information.native_controllers;
-    data.other_controllers = information.other_controllers;
-    let vms = &mut data.verification_methods;
+    data.services = update_information.services;
+    data.native_controllers = update_information.native_controllers;
+    data.other_controllers = update_information.other_controllers;
+    data.initial_verification_method.flags = 0;
     let default_alas = & data.initial_verification_method.alias;
-    vms.retain(|x| x.alias == *default_alas);
-    if vms.len() == 1 {
-        data.initial_verification_method.flags = 0;
-        return Ok(());
+    let new_methods = &mut update_information.verification_methods;
+
+    for i in new_methods.clone() {
+        if i.alias == *default_alas {
+            new_methods.retain(|x| x.alias == *default_alas);
+            data.initial_verification_method.flags = i.flags;
+            break;
+        }
     }
-    // increase the nonce. TODO: check if this can be moved to a constraint.
+    data.verification_methods = update_information.verification_methods; 
+
     if eth_signature.is_some() {
         data.nonce += 1;
     }
-
+    
     Ok(())
 }
 
