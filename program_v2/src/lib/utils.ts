@@ -1,17 +1,20 @@
-import { AnchorProvider, Program, Provider, web3 } from "@project-serum/anchor";
+import * as anchor from "@project-serum/anchor";
+import { Program, Provider } from "@project-serum/anchor";
 import { SolDid } from "../../target/types/sol_did";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
-import * as anchor from "@project-serum/anchor";
 import { utils as ethersUtils } from "ethers/lib/ethers";
-import { EthSigner } from "./types";
+import {
+  DidVerificationMethodComponents,
+  EthSigner,
+  Service,
+  VerificationMethod,
+  VerificationMethodFlags,
+  VerificationMethodType
+} from "./types";
+import { DEFAULT_KEY_ID, DEFAULT_SEED_STRING, DID_SOL_PROGRAM } from "./const";
+import { VerificationMethod as DidVerificationMethod, ServiceEndpoint as DidService } from "did-resolver";
+import { DidSolIdentifier } from "../DidSolIdentifier";
 
-export const INITIAL_MIN_ACCOUNT_SIZE = 8 + 50 + 26; // anchor + initial_vm + rest
-export const INITIAL_DEFAULT_ACCOUNT_SIZE = 10_000;
-export const DEFAULT_SEED_STRING = "did-account";
-
-const DID_SOL_PROGRAM = new web3.PublicKey(
-  "didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc"
-);
 
 export const fetchProgram = async (
   provider: Provider
@@ -75,28 +78,76 @@ export const ethSignPayload = async (
   return instruction
 };
 
-export const signAndConfirmTransactionInstruction = async (
-  provider: AnchorProvider,
-  signer: SolSigner,
-  instruction: web3.TransactionInstruction
-) => {
-  const transaction = new web3.Transaction().add(instruction);
+export const defaultVerificationMethod = (authority: PublicKey): VerificationMethod => ({
+  alias: DEFAULT_KEY_ID,
+  methodType: VerificationMethodType.Ed25519VerificationKey2018,
+  flags: VerificationMethodFlags.CapabilityInvocation | VerificationMethodFlags.OwnershipProof,
+  keyData: authority.toBuffer(),
+})
 
-  const latestBlockhash = await provider.connection.getLatestBlockhash();
-  transaction.recentBlockhash = latestBlockhash.blockhash;
-  transaction.feePayer = signer.publicKey;
-  const signedTransaction = await signer.signTransaction(transaction);
-  const signature = await provider.connection.sendRawTransaction(
-    signedTransaction.serialize()
-  );
+// Note: VerificationMethodFlags.OwnershipProof is not mapped to DID components
+export const mapVerificationMethodsToDidComponents = (methods: VerificationMethod[], identifier: DidSolIdentifier): DidVerificationMethodComponents => {
+  const didComponents: DidVerificationMethodComponents = {
+    verificationMethod: new Array<DidVerificationMethod>(),
+    authentication: new Array<string>(),
+    assertionMethod: new Array<string>(),
+    keyAgreement: new Array<string>(),
+    capabilityInvocation: new Array<string>(),
+    capabilityDelegation: new Array<string>(),
+  }
 
-  await provider.connection.confirmTransaction(signature);
-  return signature;
-};
+  for (const method of methods) {
 
-export type SolSigner = {
-  publicKey: web3.PublicKey;
-  signTransaction: (instruction: web3.Transaction) => Promise<web3.Transaction>;
-};
+    // skip hidden methods
+    if ((method.flags & VerificationMethodFlags.DidDocHidden) === VerificationMethodFlags.DidDocHidden) {
+      continue;
+    }
+    if ((method.flags & VerificationMethodFlags.Authentication) === VerificationMethodFlags.Authentication) {
+      didComponents.authentication.push(`#${method.alias}`);
+    }
+    if ((method.flags & VerificationMethodFlags.Assertion) === VerificationMethodFlags.Assertion) {
+      didComponents.assertionMethod.push(`#${method.alias}`);
+    }
+    if ((method.flags & VerificationMethodFlags.KeyAgreement) === VerificationMethodFlags.KeyAgreement) {
+      didComponents.keyAgreement.push(`#${method.alias}`);
+    }
+    if ((method.flags & VerificationMethodFlags.CapabilityInvocation) === VerificationMethodFlags.CapabilityInvocation) {
+      didComponents.capabilityInvocation.push(`#${method.alias}`);
+    }
+    if ((method.flags & VerificationMethodFlags.CapabilityDelegation) === VerificationMethodFlags.CapabilityDelegation) {
+      didComponents.capabilityDelegation.push(`#${method.alias}`);
+    }
+
+    let vm: DidVerificationMethod = {
+      id: identifier.withUrl(DEFAULT_KEY_ID).toString(),
+      type: VerificationMethodType[method.methodType],
+      controller: identifier.toString(),
+    };
+
+    switch (method.methodType) {
+      case VerificationMethodType.Ed25519VerificationKey2018:
+        vm.publicKeyBase58 = new PublicKey(method.keyData).toBase58()
+        break;
+      case VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020:
+        vm.ethereumAddress = ethersUtils.getAddress(ethersUtils.hexlify(method.keyData))
+        break;
+      case VerificationMethodType.EcdsaSecp256k1VerificationKey2019:
+        vm.publicKeyHex = ethersUtils.hexlify(method.keyData).replace('0x','');
+        break;
+      default:
+        throw new Error(`Verification method type '${method.methodType}' not recognized`);
+    }
+
+    didComponents.verificationMethod.push(vm)
+  }
+
+  return didComponents;
+}
+
+export const mapServices = (services: Service[]): DidService[] => services.map(service => ({
+  id: service.id,
+  type: service.serviceType,
+  serviceEndpoint: service.serviceEndpoint,
+}));
 
 

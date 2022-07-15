@@ -1,25 +1,24 @@
 use crate::errors::DidSolError;
-use crate::state::{DidAccount, VerificationMethod, VerificationMethodArg, VerificationMethodFlags};
+use crate::state::{DidAccount, VerificationMethod, VerificationMethodFlags};
 use anchor_lang::prelude::*;
 
 pub fn set_key_ownership(
     ctx: Context<AddVerificationMethod>,
-    verification_method: VerificationMethodArg,
+    verification_method: VerificationMethod,
     eth_signature: Option<Secp256k1RawSignature>,
 ) -> Result<()> {
 
-    let vm = VerificationMethod::from(verification_method);
     let data = &mut ctx.accounts.did_data;
     
     if eth_signature.is_some() {
         data.nonce += 1;
     }
 
-    data.add_verification_method(vm)
+    data.add_verification_method(verification_method)
 }
 
 #[derive(Accounts)]
-#[instruction(verification_method: VerificationMethodArg, eth_signature: Option<Secp256k1RawSignature>)]
+#[instruction(verification_method: VerificationMethod, eth_signature: Option<Secp256k1RawSignature>)]
 pub struct SetMethod<'info> {
     #[account(
         mut,

@@ -9,7 +9,8 @@ import { checkConnectionLogs } from "../utils/utils";
 import { before } from "mocha";
 import { DidSolService, VerificationMethodFlags } from "../../src";
 import { Transaction } from "@solana/web3.js";
-import { findProgramAddress, INITIAL_MIN_ACCOUNT_SIZE } from "../../src/lib/utils";
+import { findProgramAddress } from "../../src/lib/utils";
+import { INITIAL_MIN_ACCOUNT_SIZE } from "../../src/lib/const";
 
 chai.use(chaiAsPromised);
 

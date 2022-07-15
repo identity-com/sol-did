@@ -64,7 +64,7 @@ describe("sol-did auth operations", () => {
       {
         alias: "new-key",
         keyData: newSolKey.publicKey.toBytes(),
-        type: VerificationMethodType.Ed25519VerificationKey2018,
+        methodType: VerificationMethodType.Ed25519VerificationKey2018,
         flags: VerificationMethodFlags.CapabilityInvocation,
       });
     const tx = new Transaction().add(instruction);
@@ -75,7 +75,7 @@ describe("sol-did auth operations", () => {
     expect(didDataAccount.verificationMethods.length).to.equal(1)
     expect(didDataAccount.verificationMethods[0].alias).to.equal("new-key")
     expect(didDataAccount.verificationMethods[0].keyData).to.deep.equal(newSolKey.publicKey.toBytes())
-    expect(didDataAccount.verificationMethods[0].methodType).to.deep.equal( { ed25519VerificationKey2018: {} })
+    expect(didDataAccount.verificationMethods[0].methodType).to.equal( VerificationMethodType.Ed25519VerificationKey2018)
     expect(didDataAccount.verificationMethods[0].flags).to.equal(VerificationMethodFlags.CapabilityInvocation)
   });
 
@@ -99,7 +99,7 @@ describe("sol-did auth operations", () => {
       {
         alias: "new-key",
         keyData: newSolKey.publicKey.toBytes(),
-        type: VerificationMethodType.Ed25519VerificationKey2018,
+        methodType: VerificationMethodType.Ed25519VerificationKey2018,
         flags: VerificationMethodFlags.OwnershipProof,
       });
     const tx = new Transaction().add(instruction);
@@ -118,7 +118,7 @@ describe("sol-did auth operations", () => {
       {
         alias: "default",
         keyData: newSolKey.publicKey.toBytes(),
-        type: VerificationMethodType.Ed25519VerificationKey2018,
+        methodType: VerificationMethodType.Ed25519VerificationKey2018,
         flags: VerificationMethodFlags.CapabilityInvocation,
       });
     const tx = new Transaction().add(instruction);
@@ -138,7 +138,7 @@ describe("sol-did auth operations", () => {
       {
         alias: "new-eth-key",
         keyData: Buffer.from(ethAddressAsBytes),
-        type: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
+        methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
         flags: VerificationMethodFlags.CapabilityInvocation,
       });
     const tx = new Transaction().add(instruction);
@@ -150,7 +150,7 @@ describe("sol-did auth operations", () => {
     expect(didDataAccount.verificationMethods[1].alias).to.equal("new-eth-key")
     expect(didDataAccount.verificationMethods[1].keyData.length).to.equal(20)
     expect(didDataAccount.verificationMethods[1].keyData).to.deep.equal(ethAddressAsBytes)
-    expect(didDataAccount.verificationMethods[1].methodType).to.deep.equal( { ecdsaSecp256K1RecoveryMethod2020: {} })
+    expect(didDataAccount.verificationMethods[1].methodType).to.equal( VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020)
     expect(didDataAccount.verificationMethods[1].flags).to.equal(VerificationMethodFlags.CapabilityInvocation)
   });
 
@@ -199,7 +199,7 @@ describe("sol-did auth operations", () => {
       {
         alias: "new-eth-key2",
         keyData,
-        type: VerificationMethodType.EcdsaSecp256k1VerificationKey2019,
+        methodType: VerificationMethodType.EcdsaSecp256k1VerificationKey2019,
         flags: VerificationMethodFlags.CapabilityInvocation,
       }, nonAuthoritySigner.publicKey);
     // sign
@@ -214,7 +214,7 @@ describe("sol-did auth operations", () => {
     expect(didDataAccount.verificationMethods[2].alias).to.equal("new-eth-key2")
     expect(didDataAccount.verificationMethods[2].keyData.length).to.equal(64)
     expect(didDataAccount.verificationMethods[2].keyData).to.deep.equal(keyData)
-    expect(didDataAccount.verificationMethods[2].methodType).to.deep.equal( { ecdsaSecp256K1VerificationKey2019: {} })
+    expect(didDataAccount.verificationMethods[2].methodType).to.equal( VerificationMethodType.EcdsaSecp256k1VerificationKey2019)
     expect(didDataAccount.verificationMethods[2].flags).to.equal(VerificationMethodFlags.CapabilityInvocation)
 
     // it cannot reuse a nonce

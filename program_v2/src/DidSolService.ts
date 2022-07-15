@@ -3,13 +3,18 @@ import { AnchorProvider, Program, web3 } from "@project-serum/anchor";
 import {
   ethSignPayload,
   fetchProgram,
-  findProgramAddress, INITIAL_DEFAULT_ACCOUNT_SIZE, INITIAL_MIN_ACCOUNT_SIZE,
+  findProgramAddress,
 } from "./lib/utils";
 import { DIDDocument } from "did-resolver";
-import { EthSigner, Service, VerificationMethod } from "./lib/types";
+import { DidDataAccount, EthSigner, Service, VerificationMethod } from "./lib/types";
+import { INITIAL_MIN_ACCOUNT_SIZE } from "./lib/const";
+import { DidSolDocument } from "./DidSolDocument";
+import { ExtendedCluster, getClusterFromEndpoint } from "./lib/connection";
+import { DidSolIdentifier } from "./DidSolIdentifier";
 
 export class DidSolService {
   private program: Program<SolDid>;
+  private cluster: ExtendedCluster | undefined;
 
   static async build(
     provider: AnchorProvider,
@@ -33,6 +38,9 @@ export class DidSolService {
       provider,
       program.coder
     );
+
+    // console.log(`RPC endpoint: ${this.provider.connection.rpcEndpoint}`);
+    this.cluster = getClusterFromEndpoint(this.provider.connection.rpcEndpoint);
   }
 
   static getErrorCode(errorName: string): number | undefined {
@@ -56,7 +64,7 @@ export class DidSolService {
    * Does **not** support ethSignInstruction
    * @param size
    */
-  async initialize(size: number | null = INITIAL_DEFAULT_ACCOUNT_SIZE): Promise<web3.TransactionInstruction> {
+  async initialize(size: number | null = INITIAL_MIN_ACCOUNT_SIZE): Promise<web3.TransactionInstruction> {
     if (size && size < INITIAL_MIN_ACCOUNT_SIZE) {
       throw new Error(`Account size must be at least ${INITIAL_MIN_ACCOUNT_SIZE}`);
     }
@@ -115,7 +123,7 @@ export class DidSolService {
     return this.program.methods.addVerificationMethod({
       alias: method.alias,
       keyData: method.keyData,
-      methodType: method.type,
+      methodType: method.methodType,
       flags: method.flags,
     }, null).accounts({
       didData: this.didDataAccount,
@@ -149,25 +157,17 @@ export class DidSolService {
     }).instruction()
   }
 
-  // TODO Implement
+  /**
+   * Resolves the DID Document for the did:sol account.
+   */
   async resolve(): Promise<DIDDocument> {
-    const didDataAccount = await this.program.account.didAccount.fetch(
+    const didDataAccount = await this.program.account.didAccount.fetchNullable(
       this.didDataAccount
     );
+    if (!didDataAccount) {
+      return DidSolDocument.sparse(DidSolIdentifier.create(this.didIdentifier, this.cluster))
+    }
 
-    return {
-      "@context": undefined,
-      alsoKnownAs: [],
-      assertionMethod: [],
-      authentication: [],
-      capabilityDelegation: [],
-      capabilityInvocation: [],
-      controller: undefined,
-      id: "asdf",
-      keyAgreement: [],
-      publicKey: [],
-      service: [],
-      verificationMethod: [],
-    };
+    return DidSolDocument.from(didDataAccount as DidDataAccount, this.cluster);
   }
 }
