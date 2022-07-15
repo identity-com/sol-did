@@ -41,7 +41,7 @@ pub struct Update<'info> {
         seeds = [b"did-account", did_data.initial_verification_method.key_data.as_ref()],
         bump = did_data.bump,
         constraint = {
-            let services =&mut  account.services.try_to_vec().unwrap().clone();
+            let services =&mut  account.services.try_to_vec().unwrap();
             services.append(&mut account.verification_methods.try_to_vec().unwrap().clone());
             did_data.is_authority(authority.key()) || did_data.is_eth_authority(services.to_vec(), eth_signature)
         }
