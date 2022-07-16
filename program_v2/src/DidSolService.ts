@@ -1,62 +1,88 @@
-import { SolDid, IDL } from "../target/types/sol_did";
-import { AnchorProvider, Program, web3 } from "@project-serum/anchor";
+import { SolDid } from "../target/types/sol_did";
+import { AnchorProvider, BN, Idl, parseIdlErrors, Program, translateError } from "@project-serum/anchor";
+
+
 import {
   ethSignPayload,
   fetchProgram,
   findProgramAddress,
 } from "./lib/utils";
+import {
+  Commitment,
+  ConfirmOptions,
+  Connection,
+  PublicKey,
+  Signer,
+  Transaction,
+  TransactionInstruction
+} from "@solana/web3.js";
 import { DIDDocument } from "did-resolver";
-import { DidDataAccount, EthSigner, Service, VerificationMethod } from "./lib/types";
-import { INITIAL_MIN_ACCOUNT_SIZE } from "./lib/const";
+import { DidDataAccount, EthSigner, Service, VerificationMethod, Wallet } from "./lib/types";
+import { INITIAL_MIN_ACCOUNT_SIZE, SOLANA_COMMITMENT } from "./lib/const";
 import { DidSolDocument } from "./DidSolDocument";
-import { ExtendedCluster, getClusterFromEndpoint } from "./lib/connection";
+import { ExtendedCluster, getConnectionByCluster } from "./lib/connection";
 import { DidSolIdentifier } from "./DidSolIdentifier";
 
+/**
+ * The DidSolService class is a wrapper around the Solana DID program.
+ * It provides methods for creating, reading, updating, and deleting DID documents.
+ * Note, the provider or connection in the DidSolService MUST not be used for tx submissions.
+ * Please use DidSolServiceBuilder instead
+ */
 export class DidSolService {
-  private program: Program<SolDid>;
-  private cluster: ExtendedCluster | undefined;
 
   static async build(
-    provider: AnchorProvider,
-    didIdentifier: web3.PublicKey
+    didIdentifier: PublicKey,
+    cluster: ExtendedCluster,
+    preflightCommitment: Commitment = SOLANA_COMMITMENT,
   ): Promise<DidSolService> {
+
+    const connection = getConnectionByCluster(cluster, preflightCommitment);
+    // Note, DidSolService never signs, so provider does not need a valid Wallet or confirmOptions.
+    const provider = new AnchorProvider(connection, new DummyWallet(), AnchorProvider.defaultOptions());
+
     const program = await fetchProgram(provider);
     const [didDataAccount, _] = await findProgramAddress(didIdentifier);
 
-    return new DidSolService(program, didIdentifier, didDataAccount, provider);
+    return new DidSolService(
+      program,
+      didIdentifier,
+      didDataAccount,
+      cluster,
+      provider.wallet,
+      provider.opts);
   }
 
   constructor(
-    program: Program<SolDid>,
-    private didIdentifier: web3.PublicKey,
-    private didDataAccount: web3.PublicKey,
-    private provider: AnchorProvider
+    private program: Program<SolDid>,
+    private didIdentifier: PublicKey,
+    private didDataAccount: PublicKey,
+    private cluster: ExtendedCluster = 'mainnet-beta',
+    private wallet: Wallet = new DummyWallet(),
+    private opts: ConfirmOptions = AnchorProvider.defaultOptions(),
   ) {
-    this.program = new Program<SolDid>(
-      program.idl,
-      program.programId,
-      provider,
-      program.coder
-    );
-
-    // console.log(`RPC endpoint: ${this.provider.connection.rpcEndpoint}`);
-    this.cluster = getClusterFromEndpoint(this.provider.connection.rpcEndpoint);
+    // make sure it's a provider-less wallet.
   }
 
-  static getErrorCode(errorName: string): number | undefined {
-    return IDL.errors.find((error) => error.name === errorName)?.code;
+  getIdl(): Idl {
+    return this.program.idl;
   }
 
-  /**
-   * Signs a supported DidSol Instruction with an Ethereum Signer. Every Instruction apart from "initialize" is supported
-   * @param instruction The DidSol Instruction to sign
-   * @param signer The Ethereum Signer
-   */
-  async ethSignInstruction(instruction: web3.TransactionInstruction, signer: EthSigner): Promise<web3.TransactionInstruction> {
-    const nonce = await this.program.account.didAccount
-      .fetch(this.didDataAccount)
-      .then((account) => account.nonce);
-    return ethSignPayload(instruction, nonce, signer);
+  async getNonce(): Promise<BN> {
+    const account = await this.program.account.didAccount.fetchNullable(this.didDataAccount)
+    return account ? account.nonce : new BN(0);
+  }
+
+  getWallet(): Wallet {
+    return this.wallet;
+  }
+
+  getConnection(): Connection {
+    return this.program.provider.connection;
+  }
+
+  getConfrirmOptions(): ConfirmOptions {
+    return this.opts;
   }
 
   /**
@@ -64,18 +90,24 @@ export class DidSolService {
    * Does **not** support ethSignInstruction
    * @param size
    */
-  async initialize(size: number | null = INITIAL_MIN_ACCOUNT_SIZE): Promise<web3.TransactionInstruction> {
+  initialize(size: number | null = INITIAL_MIN_ACCOUNT_SIZE): DidSolServiceBuilder {
     if (size && size < INITIAL_MIN_ACCOUNT_SIZE) {
       throw new Error(`Account size must be at least ${INITIAL_MIN_ACCOUNT_SIZE}`);
     }
 
-    return this.program.methods
+    const instructionPromise = this.program.methods
       .initialize(size)
       .accounts({
         didData: this.didDataAccount,
         authority: this.didIdentifier
       })
       .instruction();
+
+    return new DidSolServiceBuilder(this, {
+      instructionPromise,
+      ethSignStatus: DidSolEthSignStatusType.NotSupported,
+      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE
+    });
   }
 
   /**
@@ -85,8 +117,8 @@ export class DidSolService {
    * @param payer The account to pay the rent-exempt fee with.
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  async resize(size: number, payer: web3.PublicKey, authority: web3.PublicKey = this.didIdentifier): Promise<web3.TransactionInstruction> {
-    return this.program.methods
+  resize(size: number, payer: PublicKey, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
+    const instructionPromise = this.program.methods
       .resize(size, null)
       .accounts({
         didData: this.didDataAccount,
@@ -94,6 +126,12 @@ export class DidSolService {
         authority,
       })
       .instruction();
+
+    return new DidSolServiceBuilder(this, {
+      instructionPromise,
+      ethSignStatus: DidSolEthSignStatusType.Unsigned,
+      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE
+    });
   }
 
   /**
@@ -102,8 +140,8 @@ export class DidSolService {
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    * @param destination The destination account to move the lamports to.
    */
-  async close(destination: web3.PublicKey, authority: web3.PublicKey = this.didIdentifier): Promise<web3.TransactionInstruction> {
-    return this.program.methods
+  close(destination: PublicKey, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
+    const instructionPromise = this.program.methods
       .close(null)
       .accounts({
         didData: this.didDataAccount,
@@ -111,6 +149,12 @@ export class DidSolService {
         destination,
       })
       .instruction();
+
+    return new DidSolServiceBuilder(this, {
+      instructionPromise,
+      ethSignStatus: DidSolEthSignStatusType.Unsigned,
+      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE
+    });
   }
 
   /**
@@ -119,8 +163,8 @@ export class DidSolService {
    * @param method The new VerificationMethod to add
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  async addVerificationMethod(method: VerificationMethod, authority: web3.PublicKey = this.didIdentifier): Promise<web3.TransactionInstruction> {
-    return this.program.methods.addVerificationMethod({
+  addVerificationMethod(method: VerificationMethod, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
+    const instructionPromise = this.program.methods.addVerificationMethod({
       alias: method.alias,
       keyData: method.keyData,
       methodType: method.methodType,
@@ -129,6 +173,12 @@ export class DidSolService {
       didData: this.didDataAccount,
       authority
     }).instruction();
+
+    return new DidSolServiceBuilder(this, {
+      instructionPromise,
+      ethSignStatus: DidSolEthSignStatusType.Unsigned,
+      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE
+    });
   }
 
   /**
@@ -137,11 +187,17 @@ export class DidSolService {
    * @param service The service to add
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  async addService(service: Service, authority: web3.PublicKey = this.didIdentifier): Promise<web3.TransactionInstruction> {
-    return this.program.methods.addService(service, null).accounts({
+  addService(service: Service, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
+    const instructionPromise = this.program.methods.addService(service, null).accounts({
       didData: this.didDataAccount,
       authority
     }).instruction()
+
+    return new DidSolServiceBuilder(this, {
+      instructionPromise,
+      ethSignStatus: DidSolEthSignStatusType.Unsigned,
+      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE
+    });
   }
 
   /**
@@ -150,11 +206,17 @@ export class DidSolService {
    * @param id The id of the service to remove
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  async removeService(id: string, authority: web3.PublicKey = this.didIdentifier): Promise<web3.TransactionInstruction> {
-    return this.program.methods.removeService(id, null).accounts({
+  removeService(id: string, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
+    const instructionPromise = this.program.methods.removeService(id, null).accounts({
       didData: this.didDataAccount,
       authority
     }).instruction()
+
+    return new DidSolServiceBuilder(this, {
+      instructionPromise,
+      ethSignStatus: DidSolEthSignStatusType.Unsigned,
+      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE
+    });
   }
 
   /**
@@ -171,3 +233,146 @@ export class DidSolService {
     return DidSolDocument.from(didDataAccount as DidDataAccount, this.cluster);
   }
 }
+
+enum DidSolEthSignStatusType {
+  NotSupported,
+  Unsigned,
+  Signed,
+}
+
+export type BuilderInstruction = {
+  instructionPromise: Promise<TransactionInstruction>;
+  ethSignStatus: DidSolEthSignStatusType;
+  didAccountSizeDelta: number;
+}
+
+class DummyWallet implements Wallet {
+  publicKey: PublicKey;
+
+  constructor() {
+    this.publicKey = new PublicKey("11111111111111111111111111111111");
+  }
+
+  signAllTransactions(txs: Transaction[]): Promise<Transaction[]> {
+    return Promise.reject('DummyWallet does not support signing transactions');
+  }
+
+  signTransaction(tx: Transaction): Promise<Transaction> {
+    return Promise.reject('DummyWallet does not support signing transactions');
+  }
+
+}
+
+export type DidSolServiceBuilderInitOptions = {
+  ethSigner?: EthSigner;
+  resizePayer?: PublicKey;
+  partialSigners?: Signer[];
+}
+
+export class DidSolServiceBuilder {
+  private solWallet: Wallet;
+  private connection: Connection;
+  private confirmOptions: ConfirmOptions;
+
+  private ethSigner: EthSigner | undefined;
+  private resizePayer: PublicKey | undefined;
+  private partialSigners: Signer[] = [];
+  private readonly idlErrors: Map<number, string>;
+
+
+  constructor(private service: DidSolService,
+              private instruction: BuilderInstruction,
+              initOptions: DidSolServiceBuilderInitOptions = {}) {
+    this.solWallet = this.service.getWallet();
+    this.connection = this.service.getConnection();
+    this.confirmOptions = this.service.getConfrirmOptions();
+
+    this.ethSigner = initOptions.ethSigner;
+    this.resizePayer = initOptions.resizePayer;
+    this.partialSigners = initOptions.partialSigners || [];
+
+    this.idlErrors = parseIdlErrors(service.getIdl());
+  }
+
+  withEthSigner(ethSigner: EthSigner): DidSolServiceBuilder {
+    this.ethSigner = ethSigner;
+    return this;
+  }
+
+  withConnection(connection: Connection): DidSolServiceBuilder {
+    this.connection = connection;
+    return this;
+  }
+
+  withConfirmOptions(confirmOptions: ConfirmOptions): DidSolServiceBuilder {
+    this.confirmOptions = confirmOptions;
+    return this;
+  }
+
+  withSolWallet(solWallet: Wallet): DidSolServiceBuilder {
+    // rebuild provider
+    this.solWallet = solWallet;
+    return this;
+  }
+
+  withAutomaticResize(resizePayer: PublicKey): DidSolServiceBuilder {
+    this.resizePayer = resizePayer;
+    return this;
+  }
+
+  withPartialSigners(...signers: Signer[]) {
+    this.partialSigners = signers;
+    return this;
+  }
+
+  /**
+   * Signs a supported DidSol Instruction with an Ethereum Signer.
+   */
+  private async ethSignInstructions(): Promise<void> {
+    const all = [this.instruction];
+    let lastNonce = await this.service.getNonce();
+
+    const promises = all.map(async (instruction) => {
+      if (!this.ethSigner || instruction.ethSignStatus !== DidSolEthSignStatusType.Unsigned) { return; }
+
+      instruction.instructionPromise = ethSignPayload(await instruction.instructionPromise, lastNonce, this.ethSigner);
+      instruction.ethSignStatus = DidSolEthSignStatusType.Signed;
+      lastNonce = lastNonce.addn(1);
+    });
+
+    await Promise.all(promises);
+  }
+
+  // Terminal Instructions
+  async instructions(): Promise<TransactionInstruction[]> {
+    // ethSign
+    await this.ethSignInstructions();
+    return [await this.instruction.instructionPromise];
+  }
+
+  async transaction(): Promise<Transaction> {
+    const tx = new Transaction();
+    const instructions = await this.instructions();
+    tx.add(...instructions)
+    return tx;
+  }
+
+  async rpc(opts?: ConfirmOptions): Promise<string> {
+    const provider = new AnchorProvider(this.connection, this.solWallet, this.confirmOptions);
+
+    const tx = await this.transaction();
+    try {
+      return await provider.sendAndConfirm(
+        tx,
+        this.partialSigners,
+        opts
+      );
+    } catch (err) {
+      throw translateError(err, this.idlErrors);
+    }
+  }
+
+
+
+}
+

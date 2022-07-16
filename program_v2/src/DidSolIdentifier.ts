@@ -1,6 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 import { DecentralizedIdentifierConstructor } from "./lib/types";
-import { checkCluster, findProgramAddress } from "./lib/utils";
+import { findProgramAddress } from "./lib/utils";
 import { DID_SOL_PREFIX } from "./lib/const";
 import { VerificationMethod } from "did-resolver";
 import { ExtendedCluster } from "./lib/connection";
@@ -99,7 +99,7 @@ export class DidSolIdentifier {
       const authority = new PublicKey(matches[2]);
 
       return new DidSolIdentifier({
-        clusterType: checkCluster(matches[1]),
+        clusterType: mapMethodExtension(matches[1]),
         authority,
         urlField: matches[3],
       });
@@ -148,4 +148,20 @@ export class DidSolIdentifier {
       urlField,
     });
   }
+}
+
+export const mapMethodExtension = (clusterString: string): ExtendedCluster | undefined => {
+  switch (clusterString) {
+    case '':
+      return 'mainnet-beta';
+    case 'devnet':
+      return 'devnet';
+    case 'testnet':
+      return 'testnet';
+    case 'localnet':
+      return 'localnet';
+    case 'civicnet':
+      return 'civicnet';
+  }
+  // return undefined if not found
 }
