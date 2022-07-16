@@ -1,5 +1,5 @@
 import * as anchor from "@project-serum/anchor";
-import { LangErrorCode, Program } from "@project-serum/anchor";
+import { Program } from "@project-serum/anchor";
 import { SolDid } from "../../target/types/sol_did";
 
 import chai, { expect } from "chai";
@@ -8,7 +8,6 @@ import chaiAsPromised from "chai-as-promised";
 import { checkConnectionLogs } from "../utils/utils";
 import { before } from "mocha";
 import { DidSolService, VerificationMethodFlags } from "../../src";
-import { Transaction } from "@solana/web3.js";
 import { findProgramAddress } from "../../src/lib/utils";
 import { INITIAL_MIN_ACCOUNT_SIZE } from "../../src/lib/const";
 
@@ -31,7 +30,9 @@ describe("sol-did alloc operations", () => {
       program,
       authority.publicKey,
       didData,
-      programProvider
+      'localnet',
+      authority,
+      programProvider.opts
     );
 
     checkConnectionLogs(programProvider.connection);
@@ -44,9 +45,7 @@ describe("sol-did alloc operations", () => {
     const rawDidDataAccountBefore =
       await programProvider.connection.getAccountInfo(didData);
 
-    const instruction = await service.close(destination.publicKey);
-    const tx = new Transaction().add(instruction);
-    await programProvider.sendAndConfirm(tx)
+    await service.close(destination.publicKey).rpc();
 
     // Accounts After
     const rawDidDataAccountAfter =
@@ -64,21 +63,16 @@ describe("sol-did alloc operations", () => {
   it("fails when trying to close a did:sol account that does not exist", async () => {
     const destination = anchor.web3.Keypair.generate();
 
-    const instruction = await service.close(destination.publicKey);
-    const tx = new Transaction().add(instruction);
-
-    return expect(programProvider.sendAndConfirm(tx)).to.be.rejectedWith(
-      `Error processing Instruction 0: custom program error: 0x${LangErrorCode.AccountNotInitialized.toString(
-        16
-      )}`
+    return expect(
+      service.close(destination.publicKey).rpc()
+    ).to.be.rejectedWith(
+      "Error Code: AccountNotInitialized. Error Number: 3012. " +
+      "Error Message: The program expected this account to be already initialized"
     );
   });
 
   it("can successfully initialize an did:sol account with default size", async () => {
-    const instruction = await service.initialize(INITIAL_MIN_ACCOUNT_SIZE);
-    const tx = new Transaction().add(instruction);
-    await programProvider.sendAndConfirm(tx)
-
+    await service.initialize(INITIAL_MIN_ACCOUNT_SIZE).rpc();
 
     // check data
     const didDataAccount = await program.account.didAccount.fetch(didData);
@@ -108,10 +102,9 @@ describe("sol-did alloc operations", () => {
   });
 
   it("fails when trying to initialize a did:sol account twice", async () => {
-    const instruction = await service.initialize(INITIAL_MIN_ACCOUNT_SIZE+1);
-    const tx = new Transaction().add(instruction);
-
-    return expect(programProvider.sendAndConfirm(tx)).to.be.rejectedWith(
+    return expect(
+      service.initialize(INITIAL_MIN_ACCOUNT_SIZE+1).rpc()
+    ).to.be.rejectedWith(
       `Error processing Instruction 0: custom program error: 0x0`
     );
   });
@@ -119,9 +112,7 @@ describe("sol-did alloc operations", () => {
   it("can successfully resize an account", async () => {
     const NEW_ACCOUNT_SIZE = (9_999);
 
-    const instruction = await service.resize(NEW_ACCOUNT_SIZE, authority.publicKey);
-    const tx = new Transaction().add(instruction);
-    await programProvider.sendAndConfirm(tx)
+    await service.resize(NEW_ACCOUNT_SIZE, authority.publicKey).rpc();
 
     const rawDidDataAccount = await programProvider.connection.getAccountInfo(
       didData

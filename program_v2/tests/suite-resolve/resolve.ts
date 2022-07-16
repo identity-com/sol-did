@@ -26,13 +26,17 @@ describe("sol-did resolve operations", () => {
 
   before(async () => {
     const [didData, _] = await findProgramAddress(authority.publicKey);
-    service = new DidSolService(program, authority.publicKey, didData, programProvider);
+    service = new DidSolService(
+      program,
+      authority.publicKey,
+      didData,
+      'localnet');
   })
 
   it("can successfully resolve a generative DID", async () => {
     const solKey = web3.Keypair.generate();
     const [solKeyData, _] = await findProgramAddress(solKey.publicKey);
-    const localService = new DidSolService(program, solKey.publicKey, solKeyData, programProvider);
+    const localService = new DidSolService(program, solKey.publicKey, solKeyData, 'localnet');
 
     const didDoc = await localService.resolve();
     // TODO: Check reverse RPC lookup.

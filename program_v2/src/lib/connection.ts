@@ -15,11 +15,15 @@ import {
 import { SOLANA_COMMITMENT } from "./const";
 
 export type ExtendedCluster = Cluster | "localnet" | "civicnet";
-export const ALL_EXTENDED_CLUSTERS: string[] = ['devnet', 'testnet', 'mainnet-beta', 'civicnet', 'localnet'];
 export const CIVICNET_CLUSTER_URL = 'https://d3ab7dlfud2b5u.cloudfront.net'
 export const LOCALNET_CLUSTER_URL = 'http://localhost:8899'
 
 export const getClusterUrl = (cluster: ExtendedCluster) => {
+  // Allow ENV Variable Overwrite
+  if (process.env.CLUSTER_URL) {
+    return process.env.CLUSTER_URL;
+  }
+
   switch (cluster) {
     case "localnet":
       return LOCALNET_CLUSTER_URL;
@@ -30,37 +34,15 @@ export const getClusterUrl = (cluster: ExtendedCluster) => {
   }
 };
 
-export const checkCluster = (clusterString: string): ExtendedCluster => {
-  if (ALL_EXTENDED_CLUSTERS.includes(clusterString)) {
-    return clusterString as ExtendedCluster;
-  }
-
-  throw new Error(`Cluster string '${clusterString}' not recognized`);
-}
-
-// Map connection back to cluster type
-export const getClusterFromEndpoint = (rpcEndpoint: string): ExtendedCluster | undefined => {
-  if (rpcEndpoint.includes("localhost") || rpcEndpoint.includes("0.0.0.0")) {
-    return "localnet";
-  }
-  if (rpcEndpoint.includes(CIVICNET_CLUSTER_URL)) {
-    return "civicnet";
-  }
-  if (rpcEndpoint.includes("devnet")) {
-    return "devnet";
-  }
-  if (rpcEndpoint.includes("testnet")) {
-    return "testnet";
-  }
-  if (rpcEndpoint.includes("mainnet")) {
-    return "mainnet-beta";
-  }
-}
+export const getConnectionByCluster = (
+  cluster: ExtendedCluster,
+  preflightCommitment: Commitment = SOLANA_COMMITMENT
+): Connection => getConnection(getClusterUrl(cluster), preflightCommitment);
 
 export const getConnection = (
-  clusterUrl: string = process.env.CLUSTER_URL ||
-    getClusterUrl(process.env.CLUSTER as ExtendedCluster)
-): Connection => new Connection(clusterUrl, SOLANA_COMMITMENT);
+  clusterUrl: string,
+  preflightCommitment: Commitment = SOLANA_COMMITMENT
+): Connection => new Connection(clusterUrl, preflightCommitment);
 
 export interface TransactionHolder {
   readonly connection: Connection;
