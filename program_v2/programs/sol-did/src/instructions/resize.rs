@@ -3,12 +3,11 @@ use anchor_lang::prelude::*;
 use std::convert::TryInto;
 
 pub fn resize(
-    _ctx: Context<Resize>,
+    ctx: Context<Resize>,
     _size: u32,
     eth_signature: Option<Secp256k1RawSignature>,
 ) -> Result<()> {
-    let data = &mut _ctx.accounts.did_data;
-
+    let data = &mut ctx.accounts.did_data;
     if eth_signature.is_some() {
         data.nonce += 1;
     }
@@ -26,7 +25,7 @@ pub struct Resize<'info> {
         realloc = TryInto::<usize>::try_into(size).unwrap(),
         realloc::payer = payer,
         realloc::zero = false,
-        constraint = did_data.is_authority(authority.key()) || did_data.is_eth_authority(vec![(size as u8)], eth_signature),
+        constraint = did_data.find_authority(&authority.key(), &[(size as u8)], eth_signature.as_ref(), None).is_some(), // TODO: Size conversion wrong?
     )]
     pub did_data: Account<'info, DidAccount>,
     #[account(mut)]

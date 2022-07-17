@@ -17,7 +17,7 @@ import {
   TransactionInstruction
 } from "@solana/web3.js";
 import { DIDDocument } from "did-resolver";
-import { DidDataAccount, EthSigner, Service, VerificationMethod, Wallet } from "./lib/types";
+import { DidDataAccount, EthSigner, Service, VerificationMethod, VerificationMethodFlags, Wallet } from "./lib/types";
 import { INITIAL_MIN_ACCOUNT_SIZE, SOLANA_COMMITMENT } from "./lib/const";
 import { DidSolDocument } from "./DidSolDocument";
 import { ExtendedCluster, getConnectionByCluster } from "./lib/connection";
@@ -177,7 +177,25 @@ export class DidSolService {
     return new DidSolServiceBuilder(this, {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
-      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE
+      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE // TODO
+    });
+  }
+
+  /**
+   * Remove a VerificationMethod from the did:sol account.
+   * @param alias The alias of the VerificationMethod to remove
+   * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
+   */
+  removeVerificationMethod(alias: string, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
+    const instructionPromise = this.program.methods.removeVerificationMethod(alias, null).accounts({
+      didData: this.didDataAccount,
+      authority
+    }).instruction();
+
+    return new DidSolServiceBuilder(this, {
+      instructionPromise,
+      ethSignStatus: DidSolEthSignStatusType.Unsigned,
+      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE // TODO
     });
   }
 
@@ -216,6 +234,32 @@ export class DidSolService {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE
+    });
+  }
+
+  /**
+   * Update the Flags of a VerificationMethod.
+   * @param alias The alias of the VerificationMethod to update
+   * @param flags The flags to set. If flags contain VerificationMethodFlags.OwnershipProof, the transaction must be signed
+   * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
+   * by the exact same VM.
+   */
+  setVerificationMethodFlags(alias: string,
+                             flags: VerificationMethodFlags,
+                             authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
+    const instructionPromise = this.program.methods.setVmFlags({
+      alias,
+      flags
+    }, null).accounts({
+      didData: this.didDataAccount,
+      authority
+    }).instruction()
+
+
+    return new DidSolServiceBuilder(this, {
+      instructionPromise,
+      ethSignStatus: DidSolEthSignStatusType.Unsigned,
+      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE // TODO: Update sizes for all transactions
     });
   }
 
