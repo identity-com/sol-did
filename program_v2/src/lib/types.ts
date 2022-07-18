@@ -71,6 +71,7 @@ export type DidVerificationMethodComponents = {
 }
 
 // TODO: Change back to Anchor import does not export the correct Wallet type.
+// TODO: Create Ticket within Anchor (and post PR?)
 export interface Wallet {
   signTransaction(tx: Transaction): Promise<Transaction>;
   signAllTransactions(txs: Transaction[]): Promise<Transaction[]>;

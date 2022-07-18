@@ -8,8 +8,7 @@ import chaiAsPromised from "chai-as-promised";
 import { checkConnectionLogs } from "../utils/utils";
 import { before } from "mocha";
 import { DidSolService, VerificationMethodFlags } from "../../src";
-import { findProgramAddress } from "../../src/lib/utils";
-import { INITIAL_MIN_ACCOUNT_SIZE } from "../../src/lib/const";
+import { findProgramAddress, INITIAL_MIN_ACCOUNT_SIZE } from "../../src";
 import { TEST_CLUSTER } from "../utils/const";
 
 chai.use(chaiAsPromised);
@@ -84,7 +83,6 @@ describe("sol-did alloc operations", () => {
     expect(didDataAccount.nativeControllers.length).to.equal(0);
     expect(didDataAccount.otherControllers.length).to.equal(0);
 
-    // TODO: It seems like anchor does not support custom structs in Vec mapping.
     expect(didDataAccount.services.length).to.equal(0);
     expect(didDataAccount.verificationMethods.length).to.equal(0);
     expect(didDataAccount.initialVerificationMethod.keyData).to.deep.equal(

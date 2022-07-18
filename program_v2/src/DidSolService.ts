@@ -350,7 +350,11 @@ export class DidSolService {
     const legacyDocument = await this.resolveLegacy();
     if (!legacyDocument) { return; } // no legacy document
 
+    // Update the new did:sol with legacyDocument
+    // Franks functionallity;
     // TODO: finish implementation
+
+    // close legacy account and recover rent.
   }
 }
 
@@ -430,7 +434,6 @@ export class DidSolServiceBuilder {
   }
 
   withSolWallet(solWallet: Wallet): DidSolServiceBuilder {
-    // rebuild provider
     this.solWallet = solWallet;
     return this;
   }
