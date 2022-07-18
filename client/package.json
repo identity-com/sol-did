@@ -1,5 +1,5 @@
 {
-  "version": "2.0.2",
+  "version": "2.0.3",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -41,7 +41,7 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "@identity.com/sol-did-client",
+  "name": "@identity.com/sol-did-client-legacy",
   "author": "dankelleher",
   "module": "dist/sol-did-client.esm.js",
   "size-limit": [
