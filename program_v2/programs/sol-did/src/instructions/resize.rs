@@ -1,4 +1,5 @@
 use crate::state::{DidAccount, Secp256k1RawSignature};
+use crate::constants::DID_ACCOUNT_SEED;
 use anchor_lang::prelude::*;
 use std::convert::TryInto;
 
@@ -20,7 +21,7 @@ pub struct Resize<'info> {
     // TODO: prevent from resizing to less data
     #[account(
         mut,
-        seeds = [b"did-account", did_data.initial_verification_method.key_data.as_ref()],
+        seeds = [DID_ACCOUNT_SEED.as_bytes(), did_data.initial_verification_method.key_data.as_ref()],
         bump = did_data.bump,
         realloc = TryInto::<usize>::try_into(size).unwrap(),
         realloc::payer = payer,

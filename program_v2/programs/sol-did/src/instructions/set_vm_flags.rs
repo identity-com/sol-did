@@ -1,6 +1,6 @@
 use crate::errors::DidSolError;
-use crate::state::{DidAccount, VerificationMethodFlags};
-use crate::Secp256k1RawSignature;
+use crate::state::{DidAccount, VerificationMethodFlags, Secp256k1RawSignature};
+use crate::constants::DID_ACCOUNT_SEED;
 use anchor_lang::prelude::*;
 
 pub fn set_vm_flags(
@@ -31,7 +31,7 @@ pub fn set_vm_flags(
 pub struct SetVmFlagsMethod<'info> {
     #[account(
         mut,
-        seeds = [b"did-account", did_data.initial_verification_method.key_data.as_ref()],
+        seeds = [DID_ACCOUNT_SEED.as_bytes(), did_data.initial_verification_method.key_data.as_ref()],
         bump = did_data.bump,
         constraint = did_data.find_authority(&authority.key(), &flags_vm.try_to_vec().unwrap(), eth_signature.as_ref(), flags_vm.get_filter_alias()).is_some(),
     )]

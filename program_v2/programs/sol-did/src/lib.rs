@@ -2,6 +2,7 @@ mod errors;
 mod instructions;
 mod state;
 mod utils;
+mod constants;
 
 use anchor_lang::prelude::*;
 use instructions::*;
@@ -67,6 +68,14 @@ pub mod sol_did {
         eth_signature: Option<Secp256k1RawSignature>,
     ) -> Result<()> {
         instructions::set_vm_flags(ctx, flags_vm, eth_signature)
+    }
+
+    pub fn set_controllers(
+        ctx: Context<SetControllers>,
+        set_controllers_arg: SetControllersArg,
+        eth_signature: Option<Secp256k1RawSignature>,
+    ) -> Result<()> {
+        instructions::set_controllers(ctx, set_controllers_arg, eth_signature)
     }
 }
 

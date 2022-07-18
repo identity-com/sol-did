@@ -14,4 +14,6 @@ pub enum DidSolError {
     ServiceAlreadyExists,
     #[msg("ServiceID doesn't exists in current service")]
     ServiceNotFound,
+    #[msg("Invalid other controllers. Invalid DID format or did:sol:<did>")]
+    InvalidOtherControllers,
 }
