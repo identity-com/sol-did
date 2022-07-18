@@ -1,7 +1,6 @@
 import { SolDid } from "../target/types/sol_did";
 import { AnchorProvider, BN, Idl, parseIdlErrors, Program, translateError } from "@project-serum/anchor";
 
-
 import {
   ethSignPayload,
   fetchProgram,
@@ -17,11 +16,19 @@ import {
   TransactionInstruction
 } from "@solana/web3.js";
 import { DIDDocument } from "did-resolver";
-import { DidDataAccount, EthSigner, Service, VerificationMethod, Wallet } from "./lib/types";
+import { DidDataAccount, EthSigner, Service, VerificationMethod, VerificationMethodFlags, Wallet } from "./lib/types";
 import { INITIAL_MIN_ACCOUNT_SIZE, SOLANA_COMMITMENT } from "./lib/const";
 import { DidSolDocument } from "./DidSolDocument";
 import { ExtendedCluster, getConnectionByCluster } from "./lib/connection";
 import { DidSolIdentifier } from "./DidSolIdentifier";
+import {
+  ClusterType,
+  DecentralizedIdentifier,
+  SolPublicKey,
+} from '@identity.com/sol-did-client-legacy';
+import { SolTransaction } from "@identity.com/sol-did-client-legacy";
+
+
 
 /**
  * The DidSolService class is a wrapper around the Solana DID program.
@@ -62,6 +69,10 @@ export class DidSolService {
     private opts: ConfirmOptions = AnchorProvider.defaultOptions(),
   ) {
     // make sure it's a provider-less wallet.
+  }
+
+  async getDidAccount(): Promise<DidDataAccount|null> {
+    return await this.program.account.didAccount.fetchNullable(this.didDataAccount) as DidDataAccount
   }
 
   getIdl(): Idl {
@@ -177,7 +188,25 @@ export class DidSolService {
     return new DidSolServiceBuilder(this, {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
-      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE
+      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE // TODO
+    });
+  }
+
+  /**
+   * Remove a VerificationMethod from the did:sol account.
+   * @param alias The alias of the VerificationMethod to remove
+   * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
+   */
+  removeVerificationMethod(alias: string, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
+    const instructionPromise = this.program.methods.removeVerificationMethod(alias, null).accounts({
+      didData: this.didDataAccount,
+      authority
+    }).instruction();
+
+    return new DidSolServiceBuilder(this, {
+      instructionPromise,
+      ethSignStatus: DidSolEthSignStatusType.Unsigned,
+      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE // TODO
     });
   }
 
@@ -220,17 +249,82 @@ export class DidSolService {
   }
 
   /**
+   * Update the Flags of a VerificationMethod.
+   * @param alias The alias of the VerificationMethod to update
+   * @param flags The flags to set. If flags contain VerificationMethodFlags.OwnershipProof, the transaction must be signed
+   * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
+   * by the exact same VM.
+   */
+  setVerificationMethodFlags(alias: string,
+                             flags: VerificationMethodFlags,
+                             authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
+    const instructionPromise = this.program.methods.setVmFlags({
+      alias,
+      flags
+    }, null).accounts({
+      didData: this.didDataAccount,
+      authority
+    }).instruction()
+
+
+    return new DidSolServiceBuilder(this, {
+      instructionPromise,
+      ethSignStatus: DidSolEthSignStatusType.Unsigned,
+      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE // TODO: Update sizes for all transactions
+    });
+  }
+
+  /**
    * Resolves the DID Document for the did:sol account.
    */
-  async resolve(): Promise<DIDDocument> {
-    const didDataAccount = await this.program.account.didAccount.fetchNullable(
-      this.didDataAccount
-    );
-    if (!didDataAccount) {
-      return DidSolDocument.sparse(DidSolIdentifier.create(this.didIdentifier, this.cluster))
+  async resolve(checkLegacy = true): Promise<DIDDocument> {
+    const didDataAccount = await this.getDidAccount();
+    if (didDataAccount) {
+      return DidSolDocument.from(didDataAccount as DidDataAccount, this.cluster);
     }
 
-    return DidSolDocument.from(didDataAccount as DidDataAccount, this.cluster);
+    // backwards compatibility
+    if (checkLegacy) {
+      const legacyDocument = await this.resolveLegacy();
+      if (legacyDocument) {
+        return legacyDocument;
+      }
+    }
+
+    // generative case
+    return DidSolDocument.sparse(DidSolIdentifier.create(this.didIdentifier, this.cluster))
+  }
+
+  /**
+   * Resolves a legacy did:sol account (program: idDa...).
+   * Returns null if the account does not exist.
+   */
+  private async resolveLegacy(): Promise<DIDDocument|null> {
+    const id = new DecentralizedIdentifier({
+      clusterType: ClusterType.parse(this.cluster),
+      authorityPubkey: SolPublicKey.fromPublicKey(this.didIdentifier),
+    });
+    const connection = this.program.provider.connection
+    const solData = await SolTransaction.getSol(
+      connection,
+      id.clusterType,
+      await id.pdaSolanaPubkey()
+    );
+    if (solData !== null) {
+      return solData.toDIDDocument();
+    }
+
+    return null;
+  }
+
+  /**
+   * migrates a legacy
+   */
+  async migrateFromLegacy(): Promise<void> {
+    const legacyDocument = await this.resolveLegacy();
+    if (!legacyDocument) { return; } // no legacy document
+
+    // TODO: finish implementation
   }
 }
 

@@ -1,12 +1,13 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { SolDid } from "../../target/types/sol_did";
-import { DidDataAccount, DidSolService } from "../../src";
+import { DidSolService } from "../../src";
 import { before } from "mocha";
 import { getTestService } from "../utils/utils";
 
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
+
 import { expect } from "chai";
 import { findProgramAddress } from "../../src/lib/utils";
 
@@ -38,13 +39,13 @@ describe("sol-did service operations", () => {
 
   //add data
   it("add a new service to the data.services", async () => {
-    const dataAccountBefore = await program.account.didAccount.fetch(didData) as DidDataAccount;
+    const dataAccountBefore = await service.getDidAccount();
     const serviceLengthBefore = dataAccountBefore.services.length;
 
     const tService = getTestService(1)
     await service.addService(tService).rpc();
 
-    const dataAccountAfter = await program.account.didAccount.fetch(didData) as DidDataAccount;
+    const dataAccountAfter = await service.getDidAccount();
     expect(dataAccountAfter.services.length).to.equal(serviceLengthBefore + 1);
   });
 
@@ -62,13 +63,13 @@ describe("sol-did service operations", () => {
 
   // delete a service
   it("can successfully delete a service", async () => {
-    const dataAccountBefore = await program.account.didAccount.fetch(didData) as DidDataAccount;
+    const dataAccountBefore = await service.getDidAccount();
     const serviceLengthBefore = dataAccountBefore.services.length;
 
     const tService = getTestService(1)
     await service.removeService(tService.id).rpc();
 
-    const dataAccountAfter = await program.account.didAccount.fetch(didData) as DidDataAccount;
+    const dataAccountAfter = await service.getDidAccount();
     expect(dataAccountAfter.services.length).to.equal(serviceLengthBefore - 1);
   });
 

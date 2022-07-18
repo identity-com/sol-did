@@ -1,6 +1,6 @@
 {
-    "name": "@identity/did-sol",
-    "version": "0.0.1",
+    "name": "@identity/did-sol-client",
+    "version": "3.0.0-beta1",
     "description": "A powerful DID-method on Solana",
     "main": "dist/src/index.js",
     "author": "Martin Riedel <martin@identity.org>",
@@ -16,6 +16,7 @@
         "create-fixtures": "anchor run createTestFixtureAccount"
     },
     "dependencies": {
+        "@identity.com/sol-did-client-legacy": "^2.0.3",
         "@project-serum/anchor": "0.25.0",
         "did-resolver": "^3.2.2"
     },

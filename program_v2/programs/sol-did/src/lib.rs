@@ -1,6 +1,8 @@
+mod constants;
 mod errors;
 mod instructions;
 mod state;
+mod utils;
 
 use anchor_lang::prelude::*;
 use instructions::*;
@@ -60,15 +62,20 @@ pub mod sol_did {
         instructions::remove_service(ctx, service_id, eth_signature)
     }
 
-    // TODO implement
-    pub fn set_key_ownership(_ctx: Context<DummyInstruction>) -> Result<()> {
-        msg!("reached proof");
-        Ok(())
+    pub fn set_vm_flags(
+        ctx: Context<SetVmFlagsMethod>,
+        flags_vm: UpdateFlagsVerificationMethod,
+        eth_signature: Option<Secp256k1RawSignature>,
+    ) -> Result<()> {
+        instructions::set_vm_flags(ctx, flags_vm, eth_signature)
     }
 
-    // TODO implement
-    pub fn unset_key_ownership(_ctx: Context<DummyInstruction>) -> Result<()> {
-        Ok(())
+    pub fn set_controllers(
+        ctx: Context<SetControllers>,
+        set_controllers_arg: SetControllersArg,
+        eth_signature: Option<Secp256k1RawSignature>,
+    ) -> Result<()> {
+        instructions::set_controllers(ctx, set_controllers_arg, eth_signature)
     }
 }
 
