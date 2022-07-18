@@ -12,6 +12,7 @@ import { DidSolService, VerificationMethodFlags, VerificationMethodType } from "
 import { findProgramAddress } from "../../src/lib/utils";
 import { getDerivationPath, MNEMONIC } from "../fixtures/config";
 import { DEFAULT_KEY_ID } from "../../src/lib/const";
+import { TEST_CLUSTER } from "../utils/const";
 
 
 chai.use(chaiAsPromised);
@@ -44,7 +45,7 @@ describe("sol-did auth operations", () => {
       program,
       solAuthority.publicKey,
       didData,
-      'localnet',
+      TEST_CLUSTER,
       solAuthority,
       programProvider.opts);
 

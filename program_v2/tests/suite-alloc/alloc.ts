@@ -10,6 +10,7 @@ import { before } from "mocha";
 import { DidSolService, VerificationMethodFlags } from "../../src";
 import { findProgramAddress } from "../../src/lib/utils";
 import { INITIAL_MIN_ACCOUNT_SIZE } from "../../src/lib/const";
+import { TEST_CLUSTER } from "../utils/const";
 
 chai.use(chaiAsPromised);
 
@@ -30,7 +31,7 @@ describe("sol-did alloc operations", () => {
       program,
       authority.publicKey,
       didData,
-      'localnet',
+      TEST_CLUSTER,
       authority,
       programProvider.opts
     );

@@ -10,6 +10,8 @@ export const INITIAL_MIN_ACCOUNT_SIZE = 8 + 50 + 26; // anchor + initial_vm + re
 export const INITIAL_DEFAULT_ACCOUNT_SIZE = 10_000;
 export const DEFAULT_SEED_STRING = "did-account";
 
+export const VALID_DID_REGEX = /^did:([a-z\d:]*):([a-zA-z\d]+)$/
+
 export const SOLANA_MAINNET = 'mainnet-beta';
 
 export const SOLANA_COMMITMENT: Commitment = "confirmed";

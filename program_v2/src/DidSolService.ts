@@ -4,7 +4,7 @@ import { AnchorProvider, BN, Idl, parseIdlErrors, Program, translateError } from
 import {
   ethSignPayload,
   fetchProgram,
-  findProgramAddress,
+  findProgramAddress, validateAndSplitControllers,
 } from "./lib/utils";
 import {
   Commitment,
@@ -29,7 +29,6 @@ import {
 import { SolTransaction } from "@identity.com/sol-did-client-legacy";
 
 
-
 /**
  * The DidSolService class is a wrapper around the Solana DID program.
  * It provides methods for creating, reading, updating, and deleting DID documents.
@@ -37,6 +36,7 @@ import { SolTransaction } from "@identity.com/sol-did-client-legacy";
  * Please use DidSolServiceBuilder instead
  */
 export class DidSolService {
+  private identifier: DidSolIdentifier;
 
   static async build(
     didIdentifier: PublicKey,
@@ -62,17 +62,21 @@ export class DidSolService {
 
   constructor(
     private program: Program<SolDid>,
-    private didIdentifier: PublicKey,
+    private didAuthority: PublicKey,
     private didDataAccount: PublicKey,
     private cluster: ExtendedCluster = 'mainnet-beta',
     private wallet: Wallet = new DummyWallet(),
     private opts: ConfirmOptions = AnchorProvider.defaultOptions(),
   ) {
-    // make sure it's a provider-less wallet.
+    this.identifier = DidSolIdentifier.create(didAuthority, cluster);
   }
 
   async getDidAccount(): Promise<DidDataAccount|null> {
     return await this.program.account.didAccount.fetchNullable(this.didDataAccount) as DidDataAccount
+  }
+
+  get did(): string {
+    return this.identifier.toString();
   }
 
   getIdl(): Idl {
@@ -110,7 +114,7 @@ export class DidSolService {
       .initialize(size)
       .accounts({
         didData: this.didDataAccount,
-        authority: this.didIdentifier
+        authority: this.didAuthority
       })
       .instruction();
 
@@ -128,7 +132,7 @@ export class DidSolService {
    * @param payer The account to pay the rent-exempt fee with.
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  resize(size: number, payer: PublicKey, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
+  resize(size: number, payer: PublicKey, authority: PublicKey = this.didAuthority): DidSolServiceBuilder {
     const instructionPromise = this.program.methods
       .resize(size, null)
       .accounts({
@@ -151,7 +155,7 @@ export class DidSolService {
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    * @param destination The destination account to move the lamports to.
    */
-  close(destination: PublicKey, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
+  close(destination: PublicKey, authority: PublicKey = this.didAuthority): DidSolServiceBuilder {
     const instructionPromise = this.program.methods
       .close(null)
       .accounts({
@@ -174,7 +178,7 @@ export class DidSolService {
    * @param method The new VerificationMethod to add
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  addVerificationMethod(method: VerificationMethod, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
+  addVerificationMethod(method: VerificationMethod, authority: PublicKey = this.didAuthority): DidSolServiceBuilder {
     const instructionPromise = this.program.methods.addVerificationMethod({
       alias: method.alias,
       keyData: method.keyData,
@@ -197,7 +201,7 @@ export class DidSolService {
    * @param alias The alias of the VerificationMethod to remove
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  removeVerificationMethod(alias: string, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
+  removeVerificationMethod(alias: string, authority: PublicKey = this.didAuthority): DidSolServiceBuilder {
     const instructionPromise = this.program.methods.removeVerificationMethod(alias, null).accounts({
       didData: this.didDataAccount,
       authority
@@ -216,7 +220,7 @@ export class DidSolService {
    * @param service The service to add
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  addService(service: Service, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
+  addService(service: Service, authority: PublicKey = this.didAuthority): DidSolServiceBuilder {
     const instructionPromise = this.program.methods.addService(service, null).accounts({
       didData: this.didDataAccount,
       authority
@@ -235,7 +239,7 @@ export class DidSolService {
    * @param id The id of the service to remove
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  removeService(id: string, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
+  removeService(id: string, authority: PublicKey = this.didAuthority): DidSolServiceBuilder {
     const instructionPromise = this.program.methods.removeService(id, null).accounts({
       didData: this.didDataAccount,
       authority
@@ -251,17 +255,39 @@ export class DidSolService {
   /**
    * Update the Flags of a VerificationMethod.
    * @param alias The alias of the VerificationMethod to update
-   * @param flags The flags to set. If flags contain VerificationMethodFlags.OwnershipProof, the transaction must be signed
+   * @param flags The flags to set. If flags contain VerificationMethodFlags.OwnershipProof, the transaction must be signed by the exact same VM.
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
-   * by the exact same VM.
    */
   setVerificationMethodFlags(alias: string,
                              flags: VerificationMethodFlags,
-                             authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
+                             authority: PublicKey = this.didAuthority): DidSolServiceBuilder {
     const instructionPromise = this.program.methods.setVmFlags({
       alias,
       flags
     }, null).accounts({
+      didData: this.didDataAccount,
+      authority
+    }).instruction()
+
+
+    return new DidSolServiceBuilder(this, {
+      instructionPromise,
+      ethSignStatus: DidSolEthSignStatusType.Unsigned,
+      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE // TODO: Update sizes for all transactions
+    });
+  }
+
+  /**
+   * Update the controllers of a Service.
+   * @param controllerDIDs A list of DIDs to be set as controllers
+   * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
+   */
+  setControllers(controllerDIDs: string[],
+                 authority: PublicKey = this.didAuthority): DidSolServiceBuilder {
+
+    const updateControllers = validateAndSplitControllers(controllerDIDs);
+
+    const instructionPromise = this.program.methods.setControllers(updateControllers, null).accounts({
       didData: this.didDataAccount,
       authority
     }).instruction()
@@ -292,7 +318,7 @@ export class DidSolService {
     }
 
     // generative case
-    return DidSolDocument.sparse(DidSolIdentifier.create(this.didIdentifier, this.cluster))
+    return DidSolDocument.sparse(DidSolIdentifier.create(this.didAuthority, this.cluster))
   }
 
   /**
@@ -302,7 +328,7 @@ export class DidSolService {
   private async resolveLegacy(): Promise<DIDDocument|null> {
     const id = new DecentralizedIdentifier({
       clusterType: ClusterType.parse(this.cluster),
-      authorityPubkey: SolPublicKey.fromPublicKey(this.didIdentifier),
+      authorityPubkey: SolPublicKey.fromPublicKey(this.didAuthority),
     });
     const connection = this.program.provider.connection
     const solData = await SolTransaction.getSol(

@@ -10,6 +10,7 @@ import chaiAsPromised from "chai-as-promised";
 
 import { expect } from "chai";
 import { findProgramAddress } from "../../src/lib/utils";
+import { TEST_CLUSTER } from "../utils/const";
 
 chai.use(chaiAsPromised);
 
@@ -32,7 +33,7 @@ describe("sol-did service operations", () => {
       program,
       authority.publicKey,
       didData,
-      'localnet',
+      TEST_CLUSTER,
       authority,
       programProvider.opts);
   })

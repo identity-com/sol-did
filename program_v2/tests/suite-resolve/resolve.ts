@@ -10,6 +10,7 @@ import { DidSolService } from "../../src";
 import { findProgramAddress } from "../../src/lib/utils";
 
 import { getGeneratedDidDocument, didDocComplete } from "../fixtures/did-documents";
+import { TEST_CLUSTER } from "../utils/const";
 
 
 chai.use(chaiAsPromised);
@@ -30,16 +31,15 @@ describe("sol-did resolve operations", () => {
       program,
       authority.publicKey,
       didData,
-      'localnet');
+      TEST_CLUSTER);
   })
 
   it("can successfully resolve a generative DID", async () => {
     const solKey = web3.Keypair.generate();
     const [solKeyData, _] = await findProgramAddress(solKey.publicKey);
-    const localService = new DidSolService(program, solKey.publicKey, solKeyData, 'localnet');
+    const localService = new DidSolService(program, solKey.publicKey, solKeyData, TEST_CLUSTER);
 
     const didDoc = await localService.resolve();
-    // TODO: Check reverse RPC lookup.
     expect(didDoc).to.deep.equal(getGeneratedDidDocument(solKey.publicKey.toBase58(),'did:sol:localnet:'));
   })
 

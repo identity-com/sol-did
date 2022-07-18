@@ -3,7 +3,10 @@ export const didDocComplete = {
     "https://w3id.org/did/v1.0",
     "https://w3id.org/sol/v0"
   ],
-  "controller": [],
+  "controller": [
+    "did:sol:localnet:LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a",
+    "did:ethr:0x7C95f766498764e4b3eB1f7b96A7e6b34b8694A6"
+  ],
   "verificationMethod": [
     {
       "id": "did:sol:localnet:A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3#default",
