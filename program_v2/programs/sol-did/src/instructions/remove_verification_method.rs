@@ -1,6 +1,6 @@
+use crate::constants::DID_ACCOUNT_SEED;
 use crate::errors::DidSolError;
 use crate::state::{DidAccount, Secp256k1RawSignature};
-use crate::constants::DID_ACCOUNT_SEED;
 use anchor_lang::prelude::*;
 
 pub fn remove_verification_method(

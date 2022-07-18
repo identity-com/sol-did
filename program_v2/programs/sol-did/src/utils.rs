@@ -1,6 +1,6 @@
+use crate::constants::DID_SOL_PREFIX;
 use solana_program::keccak;
 use solana_program::secp256k1_recover::Secp256k1Pubkey;
-use crate::constants::DID_SOL_PREFIX;
 
 pub fn convert_secp256k1pub_key_to_address(pubkey: &Secp256k1Pubkey) -> [u8; 20] {
     let mut address = [0u8; 20];
@@ -20,7 +20,5 @@ pub fn is_did_sol_prefix(did: &str) -> bool {
 }
 
 pub fn check_other_controllers(controllers: &[String]) -> bool {
-    controllers.iter().all(|did| {
-        !is_did_sol_prefix(did)
-    })
+    controllers.iter().all(|did| !is_did_sol_prefix(did))
 }

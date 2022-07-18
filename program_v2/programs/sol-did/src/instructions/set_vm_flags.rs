@@ -1,6 +1,6 @@
-use crate::errors::DidSolError;
-use crate::state::{DidAccount, VerificationMethodFlags, Secp256k1RawSignature};
 use crate::constants::DID_ACCOUNT_SEED;
+use crate::errors::DidSolError;
+use crate::state::{DidAccount, Secp256k1RawSignature, VerificationMethodFlags};
 use anchor_lang::prelude::*;
 
 pub fn set_vm_flags(

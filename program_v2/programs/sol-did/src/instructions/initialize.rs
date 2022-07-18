@@ -1,5 +1,5 @@
-use crate::state::{DidAccount, VerificationMethod, VerificationMethodFlags};
 use crate::constants::DID_ACCOUNT_SEED;
+use crate::state::{DidAccount, VerificationMethod, VerificationMethodFlags};
 use anchor_lang::prelude::*;
 
 pub fn initialize(ctx: Context<Initialize>, _size: Option<u32>) -> Result<()> {

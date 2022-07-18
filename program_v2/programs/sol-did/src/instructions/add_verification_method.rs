@@ -1,8 +1,8 @@
+use crate::constants::DID_ACCOUNT_SEED;
 use crate::errors::DidSolError;
 use crate::state::{
     DidAccount, Secp256k1RawSignature, VerificationMethod, VerificationMethodFlags,
 };
-use crate::constants::DID_ACCOUNT_SEED;
 use anchor_lang::prelude::*;
 
 pub fn add_verification_method(

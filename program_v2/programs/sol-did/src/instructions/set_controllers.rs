@@ -1,10 +1,8 @@
-use crate::errors::DidSolError;
-use crate::state::{
-    DidAccount, Secp256k1RawSignature,
-};
 use crate::constants::DID_ACCOUNT_SEED;
+use crate::errors::DidSolError;
+use crate::state::{DidAccount, Secp256k1RawSignature};
+use crate::utils::check_other_controllers;
 use anchor_lang::prelude::*;
-use crate::utils::{check_other_controllers};
 
 pub fn set_controllers(
     ctx: Context<SetControllers>,

@@ -1,5 +1,5 @@
-use crate::state::{DidAccount, Secp256k1RawSignature};
 use crate::constants::DID_ACCOUNT_SEED;
+use crate::state::{DidAccount, Secp256k1RawSignature};
 use anchor_lang::prelude::*;
 use std::convert::TryInto;
 
