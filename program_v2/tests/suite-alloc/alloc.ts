@@ -75,7 +75,7 @@ describe("sol-did alloc operations", () => {
     await service.initialize(INITIAL_MIN_ACCOUNT_SIZE).rpc();
 
     // check data
-    const didDataAccount = await program.account.didAccount.fetch(didData);
+    const didDataAccount = await service.getDidAccount();
     expect(didDataAccount.version).to.equal(0);
     expect(didDataAccount.bump).to.equal(didDataPDABump);
     expect(didDataAccount.nonce.eq(new anchor.BN(0))).to.be.true;

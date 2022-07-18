@@ -2,7 +2,6 @@ import * as anchor from "@project-serum/anchor";
 import { LangErrorCode, Program } from "@project-serum/anchor";
 import { SolDid } from "../../target/types/sol_did";
 
-
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
@@ -73,7 +72,7 @@ describe("sol-did auth operations", () => {
         flags: VerificationMethodFlags.CapabilityInvocation,
       }).rpc();
 
-    const didDataAccount = await program.account.didAccount.fetch(didData)
+    const didDataAccount = await service.getDidAccount();
 
     expect(didDataAccount.verificationMethods.length).to.equal(1)
     expect(didDataAccount.verificationMethods[0].alias).to.equal(newSolKeyAlias)
@@ -89,7 +88,7 @@ describe("sol-did auth operations", () => {
       .withPartialSigners(newSolKey)
       .rpc();
 
-    const didDataAccount = await program.account.didAccount.fetch(didData)
+    const didDataAccount = await service.getDidAccount()
 
     expect(didDataAccount.services.length).to.equal(1)
     expect(didDataAccount.services[0].id).to.equal(tService.id)
@@ -136,7 +135,7 @@ describe("sol-did auth operations", () => {
         flags: VerificationMethodFlags.CapabilityInvocation,
       }).rpc();
 
-    const didDataAccount = await program.account.didAccount.fetch(didData)
+    const didDataAccount = await service.getDidAccount()
 
     expect(didDataAccount.verificationMethods.length).to.equal(2)
     expect(didDataAccount.verificationMethods[1].alias).to.equal(newEthKeyAlias)
@@ -148,7 +147,7 @@ describe("sol-did auth operations", () => {
 
 
   it("can use the new EcdsaSecp256k1RecoveryMethod2020 Key add a Service to the account and not reuse nonce", async () => {
-    const didDataAccountBefore = await program.account.didAccount.fetch(didData)
+    const didDataAccountBefore = await service.getDidAccount()
     expect(didDataAccountBefore.nonce.toString()).to.be.equal("0");
     const tService = getTestService(2)
 
@@ -159,7 +158,7 @@ describe("sol-did auth operations", () => {
 
     await programProvider.sendAndConfirm(transaction, [nonAuthoritySigner]);
 
-    const didDataAccount = await program.account.didAccount.fetch(didData)
+    const didDataAccount = await service.getDidAccount()
 
     expect(didDataAccount.services.length).to.equal(2)
     expect(didDataAccount.nonce.toString()).to.be.equal(didDataAccountBefore.nonce.addn(1).toString());
@@ -189,7 +188,7 @@ describe("sol-did auth operations", () => {
 
 
   it("can use the new EcdsaSecp256k1RecoveryMethod2020 Key add another EcdsaSecp256k1VerificationKey2019 to the account", async () => {
-    const didDataAccountBefore = await program.account.didAccount.fetch(didData)
+    const didDataAccountBefore = await service.getDidAccount()
     const keyData = Buffer.from(utils.arrayify(newEthKey2.publicKey).slice(1))
 
     // use transaction to test replay attack
@@ -207,7 +206,7 @@ describe("sol-did auth operations", () => {
     await programProvider.sendAndConfirm(transaction, [nonAuthoritySigner]);
 
 
-    const didDataAccount = await program.account.didAccount.fetch(didData)
+    const didDataAccount = await service.getDidAccount()
 
     expect(didDataAccount.nonce.toString()).to.be.equal(didDataAccountBefore.nonce.addn(1).toString());
     expect(didDataAccount.verificationMethods.length).to.equal(3)
@@ -223,7 +222,7 @@ describe("sol-did auth operations", () => {
   });
 
   it("can use the new EcdsaSecp256k1VerificationKey2019 Key add a Service to the account and not reuse nonce", async () => {
-    const didDataAccountBefore = await program.account.didAccount.fetch(didData)
+    const didDataAccountBefore = await service.getDidAccount()
 
     const tService = getTestService(4)
 
@@ -234,7 +233,7 @@ describe("sol-did auth operations", () => {
 
     await programProvider.sendAndConfirm(transaction, [nonAuthoritySigner]);
 
-    const didDataAccount = await program.account.didAccount.fetch(didData)
+    const didDataAccount = await service.getDidAccount()
 
     expect(didDataAccount.services.length).to.equal(3)
     expect(didDataAccount.nonce.toString()).to.be.equal(didDataAccountBefore.nonce.addn(1).toString());
@@ -260,7 +259,7 @@ describe("sol-did auth operations", () => {
   });
 
   it("can update the flags (without Ownership Proof) of a verification method with a different verification method", async () => {
-    const didDataAccountBefore = await program.account.didAccount.fetch(didData)
+    const didDataAccountBefore = await service.getDidAccount()
     const vmLengthBefore = didDataAccountBefore.verificationMethods.length
 
 
@@ -268,7 +267,7 @@ describe("sol-did auth operations", () => {
     const newFlags = VerificationMethodFlags.CapabilityInvocation | VerificationMethodFlags.Authentication
     await service.setVerificationMethodFlags(newEthKeyAlias, newFlags).rpc()
 
-    const didDataAccount = await program.account.didAccount.fetch(didData)
+    const didDataAccount = await service.getDidAccount()
     expect(didDataAccount.verificationMethods.length).to.equal(vmLengthBefore)
     expect(didDataAccount.verificationMethods[1].alias).to.equal(newEthKeyAlias)
     expect(didDataAccount.verificationMethods[1].flags).to.equal(newFlags)
@@ -285,7 +284,7 @@ describe("sol-did auth operations", () => {
   });
 
   it("can update the flags (WITH Ownership Proof) of a verification method with a same verification method", async () => {
-    const didDataAccountBefore = await program.account.didAccount.fetch(didData)
+    const didDataAccountBefore = await service.getDidAccount()
     const vmLengthBefore = didDataAccountBefore.verificationMethods.length
 
 
@@ -296,7 +295,7 @@ describe("sol-did auth operations", () => {
       .withPartialSigners(nonAuthoritySigner)
       .rpc()
 
-    const didDataAccount = await program.account.didAccount.fetch(didData)
+    const didDataAccount = await service.getDidAccount()
     expect(didDataAccount.verificationMethods.length).to.equal(vmLengthBefore)
     expect(didDataAccount.verificationMethods[1].alias).to.equal(newEthKeyAlias)
     expect(didDataAccount.verificationMethods[1].flags).to.equal(newFlags)
@@ -304,18 +303,18 @@ describe("sol-did auth operations", () => {
 
 
   it("successfully set flags to 0 when removing the default verification method", async () => {
-    const didDataAccountBefore = await program.account.didAccount.fetch(didData)
+    const didDataAccountBefore = await service.getDidAccount()
     expect(didDataAccountBefore.initialVerificationMethod.flags).to.not.equal(0)
 
     await service.removeVerificationMethod(DEFAULT_KEY_ID)
       .rpc()
 
-    const didDataAccount = await program.account.didAccount.fetch(didData)
+    const didDataAccount = await service.getDidAccount()
     expect(didDataAccount.initialVerificationMethod.flags).to.equal(0)
   });
 
   it("can remove a verification method with the same verification method", async () => {
-    const didDataAccountBefore = await program.account.didAccount.fetch(didData)
+    const didDataAccountBefore = await service.getDidAccount()
     const vmLengthBefore = didDataAccountBefore.verificationMethods.length
 
     await service.removeVerificationMethod(newEthKeyAlias2, nonAuthoritySigner.publicKey)
@@ -323,19 +322,19 @@ describe("sol-did auth operations", () => {
       .withPartialSigners(nonAuthoritySigner)
       .rpc()
 
-    const didDataAccount = await program.account.didAccount.fetch(didData)
+    const didDataAccount = await service.getDidAccount()
     expect(didDataAccount.verificationMethods.length).to.equal(vmLengthBefore - 1)
   });
 
   it("can remove a verification method with a different verification method", async () => {
-    const didDataAccountBefore = await program.account.didAccount.fetch(didData)
+    const didDataAccountBefore = await service.getDidAccount()
     const vmLengthBefore = didDataAccountBefore.verificationMethods.length
 
     await service.removeVerificationMethod(newEthKeyAlias, newSolKey.publicKey)
       .withPartialSigners(newSolKey)
       .rpc()
 
-    const didDataAccount = await program.account.didAccount.fetch(didData)
+    const didDataAccount = await service.getDidAccount()
     expect(didDataAccount.verificationMethods.length).to.equal(vmLengthBefore - 1)
   });
 

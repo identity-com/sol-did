@@ -40,3 +40,4 @@ export {
 
 export * from './lib/solana/instruction';
 export * from './lib/solana/sol-data';
+export * from './lib/solana/transaction';
