@@ -1,41 +1,23 @@
 use crate::state::{DidAccount, Secp256k1RawSignature};
-use anchor_lang::prelude::*;
 use crate::{Service, VerificationMethod};
+use anchor_lang::prelude::*;
 
 pub fn update(
     ctx: Context<Update>,
     update_arg: UpdateArg,
     eth_signature: Option<Secp256k1RawSignature>,
 ) -> Result<()> {
-
     // Move the business logic DidAccount struct.
     let data = &mut ctx.accounts.did_data;
     data.set_services(update_arg.services).unwrap();
-
-
-    // data.services = update_arg.services;
+    data.set_verification_methods(update_arg.verification_methods)
+        .unwrap();
     data.native_controllers = update_arg.native_controllers;
     data.other_controllers = update_arg.other_controllers;
-    data.initial_verification_method.flags = 0;
-    let default_alias = &data.initial_verification_method.fragment;
-    let mut flag = data.initial_verification_method.flags;
-    // let new_methods = &mut update_arg.verification_methods;
-    // new_methods.retain(|x| {
-    //     if x.fragment == *default_alias {
-    //         flag = x.flags;
-    //         false
-    //     } else {
-    //         true
-    //     }
-    // });
-    // data.initial_verification_method.flags = flag;
-
-    data.verification_methods = update_arg.verification_methods;
 
     if eth_signature.is_some() {
         data.nonce += 1;
     }
-
     Ok(())
 }
 

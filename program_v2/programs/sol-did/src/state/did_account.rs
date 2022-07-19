@@ -1,9 +1,9 @@
 use crate::errors::DidSolError;
 use anchor_lang::prelude::*;
 use bitflags::bitflags;
+use itertools::Itertools;
 use num_derive::*;
 use num_traits::*;
-use itertools::Itertools;
 
 use crate::utils::convert_secp256k1pub_key_to_address;
 use solana_program::{keccak, secp256k1_recover::secp256k1_recover};
@@ -102,8 +102,21 @@ impl DidAccount {
         &mut self,
         verification_method: VerificationMethod,
     ) -> Result<()> {
-        self.verification_methods.push(verification_method);
-        Ok(())
+        require!(
+            !VerificationMethodFlags::from_bits(verification_method.flags)
+                .unwrap()
+                .contains(VerificationMethodFlags::OWNERSHIP_PROOF),
+            DidSolError::VmOwnershipOnAdd
+        );
+
+        require!(
+            self.find_verification_method(&verification_method.fragment)
+                .is_none(),
+            DidSolError::VmFragmentAlreadyInUse
+        );
+        let mut methods = self.verification_methods.clone();
+        methods.push(verification_method);
+        self.set_verification_methods(methods)
     }
 
     pub fn remove_verification_method(&mut self, fragment: &String) -> Result<()> {
@@ -265,13 +278,43 @@ impl DidAccount {
     pub fn set_services(&mut self, services: Vec<Service>) -> Result<()> {
         let length = services.len();
         // make sure there are not duplicate services
-        let unique_services = services.into_iter().unique_by(|x| x.fragment.to_string()).collect_vec();
+        let unique_services = services
+            .into_iter()
+            .unique_by(|x| x.fragment.to_string())
+            .collect_vec();
         require!(
             unique_services.len() == length,
             DidSolError::ServiceFragmentAlreadyInUse
         );
 
         self.services = unique_services;
+        Ok(())
+    }
+
+    pub fn set_verification_methods(&mut self, methods: Vec<VerificationMethod>) -> Result<()> {
+        let length = methods.len();
+        let mut unique_methods = methods
+            .into_iter()
+            .unique_by(|x| x.fragment.to_string())
+            .collect_vec();
+        require!(
+            unique_methods.len() == length,
+            DidSolError::VmFragmentAlreadyInUse
+        );
+
+        let default_fragment = &self.initial_verification_method.fragment;
+        let mut flag = self.initial_verification_method.flags;
+        unique_methods.retain(|x| {
+            if x.fragment == *default_fragment {
+                flag = x.flags;
+                false
+            } else {
+                true
+            }
+        });
+        self.initial_verification_method.flags = flag;
+        self.verification_methods = unique_methods.clone();
+
         Ok(())
     }
 
@@ -390,7 +433,6 @@ pub struct Secp256k1RawSignature {
     signature: [u8; 64],
     recovery_id: u8,
 }
-
 
 bitflags! {
     pub struct VerificationMethodFlags: u16 {

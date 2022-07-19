@@ -1,8 +1,5 @@
 use crate::constants::DID_ACCOUNT_SEED;
-use crate::errors::DidSolError;
-use crate::state::{
-    DidAccount, Secp256k1RawSignature, VerificationMethod, VerificationMethodFlags,
-};
+use crate::state::{DidAccount, Secp256k1RawSignature, VerificationMethod};
 use anchor_lang::prelude::*;
 
 pub fn add_verification_method(
@@ -14,21 +11,6 @@ pub fn add_verification_method(
     if eth_signature.is_some() {
         data.nonce += 1;
     }
-
-    // TODO: Should we move those to an anchor constraint?
-    require!(
-        !VerificationMethodFlags::from_bits(verification_method.flags)
-            .unwrap()
-            .contains(VerificationMethodFlags::OWNERSHIP_PROOF),
-        DidSolError::VmOwnershipOnAdd
-    );
-
-    require!(
-        data.find_verification_method(&verification_method.fragment)
-            .is_none(),
-        DidSolError::VmFragmentAlreadyInUse
-    );
-
     data.add_verification_method(verification_method)
 }
 
