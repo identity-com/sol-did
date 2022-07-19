@@ -3,15 +3,15 @@ import {
   ExtendedCluster,
   VerificationMethodFlags,
   VerificationMethodType,
-} from "../dist/src";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { airdrop } from "../tests/utils/utils";
-import { utils, Wallet as EthWallet } from "ethers";
-import { Wallet as NodeWallet } from "@project-serum/anchor";
+} from '../dist/src';
+import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { airdrop } from '../tests/utils/utils';
+import { utils, Wallet as EthWallet } from 'ethers';
+import { Wallet as NodeWallet } from '@project-serum/anchor';
 
 (async () => {
   const authority = Keypair.generate();
-  const cluster: ExtendedCluster = "localnet";
+  const cluster: ExtendedCluster = 'localnet';
 
   // create service for a did:sol:${authority.publicKey}
   const service = await DidSolService.build(
@@ -64,7 +64,7 @@ import { Wallet as NodeWallet } from "@project-serum/anchor";
 
   await service
     .addVerificationMethod({
-      fragment: "eth-address",
+      fragment: 'eth-address',
       keyData: Buffer.from(ethAddress),
       methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
       flags: VerificationMethodFlags.CapabilityInvocation,
@@ -84,9 +84,9 @@ import { Wallet as NodeWallet } from "@project-serum/anchor";
   await service
     .addService(
       {
-        fragment: "service-1",
-        serviceType: "service-type-1",
-        serviceEndpoint: "http://localhost:3000",
+        fragment: 'service-1',
+        serviceType: 'service-type-1',
+        serviceEndpoint: 'http://localhost:3000',
       },
       nonAuthority.publicKey
     )

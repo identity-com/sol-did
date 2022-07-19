@@ -1,20 +1,20 @@
-import { DIDDocument, VerificationMethod, ServiceEndpoint } from "did-resolver";
-import { getSolContextPrefix, W3ID_CONTEXT, SOLANA_MAINNET } from "./lib/const";
-import { DidDataAccount } from "./lib/types";
-import { PublicKey } from "@solana/web3.js";
-import { DidSolIdentifier } from "./DidSolIdentifier";
+import { DIDDocument, VerificationMethod, ServiceEndpoint } from 'did-resolver';
+import { getSolContextPrefix, W3ID_CONTEXT, SOLANA_MAINNET } from './lib/const';
+import { DidDataAccount } from './lib/types';
+import { PublicKey } from '@solana/web3.js';
+import { DidSolIdentifier } from './DidSolIdentifier';
 import {
   defaultVerificationMethod,
   mapControllers,
   mapServices,
   mapVerificationMethodsToDidComponents,
-} from "./lib/utils";
-import { ExtendedCluster } from "./lib/connection";
+} from './lib/utils';
+import { ExtendedCluster } from './lib/connection';
 
 export class DidSolDocument implements DIDDocument {
   // private identifier: DidSolIdentifier;
 
-  public "@context"?: "https://www.w3.org/ns/did/v1" | string | string[] =
+  public '@context'?: 'https://www.w3.org/ns/did/v1' | string | string[] =
     DidSolDocument.defaultContext();
   public id: string;
   public alsoKnownAs?: string[];

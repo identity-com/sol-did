@@ -1,24 +1,24 @@
-import * as anchor from "@project-serum/anchor";
-import { LangErrorCode, Program } from "@project-serum/anchor";
-import { SolDid } from "../../target/types/sol_did";
+import * as anchor from '@project-serum/anchor';
+import { LangErrorCode, Program } from '@project-serum/anchor';
+import { SolDid } from '../../target/types/sol_did';
 
-import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
-import { airdrop, getTestService } from "../utils/utils";
-import { before } from "mocha";
-import { utils, Wallet } from "ethers";
+import { airdrop, getTestService } from '../utils/utils';
+import { before } from 'mocha';
+import { utils, Wallet } from 'ethers';
 import {
   DidSolService,
   VerificationMethodFlags,
   VerificationMethodType,
-} from "../../src";
-import { findProgramAddress, DEFAULT_KEY_ID } from "../../src";
-import { TEST_CLUSTER } from "../utils/const";
+} from '../../src';
+import { findProgramAddress, DEFAULT_KEY_ID } from '../../src';
+import { TEST_CLUSTER } from '../utils/const';
 
 chai.use(chaiAsPromised);
 
-describe("sol-did auth operations", () => {
+describe('sol-did auth operations', () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
@@ -33,11 +33,11 @@ describe("sol-did auth operations", () => {
   const nonAuthoritySigner = anchor.web3.Keypair.generate();
 
   const newSolKey = anchor.web3.Keypair.generate();
-  const newSolKeyAlias = "new-sol-key";
+  const newSolKeyAlias = 'new-sol-key';
   const newEthKey = Wallet.createRandom();
-  const newEthKeyAlias = "new-eth-key";
+  const newEthKeyAlias = 'new-eth-key';
   const newEthKey2 = Wallet.createRandom();
-  const newEthKeyAlias2 = "new-eth-key2";
+  const newEthKeyAlias2 = 'new-eth-key2';
 
   before(async () => {
     [didData, didDataPDABump] = await findProgramAddress(
@@ -58,18 +58,18 @@ describe("sol-did auth operations", () => {
     await airdrop(programProvider.connection, nonAuthoritySigner.publicKey);
   });
 
-  it("fails when trying to close a did:sol account with a wrong authority", async () => {
+  it('fails when trying to close a did:sol account with a wrong authority', async () => {
     return expect(
       service
         .close(nonAuthoritySigner.publicKey, nonAuthoritySigner.publicKey)
         .withPartialSigners(nonAuthoritySigner)
         .rpc()
     ).to.be.rejectedWith(
-      "Error Code: ConstraintRaw. Error Number: 2003. Error Message: A raw constraint was violated"
+      'Error Code: ConstraintRaw. Error Number: 2003. Error Message: A raw constraint was violated'
     );
   });
 
-  it("can add a new Ed25519VerificationKey2018 Key with CapabilityInvocation to an account", async () => {
+  it('can add a new Ed25519VerificationKey2018 Key with CapabilityInvocation to an account', async () => {
     await service
       .addVerificationMethod({
         fragment: newSolKeyAlias,
@@ -96,7 +96,7 @@ describe("sol-did auth operations", () => {
     );
   });
 
-  it("can use the new ed25519VerificationKey2018 Key add a Service to the account", async () => {
+  it('can use the new ed25519VerificationKey2018 Key add a Service to the account', async () => {
     const tService = getTestService(1);
 
     await service
@@ -116,37 +116,37 @@ describe("sol-did auth operations", () => {
     );
   });
 
-  it("can not add a new key with OwnershipProof to an account", async () => {
+  it('can not add a new key with OwnershipProof to an account', async () => {
     return expect(
       service
         .addVerificationMethod({
-          fragment: "new-key",
+          fragment: 'new-key',
           keyData: newSolKey.publicKey.toBytes(),
           methodType: VerificationMethodType.Ed25519VerificationKey2018,
           flags: VerificationMethodFlags.OwnershipProof,
         })
         .rpc()
     ).to.be.rejectedWith(
-      "VmOwnershipOnAdd. Error Number: 6002. Error Message: Cannot add a verification method with OwnershipProof flag."
+      'VmOwnershipOnAdd. Error Number: 6002. Error Message: Cannot add a verification method with OwnershipProof flag.'
     );
   });
 
-  it("can not add a key if the fragment already exists", async () => {
+  it('can not add a key if the fragment already exists', async () => {
     return expect(
       service
         .addVerificationMethod({
-          fragment: "default",
+          fragment: 'default',
           keyData: newSolKey.publicKey.toBytes(),
           methodType: VerificationMethodType.Ed25519VerificationKey2018,
           flags: VerificationMethodFlags.CapabilityInvocation,
         })
         .rpc()
     ).to.be.rejectedWith(
-      "Error Code: VmFragmentAlreadyInUse. Error Number: 6001. Error Message: Given VM fragment is already in use."
+      'Error Code: VmFragmentAlreadyInUse. Error Number: 6001. Error Message: Given VM fragment is already in use.'
     );
   });
 
-  it("can add a new EcdsaSecp256k1RecoveryMethod2020 Key with CapabilityInvocation to an account", async () => {
+  it('can add a new EcdsaSecp256k1RecoveryMethod2020 Key with CapabilityInvocation to an account', async () => {
     const ethAddressAsBytes = utils.arrayify(newEthKey.address);
 
     await service
@@ -176,9 +176,9 @@ describe("sol-did auth operations", () => {
     );
   });
 
-  it("can use the new EcdsaSecp256k1RecoveryMethod2020 Key add a Service to the account and not reuse nonce", async () => {
+  it('can use the new EcdsaSecp256k1RecoveryMethod2020 Key add a Service to the account and not reuse nonce', async () => {
     const didDataAccountBefore = await service.getDidAccount();
-    expect(didDataAccountBefore.nonce.toString()).to.be.equal("0");
+    expect(didDataAccountBefore.nonce.toString()).to.be.equal('0');
     const tService = getTestService(2);
 
     // use transaction to test replay attack
@@ -213,7 +213,7 @@ describe("sol-did auth operations", () => {
     );
   });
 
-  it("cannot add a Service key with a wrong EcdsaSecp256k1RecoveryMethod2020 Key", async () => {
+  it('cannot add a Service key with a wrong EcdsaSecp256k1RecoveryMethod2020 Key', async () => {
     const wrongEthKey = Wallet.createRandom();
     const tService = getTestService(3);
 
@@ -224,11 +224,11 @@ describe("sol-did auth operations", () => {
         .withPartialSigners(nonAuthoritySigner)
         .rpc()
     ).to.be.rejectedWith(
-      "Error Code: ConstraintRaw. Error Number: 2003. Error Message: A raw constraint was violated"
+      'Error Code: ConstraintRaw. Error Number: 2003. Error Message: A raw constraint was violated'
     );
   });
 
-  it("can use the new EcdsaSecp256k1RecoveryMethod2020 Key add another EcdsaSecp256k1VerificationKey2019 to the account", async () => {
+  it('can use the new EcdsaSecp256k1RecoveryMethod2020 Key add another EcdsaSecp256k1VerificationKey2019 to the account', async () => {
     const didDataAccountBefore = await service.getDidAccount();
     const keyData = Buffer.from(utils.arrayify(newEthKey2.publicKey).slice(1));
 
@@ -279,7 +279,7 @@ describe("sol-did auth operations", () => {
     );
   });
 
-  it("can use the new EcdsaSecp256k1VerificationKey2019 Key add a Service to the account and not reuse nonce", async () => {
+  it('can use the new EcdsaSecp256k1VerificationKey2019 Key add a Service to the account and not reuse nonce', async () => {
     const didDataAccountBefore = await service.getDidAccount();
 
     const tService = getTestService(4);
@@ -316,8 +316,8 @@ describe("sol-did auth operations", () => {
     );
   });
 
-  it("cannot update the flags of an unknown verification method", async () => {
-    const unknownAlias = "unknown-fragment";
+  it('cannot update the flags of an unknown verification method', async () => {
+    const unknownAlias = 'unknown-fragment';
 
     // use transaction to test replay attack
     return expect(
@@ -325,11 +325,11 @@ describe("sol-did auth operations", () => {
         .setVerificationMethodFlags(unknownAlias, VerificationMethodFlags.None)
         .rpc()
     ).to.be.rejectedWith(
-      "Error Code: VmFragmentNotFound. Error Number: 6000. Error Message: No VM with the given fragment exists."
+      'Error Code: VmFragmentNotFound. Error Number: 6000. Error Message: No VM with the given fragment exists.'
     );
   });
 
-  it("can update the flags (without Ownership Proof) of a verification method with a different verification method", async () => {
+  it('can update the flags (without Ownership Proof) of a verification method with a different verification method', async () => {
     const didDataAccountBefore = await service.getDidAccount();
     const vmLengthBefore = didDataAccountBefore.verificationMethods.length;
 
@@ -347,18 +347,18 @@ describe("sol-did auth operations", () => {
     expect(didDataAccount.verificationMethods[1].flags).to.equal(newFlags);
   });
 
-  it("cannot update the flags (WITH Ownership Proof) of a verification method with a different verification method", async () => {
+  it('cannot update the flags (WITH Ownership Proof) of a verification method with a different verification method', async () => {
     const newFlags =
       VerificationMethodFlags.CapabilityInvocation |
       VerificationMethodFlags.OwnershipProof;
     return expect(
       service.setVerificationMethodFlags(newEthKeyAlias, newFlags).rpc()
     ).to.be.rejectedWith(
-      "Error Code: ConstraintRaw. Error Number: 2003. Error Message: A raw constraint was violated."
+      'Error Code: ConstraintRaw. Error Number: 2003. Error Message: A raw constraint was violated.'
     );
   });
 
-  it("can update the flags (WITH Ownership Proof) of a verification method with a same verification method", async () => {
+  it('can update the flags (WITH Ownership Proof) of a verification method with a same verification method', async () => {
     const didDataAccountBefore = await service.getDidAccount();
     const vmLengthBefore = didDataAccountBefore.verificationMethods.length;
 
@@ -384,7 +384,7 @@ describe("sol-did auth operations", () => {
     expect(didDataAccount.verificationMethods[1].flags).to.equal(newFlags);
   });
 
-  it("successfully set flags to 0 when removing the default verification method", async () => {
+  it('successfully set flags to 0 when removing the default verification method', async () => {
     const didDataAccountBefore = await service.getDidAccount();
     expect(didDataAccountBefore.initialVerificationMethod.flags).to.not.equal(
       0
@@ -396,7 +396,7 @@ describe("sol-did auth operations", () => {
     expect(didDataAccount.initialVerificationMethod.flags).to.equal(0);
   });
 
-  it("can remove a verification method with the same verification method", async () => {
+  it('can remove a verification method with the same verification method', async () => {
     const didDataAccountBefore = await service.getDidAccount();
     const vmLengthBefore = didDataAccountBefore.verificationMethods.length;
 
@@ -412,7 +412,7 @@ describe("sol-did auth operations", () => {
     );
   });
 
-  it("can remove a verification method with a different verification method", async () => {
+  it('can remove a verification method with a different verification method', async () => {
     const didDataAccountBefore = await service.getDidAccount();
     const vmLengthBefore = didDataAccountBefore.verificationMethods.length;
 
@@ -427,19 +427,19 @@ describe("sol-did auth operations", () => {
     );
   });
 
-  it("cannot remove the last VM with a CapabilityInvocation", async () => {
+  it('cannot remove the last VM with a CapabilityInvocation', async () => {
     return expect(
       service
         .removeVerificationMethod(newSolKeyAlias, newSolKey.publicKey)
         .withPartialSigners(newSolKey)
         .rpc()
     ).to.be.rejectedWith(
-      "Error Code: VmCannotRemoveLastAuthority. Error Number: 6003. " +
-        "Error Message: Removing the last verification method would lead to a lockout."
+      'Error Code: VmCannotRemoveLastAuthority. Error Number: 6003. ' +
+        'Error Message: Removing the last verification method would lead to a lockout.'
     );
   });
 
-  it("cannot update flags (without CapabilityInvocation) of the last VM with a CapabilityInvocation", async () => {
+  it('cannot update flags (without CapabilityInvocation) of the last VM with a CapabilityInvocation', async () => {
     return expect(
       service
         .setVerificationMethodFlags(
@@ -450,8 +450,8 @@ describe("sol-did auth operations", () => {
         .withPartialSigners(newSolKey)
         .rpc()
     ).to.be.rejectedWith(
-      "Error Code: VmCannotRemoveLastAuthority. Error Number: 6003. " +
-        "Error Message: Removing the last verification method would lead to a lockout."
+      'Error Code: VmCannotRemoveLastAuthority. Error Number: 6003. ' +
+        'Error Message: Removing the last verification method would lead to a lockout.'
     );
   });
 });

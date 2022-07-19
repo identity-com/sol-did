@@ -1,21 +1,21 @@
-import * as anchor from "@project-serum/anchor";
-import { Program } from "@project-serum/anchor";
-import { SolDid } from "../../target/types/sol_did";
-import { DidDataAccount, DidSolIdentifier, DidSolService } from "../../src";
-import { before } from "mocha";
+import * as anchor from '@project-serum/anchor';
+import { Program } from '@project-serum/anchor';
+import { SolDid } from '../../target/types/sol_did';
+import { DidDataAccount, DidSolIdentifier, DidSolService } from '../../src';
+import { before } from 'mocha';
 
-import chai from "chai";
-import chaiAsPromised from "chai-as-promised";
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
-import { expect } from "chai";
-import { findProgramAddress } from "../../src";
-import { TEST_CLUSTER } from "../utils/const";
-import { Wallet } from "ethers";
-import { getDerivationPath, MNEMONIC } from "../fixtures/config";
+import { expect } from 'chai';
+import { findProgramAddress } from '../../src';
+import { TEST_CLUSTER } from '../utils/const';
+import { Wallet } from 'ethers';
+import { getDerivationPath, MNEMONIC } from '../fixtures/config';
 
 chai.use(chaiAsPromised);
 
-describe("sol-did controller operations", () => {
+describe('sol-did controller operations', () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
@@ -49,17 +49,17 @@ describe("sol-did controller operations", () => {
     didDataAccount = await service.getDidAccount();
   });
 
-  it("fails to update the controller if it includes an invalid DID.", async () => {
+  it('fails to update the controller if it includes an invalid DID.', async () => {
     return expect(() =>
       service.setControllers([
         `did:ethr:${ethKey.address}`,
         DidSolIdentifier.create(solKey.publicKey, TEST_CLUSTER).toString(),
-        "wrong-did",
+        'wrong-did',
       ])
-    ).to.be.throw("Invalid DID found in controllers");
+    ).to.be.throw('Invalid DID found in controllers');
   });
 
-  it("can update the controllers of a DID.", async () => {
+  it('can update the controllers of a DID.', async () => {
     const ethrDid = `did:ethr:${ethKey.address}`;
     const solDid = DidSolIdentifier.create(
       solKey.publicKey,
@@ -76,7 +76,7 @@ describe("sol-did controller operations", () => {
     expect(didDataAccount.otherControllers).to.deep.equal([ethrDid]);
   });
 
-  it("can update the controllers of a DID and successfully filters duplicates", async () => {
+  it('can update the controllers of a DID and successfully filters duplicates', async () => {
     const ethrDid = `did:ethr:${ethKey.address}`;
     const solDid = DidSolIdentifier.create(
       solKey.publicKey,
@@ -93,18 +93,18 @@ describe("sol-did controller operations", () => {
     expect(didDataAccount.otherControllers).to.deep.equal([ethrDid]);
   });
 
-  it("cannot add itself as a controller", async () => {
+  it('cannot add itself as a controller', async () => {
     const ethrDid = `did:ethr:${ethKey.address}`;
     const selfSolDid = service.did;
 
     return expect(
       service.setControllers([ethrDid, selfSolDid]).rpc()
     ).to.be.rejectedWith(
-      "Error Code: InvalidNativeControllers. Error Number: 6007. Error Message: Invalid native controllers. Cannot set itself as a controller."
+      'Error Code: InvalidNativeControllers. Error Number: 6007. Error Message: Invalid native controllers. Cannot set itself as a controller.'
     );
   });
 
-  it("can add update the controllers of a DID and sign with an Ethereum Key", async () => {
+  it('can add update the controllers of a DID and sign with an Ethereum Key', async () => {
     const ethrDid = `did:ethr:${ethKey.address}`;
 
     await service

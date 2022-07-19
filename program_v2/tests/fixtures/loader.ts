@@ -1,8 +1,8 @@
-import { DIDDocument } from "did-resolver";
-import { Keypair } from "@solana/web3.js";
-import { promises as fsPromises } from "fs";
+import { DIDDocument } from 'did-resolver';
+import { Keypair } from '@solana/web3.js';
+import { promises as fsPromises } from 'fs';
 
-const fixturePath = "./tests/fixtures/";
+const fixturePath = './tests/fixtures/';
 
 export const loadDidDocComplete = async (): Promise<DIDDocument> => {
   const fileBuffer = await fsPromises.readFile(
@@ -28,12 +28,12 @@ export const getGeneratedDidDocument = (
   didIdentifier: string,
   didMethodPrefix
 ) => ({
-  "@context": ["https://w3id.org/did/v1.0", "https://w3id.org/sol/v0"],
+  '@context': ['https://w3id.org/did/v1.0', 'https://w3id.org/sol/v0'],
   controller: [],
   verificationMethod: [
     {
       id: `${didMethodPrefix}${didIdentifier}#default`,
-      type: "Ed25519VerificationKey2018",
+      type: 'Ed25519VerificationKey2018',
       controller: `${didMethodPrefix}${didIdentifier}`,
       publicKeyBase58: didIdentifier,
     },
@@ -41,7 +41,7 @@ export const getGeneratedDidDocument = (
   authentication: [],
   assertionMethod: [],
   keyAgreement: [],
-  capabilityInvocation: ["#default"],
+  capabilityInvocation: ['#default'],
   capabilityDelegation: [],
   service: [],
   id: `${didMethodPrefix}${didIdentifier}`,

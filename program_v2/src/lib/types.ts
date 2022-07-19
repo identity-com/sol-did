@@ -1,7 +1,7 @@
-import { BN, web3 } from "@project-serum/anchor";
-import { PublicKey, Transaction } from "@solana/web3.js";
-import { VerificationMethod as DidVerificationMethod } from "did-resolver";
-import { ExtendedCluster } from "./connection";
+import { BN, web3 } from '@project-serum/anchor';
+import { PublicKey, Transaction } from '@solana/web3.js';
+import { VerificationMethod as DidVerificationMethod } from 'did-resolver';
+import { ExtendedCluster } from './connection';
 
 export type Bytes = ArrayLike<number>;
 export type EthSigner = {

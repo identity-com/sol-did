@@ -1,10 +1,10 @@
-import * as anchor from "@project-serum/anchor";
-import { web3 } from "@project-serum/anchor";
-import { Service } from "../../src";
+import * as anchor from '@project-serum/anchor';
+import { web3 } from '@project-serum/anchor';
+import { Service } from '../../src';
 
 export const checkConnectionLogs = (connection: web3.Connection) => {
   if (process.env.ENABLE_LOGS)
-    connection.onLogs("all", (log) => console.log(log.logs));
+    connection.onLogs('all', (log) => console.log(log.logs));
 };
 
 export const airdrop = async (

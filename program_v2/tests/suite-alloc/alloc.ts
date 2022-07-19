@@ -1,12 +1,12 @@
-import * as anchor from "@project-serum/anchor";
-import { Program } from "@project-serum/anchor";
-import { SolDid } from "../../target/types/sol_did";
+import * as anchor from '@project-serum/anchor';
+import { Program } from '@project-serum/anchor';
+import { SolDid } from '../../target/types/sol_did';
 
-import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
-import { airdrop, checkConnectionLogs, getTestService } from "../utils/utils";
-import { before } from "mocha";
+import { airdrop, checkConnectionLogs, getTestService } from '../utils/utils';
+import { before } from 'mocha';
 import {
   DidAccountSizeHelper,
   DidDataAccount,
@@ -15,14 +15,14 @@ import {
   VerificationMethod,
   VerificationMethodFlags,
   VerificationMethodType,
-} from "../../src";
-import { findProgramAddress, INITIAL_MIN_ACCOUNT_SIZE } from "../../src";
-import { TEST_CLUSTER } from "../utils/const";
-import { utils, Wallet } from "ethers";
+} from '../../src';
+import { findProgramAddress, INITIAL_MIN_ACCOUNT_SIZE } from '../../src';
+import { TEST_CLUSTER } from '../utils/const';
+import { utils, Wallet } from 'ethers';
 
 chai.use(chaiAsPromised);
 
-describe("sol-did alloc operations", () => {
+describe('sol-did alloc operations', () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
   let didData, didDataPDABump;
@@ -56,7 +56,7 @@ describe("sol-did alloc operations", () => {
     await airdrop(programProvider.connection, nonAuthoritySigner.publicKey);
   });
 
-  it("can successfully close an did:sol account ", async () => {
+  it('can successfully close an did:sol account ', async () => {
     const destination = anchor.web3.Keypair.generate();
 
     // Accounts Before
@@ -76,18 +76,18 @@ describe("sol-did alloc operations", () => {
     );
   });
 
-  it("fails when trying to close a did:sol account that does not exist", async () => {
+  it('fails when trying to close a did:sol account that does not exist', async () => {
     const destination = anchor.web3.Keypair.generate();
 
     return expect(
       service.close(destination.publicKey).rpc()
     ).to.be.rejectedWith(
-      "Error Code: AccountNotInitialized. Error Number: 3012. " +
-        "Error Message: The program expected this account to be already initialized"
+      'Error Code: AccountNotInitialized. Error Number: 3012. ' +
+        'Error Message: The program expected this account to be already initialized'
     );
   });
 
-  it("can successfully initialize an did:sol account with default size", async () => {
+  it('can successfully initialize an did:sol account with default size', async () => {
     await service.initialize().rpc();
 
     // check data
@@ -117,7 +117,7 @@ describe("sol-did alloc operations", () => {
     await service.close(authority.publicKey).rpc();
   });
 
-  it("can automatically initialize an account with autoAlloc", async () => {
+  it('can automatically initialize an account with autoAlloc', async () => {
     const tService = getTestService(1);
     await service
       .addService(tService)
@@ -133,7 +133,7 @@ describe("sol-did alloc operations", () => {
     );
   });
 
-  it("can automatically resize an account with autoAlloc", async () => {
+  it('can automatically resize an account with autoAlloc', async () => {
     const tService = getTestService(2);
     await service
       .addService(tService)
@@ -150,7 +150,7 @@ describe("sol-did alloc operations", () => {
     );
   });
 
-  it("will not shrink an account", async () => {
+  it('will not shrink an account', async () => {
     const didDataAccountSizeBefore = didDataAccountSize;
     const tService = getTestService(1);
     await service
@@ -165,7 +165,7 @@ describe("sol-did alloc operations", () => {
     expect(didDataAccountSize).to.equal(didDataAccountSizeBefore);
   });
 
-  it("will not resize if the current account size is sufficient.", async () => {
+  it('will not resize if the current account size is sufficient.', async () => {
     const didDataAccountSizeBefore = didDataAccountSize;
     const solKey = anchor.web3.Keypair.generate();
     const controllerDid = DidSolIdentifier.create(
@@ -188,12 +188,12 @@ describe("sol-did alloc operations", () => {
     expect(didDataAccountSize).to.equal(didDataAccountSizeBefore);
   });
 
-  it("will only resize to amount needed, reusing overhead space", async () => {
+  it('will only resize to amount needed, reusing overhead space', async () => {
     const didDataAccountSizeBefore = didDataAccountSize;
     const ethAddressAsBytes = utils.arrayify(ethKey.address);
 
     const method: VerificationMethod = {
-      fragment: "eth-key",
+      fragment: 'eth-key',
       keyData: Buffer.from(ethAddressAsBytes),
       methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
       flags: VerificationMethodFlags.CapabilityInvocation,
@@ -218,7 +218,7 @@ describe("sol-did alloc operations", () => {
   });
 
   // resize also works with ethereum keys
-  it("will also auto-alloc with ethereum keys", async () => {
+  it('will also auto-alloc with ethereum keys', async () => {
     const didDataAccountSizeBefore = didDataAccountSize;
 
     const existingControllers = (await service
@@ -246,7 +246,7 @@ describe("sol-did alloc operations", () => {
     );
   });
 
-  it("will reuse the authority of the original instruction for the resize", async () => {
+  it('will reuse the authority of the original instruction for the resize', async () => {
     const existingControllers = (await service
       .resolve()
       .then((res) => res.controller)) as string[];
@@ -273,7 +273,7 @@ describe("sol-did alloc operations", () => {
     expect(instructions[0].keys[2]).to.be.deep.equal(instructions[1].keys[1]);
   });
 
-  it("fails when trying to initialize a did:sol account twice", async () => {
+  it('fails when trying to initialize a did:sol account twice', async () => {
     return expect(
       service.initialize(INITIAL_MIN_ACCOUNT_SIZE + 1).rpc()
     ).to.be.rejectedWith(
@@ -281,7 +281,7 @@ describe("sol-did alloc operations", () => {
     );
   });
 
-  it("can successfully resize an account", async () => {
+  it('can successfully resize an account', async () => {
     const NEW_ACCOUNT_SIZE = 9_999;
 
     await service.resize(NEW_ACCOUNT_SIZE, authority.publicKey).rpc();
@@ -292,13 +292,13 @@ describe("sol-did alloc operations", () => {
     expect(rawDidDataAccount.data.length).to.equal(NEW_ACCOUNT_SIZE);
   });
 
-  it("fails when trying to resize to insufficient size", async () => {
+  it('fails when trying to resize to insufficient size', async () => {
     const NEW_ACCOUNT_SIZE = INITIAL_MIN_ACCOUNT_SIZE - 1;
 
     return expect(
       service.resize(NEW_ACCOUNT_SIZE, authority.publicKey).rpc()
     ).to.be.rejectedWith(
-      "Error Code: AccountDidNotSerialize. Error Number: 3004. Error Message: Failed to serialize the account"
+      'Error Code: AccountDidNotSerialize. Error Number: 3004. Error Message: Failed to serialize the account'
     );
   });
 });

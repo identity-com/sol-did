@@ -1,9 +1,9 @@
-import { PublicKey } from "@solana/web3.js";
-import { DecentralizedIdentifierConstructor } from "./lib/types";
-import { findProgramAddress } from "./lib/utils";
-import { DID_SOL_PREFIX } from "./lib/const";
-import { VerificationMethod } from "did-resolver";
-import { ExtendedCluster } from "./lib/connection";
+import { PublicKey } from '@solana/web3.js';
+import { DecentralizedIdentifierConstructor } from './lib/types';
+import { findProgramAddress } from './lib/utils';
+import { DID_SOL_PREFIX } from './lib/const';
+import { VerificationMethod } from 'did-resolver';
+import { ExtendedCluster } from './lib/connection';
 
 /**
  * A class representing a SOL Did
@@ -70,17 +70,17 @@ export class DidSolIdentifier {
 
   private get clusterString(): string {
     if (!this.clusterType) {
-      return "unknown:";
+      return 'unknown:';
     }
-    if (this.clusterType === "mainnet-beta") {
-      return "";
+    if (this.clusterType === 'mainnet-beta') {
+      return '';
     }
     return `${this.clusterType}:`;
   }
 
   toString(): string {
     const urlField =
-      !this.urlField || this.urlField === "" ? "" : `#${this.urlField}`; // TODO add support for / urls
+      !this.urlField || this.urlField === '' ? '' : `#${this.urlField}`; // TODO add support for / urls
     return `${DID_SOL_PREFIX}${
       this.clusterString
     }${this.authority.toBase58()}${urlField}`;
@@ -93,10 +93,10 @@ export class DidSolIdentifier {
    * @param did the did string
    */
   static parse(did: string | VerificationMethod): DidSolIdentifier {
-    if (typeof did == "string") {
+    if (typeof did == 'string') {
       const matches = DidSolIdentifier.REGEX.exec(did);
 
-      if (!matches) throw new Error("Invalid DID");
+      if (!matches) throw new Error('Invalid DID');
 
       const authority = new PublicKey(matches[2]);
 
@@ -106,7 +106,7 @@ export class DidSolIdentifier {
         urlField: matches[3],
       });
     } else {
-      throw new Error("Provided DID is not a string");
+      throw new Error('Provided DID is not a string');
     }
   }
 
@@ -156,16 +156,16 @@ export const mapMethodExtension = (
   clusterString: string
 ): ExtendedCluster | undefined => {
   switch (clusterString) {
-    case "":
-      return "mainnet-beta";
-    case "devnet":
-      return "devnet";
-    case "testnet":
-      return "testnet";
-    case "localnet":
-      return "localnet";
-    case "civicnet":
-      return "civicnet";
+    case '':
+      return 'mainnet-beta';
+    case 'devnet':
+      return 'devnet';
+    case 'testnet':
+      return 'testnet';
+    case 'localnet':
+      return 'localnet';
+    case 'civicnet':
+      return 'civicnet';
   }
   // return undefined if not found
 };

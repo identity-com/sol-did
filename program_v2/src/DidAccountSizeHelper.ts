@@ -1,5 +1,5 @@
-import { DidDataAccount, Service, VerificationMethod } from "./lib/types";
-import { getBinarySize } from "./lib/utils";
+import { DidDataAccount, Service, VerificationMethod } from './lib/types';
+import { getBinarySize } from './lib/utils';
 
 export class DidAccountSizeHelper {
   constructor(private didAccount: DidDataAccount) {}

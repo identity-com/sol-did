@@ -1,27 +1,27 @@
-import * as anchor from "@project-serum/anchor";
-import { Program, web3, Wallet } from "@project-serum/anchor";
-import { SolDid } from "../../target/types/sol_did";
+import * as anchor from '@project-serum/anchor';
+import { Program, web3, Wallet } from '@project-serum/anchor';
+import { SolDid } from '../../target/types/sol_did';
 
-import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
-import { before } from "mocha";
-import { DidSolService, findProgramAddress } from "../../src";
+import { before } from 'mocha';
+import { DidSolService, findProgramAddress } from '../../src';
 
 import {
   getGeneratedDidDocument,
   loadDidDocComplete,
   loadKeypair,
   loadLegacyDidDocComplete,
-} from "../fixtures/loader";
-import { TEST_CLUSTER } from "../utils/const";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { DIDDocument } from "did-resolver";
-import { airdrop } from "../utils/utils";
+} from '../fixtures/loader';
+import { TEST_CLUSTER } from '../utils/const';
+import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { DIDDocument } from 'did-resolver';
+import { airdrop } from '../utils/utils';
 
 chai.use(chaiAsPromised);
 
-describe("sol-did resolve operations", () => {
+describe('sol-did resolve operations', () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
@@ -46,7 +46,7 @@ describe("sol-did resolve operations", () => {
     );
 
     legacyAuthority = await loadKeypair(
-      "LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a.json"
+      'LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a.json'
     );
     await airdrop(
       programProvider.connection,
@@ -66,7 +66,7 @@ describe("sol-did resolve operations", () => {
     legacyDidDocComplete = await loadLegacyDidDocComplete();
   });
 
-  it("can successfully resolve a generative DID", async () => {
+  it('can successfully resolve a generative DID', async () => {
     const solKey = web3.Keypair.generate();
     const [solKeyData, _] = await findProgramAddress(solKey.publicKey);
     const localService = new DidSolService(
@@ -78,33 +78,33 @@ describe("sol-did resolve operations", () => {
 
     const didDoc = await localService.resolve();
     expect(didDoc).to.deep.equal(
-      getGeneratedDidDocument(solKey.publicKey.toBase58(), "did:sol:localnet:")
+      getGeneratedDidDocument(solKey.publicKey.toBase58(), 'did:sol:localnet:')
     );
   });
 
-  it("can successfully resolve a DID", async () => {
+  it('can successfully resolve a DID', async () => {
     const didDoc = await service.resolve();
     expect(didDoc).to.deep.equal(didDocComplete);
   });
 
-  it("can successfully resolve a legacy DID", async () => {
+  it('can successfully resolve a legacy DID', async () => {
     const didDoc = await legacyDidService.resolve();
     expect(didDoc).to.deep.equal(legacyDidDocComplete);
   });
 
   // TODO: Implement Migration Tests
-  it.skip("can successfully migrate a legacy DID", async () => {
-    throw new Error("Not implemented");
+  it.skip('can successfully migrate a legacy DID', async () => {
+    throw new Error('Not implemented');
   });
 
-  it("prioritises the new resolver over the legacy resolver", async () => {
+  it('prioritises the new resolver over the legacy resolver', async () => {
     await legacyDidService.initialize().rpc();
 
     const didDoc = await legacyDidService.resolve();
     expect(didDoc).to.deep.equal(
       getGeneratedDidDocument(
         legacyAuthority.publicKey.toBase58(),
-        "did:sol:localnet:"
+        'did:sol:localnet:'
       )
     );
   });

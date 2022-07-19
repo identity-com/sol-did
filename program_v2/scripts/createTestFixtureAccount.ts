@@ -1,5 +1,5 @@
-import { Program } from "@project-serum/anchor";
-import * as anchor from "@project-serum/anchor";
+import { Program } from '@project-serum/anchor';
+import * as anchor from '@project-serum/anchor';
 import {
   findProgramAddress,
   DidSolService,
@@ -7,19 +7,19 @@ import {
   VerificationMethodFlags,
   VerificationMethodType,
   LegacyClient,
-} from "../dist/src/index";
-import { SolDid } from "../dist/target/types/sol_did";
+} from '../dist/src/index';
+import { SolDid } from '../dist/target/types/sol_did';
 
-import { airdrop, getTestService } from "../tests/utils/utils";
-import { getDerivationPath, MNEMONIC } from "../tests/fixtures/config";
-import { TEST_CLUSTER } from "../tests/utils/const";
+import { airdrop, getTestService } from '../tests/utils/utils';
+import { getDerivationPath, MNEMONIC } from '../tests/fixtures/config';
+import { TEST_CLUSTER } from '../tests/utils/const';
 
-import { utils, Wallet } from "ethers";
-import { ExtendedCluster } from "@identity.com/sol-did-client-legacy/dist/lib/constants";
-import { Keypair } from "@solana/web3.js";
-import { promises as fsPromises } from "fs";
+import { utils, Wallet } from 'ethers';
+import { ExtendedCluster } from '@identity.com/sol-did-client-legacy/dist/lib/constants';
+import { Keypair } from '@solana/web3.js';
+import { promises as fsPromises } from 'fs';
 
-const { exec } = require("child_process");
+const { exec } = require('child_process');
 
 (async () => {
   const program = anchor.workspace.SolDid as Program<SolDid>;
@@ -34,7 +34,7 @@ const { exec } = require("child_process");
     100 * anchor.web3.LAMPORTS_PER_SOL
   );
 
-  const cluster: ExtendedCluster = "localnet";
+  const cluster: ExtendedCluster = 'localnet';
 
   const service = new DidSolService(
     program,
@@ -45,7 +45,7 @@ const { exec } = require("child_process");
   );
 
   const keyFileBuffer = await fsPromises.readFile(
-    "./tests/fixtures/LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a.json"
+    './tests/fixtures/LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a.json'
   );
   const privateKey = Uint8Array.from(JSON.parse(keyFileBuffer.toString()));
   const otherSolKey = Keypair.fromSecretKey(privateKey);
@@ -57,8 +57,8 @@ const { exec } = require("child_process");
 
   const ethKey = Wallet.fromMnemonic(MNEMONIC, getDerivationPath());
 
-  console.log("DidIdentifier: " + authority.publicKey.toBase58());
-  console.log("DidDataAccount: " + didData.toBase58());
+  console.log('DidIdentifier: ' + authority.publicKey.toBase58());
+  console.log('DidDataAccount: ' + didData.toBase58());
 
   console.log(`OtherSolKey: ${otherSolKey.publicKey.toBase58()}`);
   console.log(`EthKey: ${ethKey.address}`);
@@ -78,7 +78,7 @@ const { exec } = require("child_process");
 
   await service
     .addVerificationMethod({
-      fragment: "eth-address",
+      fragment: 'eth-address',
       keyData: Buffer.from(ethAuthority0AddressAsBytes),
       methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
       flags: VerificationMethodFlags.CapabilityInvocation,
@@ -89,7 +89,7 @@ const { exec } = require("child_process");
   const ethAuthority1 = Wallet.fromMnemonic(MNEMONIC, getDerivationPath(1));
   await service
     .addVerificationMethod({
-      fragment: "eth-key",
+      fragment: 'eth-key',
       keyData: Buffer.from(utils.arrayify(ethAuthority1.publicKey).slice(1)),
       methodType: VerificationMethodType.EcdsaSecp256k1VerificationKey2019,
       flags: VerificationMethodFlags.CapabilityInvocation,
@@ -147,7 +147,7 @@ const { exec } = require("child_process");
   await LegacyClient.addKey({
     payer: otherSolKey.secretKey,
     did: legacyDid,
-    fragment: "ledger",
+    fragment: 'ledger',
     key: authority.publicKey.toBase58(),
   });
 

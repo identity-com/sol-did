@@ -1,4 +1,4 @@
-import { SolDid } from "../target/types/sol_did";
+import { SolDid } from '../target/types/sol_did';
 import {
   AnchorProvider,
   BN,
@@ -6,7 +6,7 @@ import {
   parseIdlErrors,
   Program,
   translateError,
-} from "@project-serum/anchor";
+} from '@project-serum/anchor';
 
 import {
   ethSignPayload,
@@ -14,7 +14,7 @@ import {
   findProgramAddress,
   getBinarySize,
   validateAndSplitControllers,
-} from "./lib/utils";
+} from './lib/utils';
 import {
   Commitment,
   ConfirmOptions,
@@ -23,8 +23,8 @@ import {
   Signer,
   Transaction,
   TransactionInstruction,
-} from "@solana/web3.js";
-import { DIDDocument } from "did-resolver";
+} from '@solana/web3.js';
+import { DIDDocument } from 'did-resolver';
 import {
   DidDataAccount,
   EthSigner,
@@ -32,18 +32,18 @@ import {
   VerificationMethod,
   VerificationMethodFlags,
   Wallet,
-} from "./lib/types";
-import { INITIAL_MIN_ACCOUNT_SIZE } from "./lib/const";
-import { DidSolDocument } from "./DidSolDocument";
-import { ExtendedCluster, getConnectionByCluster } from "./lib/connection";
-import { DidSolIdentifier } from "./DidSolIdentifier";
+} from './lib/types';
+import { INITIAL_MIN_ACCOUNT_SIZE } from './lib/const';
+import { DidSolDocument } from './DidSolDocument';
+import { ExtendedCluster, getConnectionByCluster } from './lib/connection';
+import { DidSolIdentifier } from './DidSolIdentifier';
 import {
   ClusterType,
   DecentralizedIdentifier,
   SolPublicKey,
-} from "@identity.com/sol-did-client-legacy";
-import { SolTransaction } from "@identity.com/sol-did-client-legacy";
-import { DidAccountSizeHelper } from "./DidAccountSizeHelper";
+} from '@identity.com/sol-did-client-legacy';
+import { SolTransaction } from '@identity.com/sol-did-client-legacy';
+import { DidAccountSizeHelper } from './DidAccountSizeHelper';
 
 /**
  * The DidSolService class is a wrapper around the Solana DID program.
@@ -84,7 +84,7 @@ export class DidSolService {
     private _program: Program<SolDid>,
     private _didAuthority: PublicKey,
     private _didDataAccount: PublicKey,
-    private _cluster: ExtendedCluster = "mainnet-beta",
+    private _cluster: ExtendedCluster = 'mainnet-beta',
     private _wallet: Wallet = new DummyWallet(),
     private _opts: ConfirmOptions = AnchorProvider.defaultOptions()
   ) {
@@ -116,7 +116,7 @@ export class DidSolService {
 
     const didAccount =
       this._program.account.didAccount.coder.accounts.decode<DidDataAccount>(
-        "DidAccount", // TODO: from "this._program.account.didAccount._idlAccount.name" - How to get this officially?
+        'DidAccount', // TODO: from "this._program.account.didAccount._idlAccount.name" - How to get this officially?
         accountInfo.data
       );
 
@@ -210,7 +210,7 @@ export class DidSolService {
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountSizeDeltaCallback: (didAccountBefore) => {
         if (!didAccountBefore) {
-          throw new Error("Cannot close account on uninitialized account");
+          throw new Error('Cannot close account on uninitialized account');
         }
 
         return (
@@ -249,7 +249,7 @@ export class DidSolService {
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountSizeDeltaCallback: (didAccountBefore) => {
         if (!didAccountBefore) {
-          throw new Error("Cannot close account on uninitialized account");
+          throw new Error('Cannot close account on uninitialized account');
         }
 
         return -DidAccountSizeHelper.fromAccount(
@@ -320,7 +320,7 @@ export class DidSolService {
       didAccountSizeDeltaCallback: (didAccountBefore) => {
         if (!didAccountBefore) {
           throw new Error(
-            "Cannot remove VerificationMethod on uninitialized account"
+            'Cannot remove VerificationMethod on uninitialized account'
           );
         }
         return -DidAccountSizeHelper.getVerificationMethodSize(
@@ -385,7 +385,7 @@ export class DidSolService {
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountSizeDeltaCallback: (didAccountBefore) => {
         if (!didAccountBefore) {
-          throw new Error("Cannot remove Service on uninitialized account");
+          throw new Error('Cannot remove Service on uninitialized account');
         }
 
         return -DidAccountSizeHelper.getServiceSize(
@@ -562,15 +562,15 @@ class DummyWallet implements Wallet {
   publicKey: PublicKey;
 
   constructor() {
-    this.publicKey = new PublicKey("11111111111111111111111111111111");
+    this.publicKey = new PublicKey('11111111111111111111111111111111');
   }
 
   signAllTransactions(txs: Transaction[]): Promise<Transaction[]> {
-    return Promise.reject("DummyWallet does not support signing transactions");
+    return Promise.reject('DummyWallet does not support signing transactions');
   }
 
   signTransaction(tx: Transaction): Promise<Transaction> {
-    return Promise.reject("DummyWallet does not support signing transactions");
+    return Promise.reject('DummyWallet does not support signing transactions');
   }
 }
 

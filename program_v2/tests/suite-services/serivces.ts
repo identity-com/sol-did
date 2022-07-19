@@ -1,21 +1,21 @@
-import * as anchor from "@project-serum/anchor";
-import { Program } from "@project-serum/anchor";
-import { SolDid } from "../../target/types/sol_did";
-import { DidDataAccount, DidSolService, findProgramAddress } from "../../src";
-import { before } from "mocha";
-import { getTestService } from "../utils/utils";
+import * as anchor from '@project-serum/anchor';
+import { Program } from '@project-serum/anchor';
+import { SolDid } from '../../target/types/sol_did';
+import { DidDataAccount, DidSolService, findProgramAddress } from '../../src';
+import { before } from 'mocha';
+import { getTestService } from '../utils/utils';
 
-import chai from "chai";
-import chaiAsPromised from "chai-as-promised";
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
-import { expect } from "chai";
-import { TEST_CLUSTER } from "../utils/const";
-import { Wallet } from "ethers";
-import { getDerivationPath, MNEMONIC } from "../fixtures/config";
+import { expect } from 'chai';
+import { TEST_CLUSTER } from '../utils/const';
+import { Wallet } from 'ethers';
+import { getDerivationPath, MNEMONIC } from '../fixtures/config';
 
 chai.use(chaiAsPromised);
 
-describe("sol-did service operations", () => {
+describe('sol-did service operations', () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
@@ -52,7 +52,7 @@ describe("sol-did service operations", () => {
   });
 
   //add data
-  it("add a new service to the data.services", async () => {
+  it('add a new service to the data.services', async () => {
     const serviceLengthBefore = didDataAccount.services.length;
 
     const tService = getTestService(1);
@@ -63,17 +63,17 @@ describe("sol-did service operations", () => {
   });
 
   //add service with the same key, expect an error to pass the test
-  it("should fail to add service with the same ID", async () => {
+  it('should fail to add service with the same ID', async () => {
     const tService = getTestService(1);
-    tService.serviceEndpoint = "serviceEndpoint2"; // change to change payload
+    tService.serviceEndpoint = 'serviceEndpoint2'; // change to change payload
 
     return expect(service.addService(tService).rpc()).to.be.rejectedWith(
-      "Error Code: ServiceFragmentAlreadyInUse. Error Number: 6004. Error Message: Service already exists in current service list."
+      'Error Code: ServiceFragmentAlreadyInUse. Error Number: 6004. Error Message: Service already exists in current service list.'
     );
   });
 
   // delete a service
-  it("can successfully delete a service", async () => {
+  it('can successfully delete a service', async () => {
     const serviceLengthBefore = didDataAccount.services.length;
 
     const tService = getTestService(1);
@@ -84,15 +84,15 @@ describe("sol-did service operations", () => {
   });
 
   // delete a service that doesn't exist, expect an error to pass the test.
-  it("should fail to delete non-existing service", async () => {
+  it('should fail to delete non-existing service', async () => {
     return expect(
-      service.removeService("non-existing-service-id").rpc()
+      service.removeService('non-existing-service-id').rpc()
     ).to.be.rejectedWith(
       "Error Code: ServiceFragmentNotFound. Error Number: 6005. Error Message: Service doesn't exists in current service list."
     );
   });
 
-  it("add a new service to the data.services with an ethereum key", async () => {
+  it('add a new service to the data.services with an ethereum key', async () => {
     const serviceLengthBefore = didDataAccount.services.length;
 
     const tService = getTestService(2);
@@ -106,7 +106,7 @@ describe("sol-did service operations", () => {
     expect(didDataAccount.services.length).to.equal(serviceLengthBefore + 1);
   });
 
-  it("can successfully delete a service with an ethereum key", async () => {
+  it('can successfully delete a service with an ethereum key', async () => {
     const serviceLengthBefore = didDataAccount.services.length;
 
     const tService = getTestService(2);

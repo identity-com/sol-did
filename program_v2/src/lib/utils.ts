@@ -1,8 +1,8 @@
-import * as anchor from "@project-serum/anchor";
-import { Program, Provider } from "@project-serum/anchor";
-import { SolDid } from "../../target/types/sol_did";
-import { PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { utils as ethersUtils } from "ethers/lib/ethers";
+import * as anchor from '@project-serum/anchor';
+import { Program, Provider } from '@project-serum/anchor';
+import { SolDid } from '../../target/types/sol_did';
+import { PublicKey, TransactionInstruction } from '@solana/web3.js';
+import { utils as ethersUtils } from 'ethers/lib/ethers';
 import {
   DidVerificationMethodComponents,
   EthSigner,
@@ -10,27 +10,27 @@ import {
   VerificationMethod,
   VerificationMethodFlags,
   VerificationMethodType,
-} from "./types";
+} from './types';
 import {
   DEFAULT_KEY_ID,
   DEFAULT_SEED_STRING,
   DID_SOL_PREFIX,
   DID_SOL_PROGRAM,
   VALID_DID_REGEX,
-} from "./const";
+} from './const';
 import {
   VerificationMethod as DidVerificationMethod,
   ServiceEndpoint as DidService,
-} from "did-resolver";
-import { DidSolIdentifier } from "../DidSolIdentifier";
-import { ExtendedCluster } from "./connection";
+} from 'did-resolver';
+import { DidSolIdentifier } from '../DidSolIdentifier';
+import { ExtendedCluster } from './connection';
 
 export const fetchProgram = async (
   provider: Provider
 ): Promise<Program<SolDid>> => {
   const idl = await Program.fetchIdl<SolDid>(DID_SOL_PROGRAM, provider);
 
-  if (!idl) throw new Error("Notification IDL could not be found");
+  if (!idl) throw new Error('Notification IDL could not be found');
 
   return new Program<SolDid>(idl, DID_SOL_PROGRAM, provider) as Program<SolDid>;
 };
@@ -47,7 +47,7 @@ export const ethSignPayload = async (
   signer: EthSigner
 ): Promise<TransactionInstruction> => {
   // Anchor 8 bytes prefix, Option<T> byte suffix
-  const nonceBytes = nonce.toBuffer("le", 8);
+  const nonceBytes = nonce.toBuffer('le', 8);
   const message = Buffer.concat([instruction.data.subarray(8, -1), nonceBytes]);
 
   const signatureFull = await signer.signMessage(message);
@@ -93,7 +93,7 @@ export const isDidSol = (did: string): boolean =>
 
 export const validateAndSplitControllers = (controllerDids: string[]) => {
   if (controllerDids.some((did) => !isValidDid(did))) {
-    throw new Error("Invalid DID found in controllers");
+    throw new Error('Invalid DID found in controllers');
   }
 
   const nativeControllers: PublicKey[] = [];
@@ -193,7 +193,7 @@ export const mapVerificationMethodsToDidComponents = (
         );
         break;
       case VerificationMethodType.EcdsaSecp256k1VerificationKey2019:
-        vm.publicKeyHex = ethersUtils.hexlify(method.keyData).replace("0x", "");
+        vm.publicKeyHex = ethersUtils.hexlify(method.keyData).replace('0x', '');
         break;
       default:
         throw new Error(
@@ -228,4 +228,4 @@ export const mapControllers = (
 };
 
 export const getBinarySize = (input: string): number =>
-  Buffer.byteLength(input, "utf8");
+  Buffer.byteLength(input, 'utf8');
