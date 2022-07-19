@@ -11,11 +11,11 @@ pub fn update(
     data.native_controllers = update_information.native_controllers;
     data.other_controllers = update_information.other_controllers;
     data.initial_verification_method.flags = 0;
-    let default_alias = &data.initial_verification_method.alias;
+    let default_alias = &data.initial_verification_method.fragment;
     let mut flag = data.initial_verification_method.flags;
     let new_methods = &mut update_information.verification_methods;
     new_methods.retain(|x| {
-        if x.alias == *default_alias {
+        if x.fragment == *default_alias {
             flag = x.flags;
             false
         } else {
