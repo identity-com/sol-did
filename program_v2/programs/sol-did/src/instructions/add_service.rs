@@ -13,11 +13,11 @@ pub fn add_service(
         data.nonce += 1;
     }
 
-    if data.services.iter().all(|x| x.id != service.id) {
+    if data.services.iter().all(|x| x.fragment != service.fragment) {
         data.services.push(service);
         Ok(())
     } else {
-        Err(error!(DidSolError::ServiceAlreadyExists))
+        Err(error!(DidSolError::ServiceFragmentAlreadyInUse))
     }
 }
 

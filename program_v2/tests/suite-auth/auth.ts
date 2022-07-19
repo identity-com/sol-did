@@ -65,7 +65,7 @@ describe("sol-did auth operations", () => {
   it("can add a new Ed25519VerificationKey2018 Key with CapabilityInvocation to an account", async () => {
     await service.addVerificationMethod(
       {
-        alias: newSolKeyAlias,
+        fragment: newSolKeyAlias,
         keyData: newSolKey.publicKey.toBytes(),
         methodType: VerificationMethodType.Ed25519VerificationKey2018,
         flags: VerificationMethodFlags.CapabilityInvocation,
@@ -74,7 +74,7 @@ describe("sol-did auth operations", () => {
     const didDataAccount = await service.getDidAccount();
 
     expect(didDataAccount.verificationMethods.length).to.equal(1)
-    expect(didDataAccount.verificationMethods[0].alias).to.equal(newSolKeyAlias)
+    expect(didDataAccount.verificationMethods[0].fragment).to.equal(newSolKeyAlias)
     expect(didDataAccount.verificationMethods[0].keyData).to.deep.equal(newSolKey.publicKey.toBytes())
     expect(didDataAccount.verificationMethods[0].methodType).to.equal( VerificationMethodType.Ed25519VerificationKey2018)
     expect(didDataAccount.verificationMethods[0].flags).to.equal(VerificationMethodFlags.CapabilityInvocation)
@@ -90,7 +90,7 @@ describe("sol-did auth operations", () => {
     const didDataAccount = await service.getDidAccount()
 
     expect(didDataAccount.services.length).to.equal(1)
-    expect(didDataAccount.services[0].id).to.equal(tService.id)
+    expect(didDataAccount.services[0].fragment).to.equal(tService.fragment)
     expect(didDataAccount.services[0].serviceType).to.equal(tService.serviceType)
     expect(didDataAccount.services[0].serviceEndpoint).to.equal(tService.serviceEndpoint)
   });
@@ -99,7 +99,7 @@ describe("sol-did auth operations", () => {
     return expect(
       service.addVerificationMethod(
         {
-          alias: "new-key",
+          fragment: "new-key",
           keyData: newSolKey.publicKey.toBytes(),
           methodType: VerificationMethodType.Ed25519VerificationKey2018,
           flags: VerificationMethodFlags.OwnershipProof,
@@ -109,17 +109,17 @@ describe("sol-did auth operations", () => {
     );
   });
 
-  it("can not add a key if the alias already exists", async () => {
+  it("can not add a key if the fragment already exists", async () => {
     return expect(
       service.addVerificationMethod(
         {
-          alias: "default",
+          fragment: "default",
           keyData: newSolKey.publicKey.toBytes(),
           methodType: VerificationMethodType.Ed25519VerificationKey2018,
           flags: VerificationMethodFlags.CapabilityInvocation,
         }).rpc()
     ).to.be.rejectedWith(
-      "Error Code: VmAliasAlreadyInUse. Error Number: 6001. Error Message: Given VM alias is already in use"
+      "Error Code: VmFragmentAlreadyInUse. Error Number: 6001. Error Message: Given VM fragment is already in use."
     );
   });
 
@@ -128,7 +128,7 @@ describe("sol-did auth operations", () => {
 
     await service.addVerificationMethod(
       {
-        alias: newEthKeyAlias,
+        fragment: newEthKeyAlias,
         keyData: Buffer.from(ethAddressAsBytes),
         methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
         flags: VerificationMethodFlags.CapabilityInvocation,
@@ -137,7 +137,7 @@ describe("sol-did auth operations", () => {
     const didDataAccount = await service.getDidAccount()
 
     expect(didDataAccount.verificationMethods.length).to.equal(2)
-    expect(didDataAccount.verificationMethods[1].alias).to.equal(newEthKeyAlias)
+    expect(didDataAccount.verificationMethods[1].fragment).to.equal(newEthKeyAlias)
     expect(didDataAccount.verificationMethods[1].keyData.length).to.equal(20)
     expect(didDataAccount.verificationMethods[1].keyData).to.deep.equal(ethAddressAsBytes)
     expect(didDataAccount.verificationMethods[1].methodType).to.equal( VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020)
@@ -161,7 +161,7 @@ describe("sol-did auth operations", () => {
 
     expect(didDataAccount.services.length).to.equal(2)
     expect(didDataAccount.nonce.toString()).to.be.equal(didDataAccountBefore.nonce.addn(1).toString());
-    expect(didDataAccount.services[1].id).to.equal(tService.id)
+    expect(didDataAccount.services[1].fragment).to.equal(tService.fragment)
     expect(didDataAccount.services[1].serviceType).to.equal(tService.serviceType)
     expect(didDataAccount.services[1].serviceEndpoint).to.equal(tService.serviceEndpoint)
 
@@ -193,7 +193,7 @@ describe("sol-did auth operations", () => {
     // use transaction to test replay attack
     const transaction = await service.addVerificationMethod(
       {
-        alias: newEthKeyAlias2,
+        fragment: newEthKeyAlias2,
         keyData,
         methodType: VerificationMethodType.EcdsaSecp256k1VerificationKey2019,
         flags: VerificationMethodFlags.CapabilityInvocation,
@@ -209,7 +209,7 @@ describe("sol-did auth operations", () => {
 
     expect(didDataAccount.nonce.toString()).to.be.equal(didDataAccountBefore.nonce.addn(1).toString());
     expect(didDataAccount.verificationMethods.length).to.equal(3)
-    expect(didDataAccount.verificationMethods[2].alias).to.equal(newEthKeyAlias2)
+    expect(didDataAccount.verificationMethods[2].fragment).to.equal(newEthKeyAlias2)
     expect(didDataAccount.verificationMethods[2].keyData.length).to.equal(64)
     expect(didDataAccount.verificationMethods[2].keyData).to.deep.equal(keyData)
     expect(didDataAccount.verificationMethods[2].methodType).to.equal( VerificationMethodType.EcdsaSecp256k1VerificationKey2019)
@@ -236,7 +236,7 @@ describe("sol-did auth operations", () => {
 
     expect(didDataAccount.services.length).to.equal(3)
     expect(didDataAccount.nonce.toString()).to.be.equal(didDataAccountBefore.nonce.addn(1).toString());
-    expect(didDataAccount.services[2].id).to.equal(tService.id)
+    expect(didDataAccount.services[2].fragment).to.equal(tService.fragment)
     expect(didDataAccount.services[2].serviceType).to.equal(tService.serviceType)
     expect(didDataAccount.services[2].serviceEndpoint).to.equal(tService.serviceEndpoint)
 
@@ -246,14 +246,14 @@ describe("sol-did auth operations", () => {
   });
 
   it("cannot update the flags of an unknown verification method", async () => {
-    const unknownAlias = 'unknown-alias'
+    const unknownAlias = 'unknown-fragment'
 
     // use transaction to test replay attack
     return expect(
       service.setVerificationMethodFlags(unknownAlias, VerificationMethodFlags.None)
         .rpc()
     ).to.be.rejectedWith(
-      "Error Code: VmAliasNotFound. Error Number: 6000. Error Message: No VM with the given alias exists."
+      "Error Code: VmFragmentNotFound. Error Number: 6000. Error Message: No VM with the given fragment exists."
     );
   });
 
@@ -268,7 +268,7 @@ describe("sol-did auth operations", () => {
 
     const didDataAccount = await service.getDidAccount()
     expect(didDataAccount.verificationMethods.length).to.equal(vmLengthBefore)
-    expect(didDataAccount.verificationMethods[1].alias).to.equal(newEthKeyAlias)
+    expect(didDataAccount.verificationMethods[1].fragment).to.equal(newEthKeyAlias)
     expect(didDataAccount.verificationMethods[1].flags).to.equal(newFlags)
   });
 
@@ -296,7 +296,7 @@ describe("sol-did auth operations", () => {
 
     const didDataAccount = await service.getDidAccount()
     expect(didDataAccount.verificationMethods.length).to.equal(vmLengthBefore)
-    expect(didDataAccount.verificationMethods[1].alias).to.equal(newEthKeyAlias)
+    expect(didDataAccount.verificationMethods[1].fragment).to.equal(newEthKeyAlias)
     expect(didDataAccount.verificationMethods[1].flags).to.equal(newFlags)
   });
 

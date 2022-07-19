@@ -11,7 +11,7 @@ export class DidAccountSizeHelper {
       return 0;
     }
 
-    return  4 + getBinarySize(service.id) // String: alias binary size
+    return  4 + getBinarySize(service.fragment) // String: fragment binary size
       + 4 + getBinarySize(service.serviceType)
       + 4 + getBinarySize(service.serviceEndpoint)
   }
@@ -21,7 +21,7 @@ export class DidAccountSizeHelper {
       return 0;
     }
 
-    return  4 + getBinarySize(verificationMethod.alias) // String: alias binary size
+    return  4 + getBinarySize(verificationMethod.fragment) // String: fragment binary size
       + 2 // flags
       + 1 // method
       + 4 + verificationMethod.keyData.length // keyData Vector<u8>

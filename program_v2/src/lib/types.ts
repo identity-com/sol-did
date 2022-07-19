@@ -21,14 +21,14 @@ export type DidDataAccount = {
 }
 
 export type VerificationMethod = {
-  alias: string;
+  fragment: string;
   keyData: Bytes;
   methodType: VerificationMethodType;
   flags: VerificationMethodFlags;
 }
 
 export type Service = {
-  id: string;
+  fragment: string;
   serviceType: string;
   serviceEndpoint: string;
 }

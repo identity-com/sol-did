@@ -57,7 +57,7 @@ import { Wallet as NodeWallet } from "@project-serum/anchor";
 
   await service.addVerificationMethod(
     {
-      alias: "eth-address",
+      fragment: "eth-address",
       keyData: Buffer.from(ethAddress),
       methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
       flags: VerificationMethodFlags.CapabilityInvocation,
@@ -71,7 +71,7 @@ import { Wallet as NodeWallet } from "@project-serum/anchor";
   await airdrop(service.connection, nonAuthority.publicKey, 5 * LAMPORTS_PER_SOL);
 
   await service.addService({
-    id: "service-1",
+    fragment: "service-1",
     serviceType: "service-type-1",
     serviceEndpoint: "http://localhost:3000",
   }, nonAuthority.publicKey)

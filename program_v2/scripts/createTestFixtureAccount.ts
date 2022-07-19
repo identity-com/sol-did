@@ -68,7 +68,7 @@ const { exec } = require("child_process");
 
   await service.addVerificationMethod(
     {
-      alias: "eth-address",
+      fragment: "eth-address",
       keyData: Buffer.from(ethAuthority0AddressAsBytes),
       methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
       flags: VerificationMethodFlags.CapabilityInvocation,
@@ -80,7 +80,7 @@ const { exec } = require("child_process");
   const ethAuthority1 = Wallet.fromMnemonic(MNEMONIC, getDerivationPath(1));
   await service.addVerificationMethod(
     {
-      alias: "eth-key",
+      fragment: "eth-key",
       keyData: Buffer.from(utils.arrayify(ethAuthority1.publicKey).slice(1)),
       methodType: VerificationMethodType.EcdsaSecp256k1VerificationKey2019,
       flags: VerificationMethodFlags.CapabilityInvocation,
@@ -125,10 +125,10 @@ const { exec } = require("child_process");
     did: legacyDid,
     payer: otherSolKey.secretKey,
     service: {
-      id: `${legacyDid}#${tService2.id}`,
+      id: `${legacyDid}#${tService2.fragment}`,
       type: tService2.serviceType,
       serviceEndpoint: tService2.serviceEndpoint,
-      description: `${tService2.id} description`,
+      description: `${tService2.fragment} description`,
     }
   })
 

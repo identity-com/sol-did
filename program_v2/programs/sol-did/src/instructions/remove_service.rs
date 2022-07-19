@@ -5,7 +5,7 @@ use anchor_lang::prelude::*;
 
 pub fn remove_service(
     ctx: Context<RemoveService>,
-    service_id: String,
+    fragment: String,
     eth_signature: Option<Secp256k1RawSignature>,
 ) -> Result<()> {
     let data = &mut ctx.accounts.did_data;
@@ -14,12 +14,12 @@ pub fn remove_service(
     }
 
     let length_before = data.services.len();
-    data.services.retain(|x| x.id != service_id);
+    data.services.retain(|x| x.fragment != fragment);
     let length_after = data.services.len();
     if length_after != length_before {
         Ok(())
     } else {
-        Err(error!(DidSolError::ServiceNotFound))
+        Err(error!(DidSolError::ServiceFragmentNotFound))
     }
 }
 

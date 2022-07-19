@@ -223,7 +223,7 @@ export class DidSolService {
    */
   addVerificationMethod(method: VerificationMethod, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
     const instructionPromise = this._program.methods.addVerificationMethod({
-      alias: method.alias,
+      fragment: method.fragment,
       keyData: method.keyData,
       methodType: method.methodType,
       flags: method.flags,
@@ -243,11 +243,11 @@ export class DidSolService {
 
   /**
    * Remove a VerificationMethod from the did:sol account.
-   * @param alias The alias of the VerificationMethod to remove
+   * @param fragment The fragment of the VerificationMethod to remove
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  removeVerificationMethod(alias: string, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
-    const instructionPromise = this._program.methods.removeVerificationMethod(alias, null).accounts({
+  removeVerificationMethod(fragment: string, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods.removeVerificationMethod(fragment, null).accounts({
       didData: this._didDataAccount,
       authority
     }).instruction();
@@ -259,7 +259,7 @@ export class DidSolService {
         if (!didAccountBefore) {
           throw new Error("Cannot remove VerificationMethod on uninitialized account");
         }
-        return -DidAccountSizeHelper.getVerificationMethodSize(didAccountBefore.verificationMethods.find(m => m.alias === alias))
+        return -DidAccountSizeHelper.getVerificationMethodSize(didAccountBefore.verificationMethods.find(m => m.fragment === fragment))
       },
       allowsDynamicAlloc: true,
       authority,
@@ -290,11 +290,11 @@ export class DidSolService {
   /**
    * Removes a Service to the did:sol account.
    * Supports ethSignInstruction
-   * @param id The id of the service to remove
+   * @param fragment The id of the service to remove
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  removeService(id: string, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
-    const instructionPromise = this._program.methods.removeService(id, null).accounts({
+  removeService(fragment: string, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods.removeService(fragment, null).accounts({
       didData: this._didDataAccount,
       authority
     }).instruction()
@@ -307,7 +307,7 @@ export class DidSolService {
           throw new Error("Cannot remove Service on uninitialized account");
         }
 
-        return -DidAccountSizeHelper.getServiceSize(didAccountBefore.services.find(s => s.id === id))
+        return -DidAccountSizeHelper.getServiceSize(didAccountBefore.services.find(s => s.fragment === fragment))
       },
       allowsDynamicAlloc: true,
       authority,
@@ -316,15 +316,15 @@ export class DidSolService {
 
   /**
    * Update the Flags of a VerificationMethod.
-   * @param alias The alias of the VerificationMethod to update
+   * @param fragment The fragment of the VerificationMethod to update
    * @param flags The flags to set. If flags contain VerificationMethodFlags.OwnershipProof, the transaction must be signed by the exact same VM.
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  setVerificationMethodFlags(alias: string,
+  setVerificationMethodFlags(fragment: string,
                              flags: VerificationMethodFlags,
                              authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
     const instructionPromise = this._program.methods.setVmFlags({
-      alias,
+      fragment,
       flags
     }, null).accounts({
       didData: this._didDataAccount,

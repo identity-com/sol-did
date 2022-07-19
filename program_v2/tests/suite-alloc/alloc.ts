@@ -137,7 +137,7 @@ describe("sol-did alloc operations", () => {
   it("will not shrink an account", async () => {
     const didDataAccountSizeBefore = didDataAccountSize;
     const tService = getTestService(1);
-    await service.removeService(tService.id).withAutomaticAlloc(authority.publicKey).rpc();
+    await service.removeService(tService.fragment).withAutomaticAlloc(authority.publicKey).rpc();
 
     // check data
     [didDataAccount, didDataAccountSize] = await service.getDidAccountWithSize();
@@ -162,7 +162,7 @@ describe("sol-did alloc operations", () => {
     const ethAddressAsBytes = utils.arrayify(ethKey.address);
 
     const method: VerificationMethod = {
-      alias: 'eth-key',
+      fragment: 'eth-key',
       keyData: Buffer.from(ethAddressAsBytes),
       methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
       flags: VerificationMethodFlags.CapabilityInvocation,

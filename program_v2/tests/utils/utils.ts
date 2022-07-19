@@ -27,7 +27,7 @@ export const airdrop = async (
 }
 
 export const getTestService = (n : number): Service => ({
-  id: `test${n}`,
+  fragment: `test${n}`,
   serviceType: `testType${n}`,
   serviceEndpoint: `testEndpoint${n}`
 })

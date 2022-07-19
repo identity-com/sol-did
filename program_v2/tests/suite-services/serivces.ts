@@ -70,7 +70,7 @@ describe("sol-did service operations", () => {
     return expect(
       service.addService(tService).rpc()
     ).to.be.rejectedWith(
-      "Error Code: ServiceAlreadyExists. Error Number: 6004. Error Message: ServiceID already exists in current service."
+      "Error Code: ServiceFragmentAlreadyInUse. Error Number: 6004. Error Message: Service already exists in current service list."
     );
   });
 
@@ -79,7 +79,7 @@ describe("sol-did service operations", () => {
     const serviceLengthBefore = didDataAccount.services.length;
 
     const tService = getTestService(1)
-    await service.removeService(tService.id).rpc();
+    await service.removeService(tService.fragment).rpc();
 
     didDataAccount = await service.getDidAccount();
     expect(didDataAccount.services.length).to.equal(serviceLengthBefore - 1);
@@ -90,7 +90,7 @@ describe("sol-did service operations", () => {
     return expect(
       service.removeService('non-existing-service-id').rpc()
     ).to.be.rejectedWith(
-      "Error Code: ServiceNotFound. Error Number: 6005. Error Message: ServiceID doesn't exists in current service."
+      "Error Code: ServiceFragmentNotFound. Error Number: 6005. Error Message: Service doesn't exists in current service list."
     );
   });
 
@@ -111,7 +111,7 @@ describe("sol-did service operations", () => {
     const serviceLengthBefore = didDataAccount.services.length;
 
     const tService = getTestService(2)
-    await service.removeService(tService.id, nonAuthoritySigner.publicKey)
+    await service.removeService(tService.fragment, nonAuthoritySigner.publicKey)
       .withEthSigner(ethAuthority1)
       .withPartialSigners(nonAuthoritySigner)
       .rpc();

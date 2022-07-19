@@ -106,7 +106,7 @@ export const validateAndSplitControllers = (controllerDids: string[]) => {
 
 
 export const defaultVerificationMethod = (authority: PublicKey): VerificationMethod => ({
-  alias: DEFAULT_KEY_ID,
+  fragment: DEFAULT_KEY_ID,
   methodType: VerificationMethodType.Ed25519VerificationKey2018,
   flags: VerificationMethodFlags.CapabilityInvocation | VerificationMethodFlags.OwnershipProof,
   keyData: authority.toBuffer(),
@@ -130,23 +130,23 @@ export const mapVerificationMethodsToDidComponents = (methods: VerificationMetho
       continue;
     }
     if ((method.flags & VerificationMethodFlags.Authentication) === VerificationMethodFlags.Authentication) {
-      didComponents.authentication.push(`#${method.alias}`);
+      didComponents.authentication.push(`#${method.fragment}`);
     }
     if ((method.flags & VerificationMethodFlags.Assertion) === VerificationMethodFlags.Assertion) {
-      didComponents.assertionMethod.push(`#${method.alias}`);
+      didComponents.assertionMethod.push(`#${method.fragment}`);
     }
     if ((method.flags & VerificationMethodFlags.KeyAgreement) === VerificationMethodFlags.KeyAgreement) {
-      didComponents.keyAgreement.push(`#${method.alias}`);
+      didComponents.keyAgreement.push(`#${method.fragment}`);
     }
     if ((method.flags & VerificationMethodFlags.CapabilityInvocation) === VerificationMethodFlags.CapabilityInvocation) {
-      didComponents.capabilityInvocation.push(`#${method.alias}`);
+      didComponents.capabilityInvocation.push(`#${method.fragment}`);
     }
     if ((method.flags & VerificationMethodFlags.CapabilityDelegation) === VerificationMethodFlags.CapabilityDelegation) {
-      didComponents.capabilityDelegation.push(`#${method.alias}`);
+      didComponents.capabilityDelegation.push(`#${method.fragment}`);
     }
 
     let vm: DidVerificationMethod = {
-      id: identifier.withUrl(DEFAULT_KEY_ID).toString(),
+      id: identifier.withUrl(method.fragment).toString(),
       type: VerificationMethodType[method.methodType],
       controller: identifier.toString(),
     };
@@ -172,7 +172,7 @@ export const mapVerificationMethodsToDidComponents = (methods: VerificationMetho
 }
 
 export const mapServices = (services: Service[]): DidService[] => services.map(service => ({
-  id: service.id,
+  id: `#${service.fragment}`,
   type: service.serviceType,
   serviceEndpoint: service.serviceEndpoint,
 }));
