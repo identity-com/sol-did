@@ -1,7 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { SolDid } from "../../target/types/sol_did";
-import { DidSolService } from "../../src";
+import { DidDataAccount, DidSolService, findProgramAddress } from "../../src";
 import { before } from "mocha";
 import { getTestService } from "../utils/utils";
 
@@ -9,8 +9,9 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 
 import { expect } from "chai";
-import { findProgramAddress } from "../../src/lib/utils";
 import { TEST_CLUSTER } from "../utils/const";
+import { Wallet } from "ethers";
+import { getDerivationPath, MNEMONIC } from "../fixtures/config";
 
 chai.use(chaiAsPromised);
 
@@ -25,6 +26,13 @@ describe("sol-did service operations", () => {
   let didData, didDataPDABump;
   let service: DidSolService;
 
+  let didDataAccount: DidDataAccount;
+
+  const ethAuthority0 = Wallet.fromMnemonic(MNEMONIC, getDerivationPath(0));
+  const ethAuthority1 = Wallet.fromMnemonic(MNEMONIC, getDerivationPath(1));
+
+  const nonAuthoritySigner = anchor.web3.Keypair.generate();
+
   const authority = programProvider.wallet;
 
   before(async () => {
@@ -36,18 +44,22 @@ describe("sol-did service operations", () => {
       TEST_CLUSTER,
       authority,
       programProvider.opts);
+
+    // size up
+    await service.resize(1_000).rpc();
+
+    didDataAccount = await service.getDidAccount();
   })
 
   //add data
   it("add a new service to the data.services", async () => {
-    const dataAccountBefore = await service.getDidAccount();
-    const serviceLengthBefore = dataAccountBefore.services.length;
+    const serviceLengthBefore = didDataAccount.services.length;
 
     const tService = getTestService(1)
     await service.addService(tService).rpc();
 
-    const dataAccountAfter = await service.getDidAccount();
-    expect(dataAccountAfter.services.length).to.equal(serviceLengthBefore + 1);
+    didDataAccount = await service.getDidAccount();
+    expect(didDataAccount.services.length).to.equal(serviceLengthBefore + 1);
   });
 
   //add service with the same key, expect an error to pass the test
@@ -64,14 +76,13 @@ describe("sol-did service operations", () => {
 
   // delete a service
   it("can successfully delete a service", async () => {
-    const dataAccountBefore = await service.getDidAccount();
-    const serviceLengthBefore = dataAccountBefore.services.length;
+    const serviceLengthBefore = didDataAccount.services.length;
 
     const tService = getTestService(1)
     await service.removeService(tService.id).rpc();
 
-    const dataAccountAfter = await service.getDidAccount();
-    expect(dataAccountAfter.services.length).to.equal(serviceLengthBefore - 1);
+    didDataAccount = await service.getDidAccount();
+    expect(didDataAccount.services.length).to.equal(serviceLengthBefore - 1);
   });
 
   // delete a service that doesn't exist, expect an error to pass the test.
@@ -81,5 +92,31 @@ describe("sol-did service operations", () => {
     ).to.be.rejectedWith(
       "Error Code: ServiceNotFound. Error Number: 6005. Error Message: ServiceID doesn't exists in current service."
     );
+  });
+
+  it("add a new service to the data.services with an ethereum key", async () => {
+    const serviceLengthBefore = didDataAccount.services.length;
+
+    const tService = getTestService(2)
+    await service.addService(tService, nonAuthoritySigner.publicKey)
+      .withEthSigner(ethAuthority0)
+      .withPartialSigners(nonAuthoritySigner)
+      .rpc();
+
+    didDataAccount = await service.getDidAccount();
+    expect(didDataAccount.services.length).to.equal(serviceLengthBefore + 1);
+  });
+
+  it("can successfully delete a service with an ethereum key", async () => {
+    const serviceLengthBefore = didDataAccount.services.length;
+
+    const tService = getTestService(2)
+    await service.removeService(tService.id, nonAuthoritySigner.publicKey)
+      .withEthSigner(ethAuthority1)
+      .withPartialSigners(nonAuthoritySigner)
+      .rpc();
+
+    didDataAccount = await service.getDidAccount();
+    expect(didDataAccount.services.length).to.equal(serviceLengthBefore - 1);
   });
 });

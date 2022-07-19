@@ -9,9 +9,7 @@ import { airdrop, getTestService, } from "../utils/utils";
 import { before } from "mocha";
 import { utils, Wallet } from "ethers";
 import { DidSolService, VerificationMethodFlags, VerificationMethodType } from "../../src";
-import { findProgramAddress } from "../../src/lib/utils";
-import { getDerivationPath, MNEMONIC } from "../fixtures/config";
-import { DEFAULT_KEY_ID } from "../../src/lib/const";
+import { findProgramAddress, DEFAULT_KEY_ID } from "../../src";
 import { TEST_CLUSTER } from "../utils/const";
 
 
@@ -28,7 +26,6 @@ describe("sol-did auth operations", () => {
   let service: DidSolService;
 
   const solAuthority = programProvider.wallet;
-  const ethAuthority = Wallet.fromMnemonic(MNEMONIC, getDerivationPath());
 
   const nonAuthoritySigner = anchor.web3.Keypair.generate();
 
@@ -49,12 +46,13 @@ describe("sol-did auth operations", () => {
       solAuthority,
       programProvider.opts);
 
+    // size up
+    await service.resize(1_000).rpc();
     // Fund nonAuthoritySigner
     await airdrop(programProvider.connection, nonAuthoritySigner.publicKey);
   })
 
   it("fails when trying to close a did:sol account with a wrong authority", async () => {
-
     return expect(
       service.close(nonAuthoritySigner.publicKey, nonAuthoritySigner.publicKey)
         .withPartialSigners(nonAuthoritySigner)

@@ -18,7 +18,6 @@ pub fn set_controllers(
     // Make sure that vector does not contain duplicates.
     data.native_controllers.sort_unstable();
     data.native_controllers.dedup(); // requires sorted vector
-    // TODO: make sure that one cannot add itself as a controller.
 
     let own_authority = Pubkey::new(&data.initial_verification_method.key_data);
 

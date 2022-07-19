@@ -62,13 +62,6 @@ const { exec } = require("child_process");
   // write account
   exec(`solana account ${didData.toBase58()} -ul -o tests/fixtures/did-account-min.json --output json`);
 
-  const DEFAULT_ACCOUNT_SIZE = 10_000; // TODO reduce fixture size for tests
-
-  await service.resize(DEFAULT_ACCOUNT_SIZE, authority.publicKey).rpc();
-
-  // write account
-  exec(`solana account ${didData.toBase58()} -ul -o tests/fixtures/did-account.json --output json`);
-
   // Multiple Verification Methods to fixture
   const ethAuthority0 = Wallet.fromMnemonic(MNEMONIC, getDerivationPath());
   const ethAuthority0AddressAsBytes = utils.arrayify(ethAuthority0.address)
@@ -79,7 +72,9 @@ const { exec } = require("child_process");
       keyData: Buffer.from(ethAuthority0AddressAsBytes),
       methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
       flags: VerificationMethodFlags.CapabilityInvocation,
-    }).rpc();
+    })
+    .withAutomaticAlloc(authority.publicKey)
+    .rpc();
 
 
   const ethAuthority1 = Wallet.fromMnemonic(MNEMONIC, getDerivationPath(1));
@@ -89,10 +84,14 @@ const { exec } = require("child_process");
       keyData: Buffer.from(utils.arrayify(ethAuthority1.publicKey).slice(1)),
       methodType: VerificationMethodType.EcdsaSecp256k1VerificationKey2019,
       flags: VerificationMethodFlags.CapabilityInvocation,
-    }).rpc();
+    })
+    .withAutomaticAlloc(authority.publicKey)
+    .rpc();
 
   const tService = getTestService(871438247)
-  await service.addService(tService).rpc();
+  await service.addService(tService)
+    .withAutomaticAlloc(authority.publicKey)
+    .rpc();
 
   const ethrDid = `did:ethr:${ethKey.address}`;
   const solDid = DidSolIdentifier.create(otherSolKey.publicKey, TEST_CLUSTER).toString();
@@ -102,6 +101,7 @@ const { exec } = require("child_process");
       ethrDid,
       solDid,
     ])
+    .withAutomaticAlloc(authority.publicKey)
     .rpc()
 
   // write account
