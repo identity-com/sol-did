@@ -142,7 +142,7 @@ jobs:
           key: yarn-client-${{ hashFiles('program_v2/yarn.lock') }}
 
       - name: Install
-        run: yarn install
+        run: yarn install --ignore-scripts --frozen-lockfile
 
       - name: Lint
         run: yarn lint
