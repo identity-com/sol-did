@@ -14,7 +14,7 @@ declare_id!("didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc");
 pub mod sol_did {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>, size: Option<u32>) -> Result<()> {
+    pub fn initialize(ctx: Context<Initialize>, size: u32) -> Result<()> {
         instructions::initialize(ctx, size)
     }
 

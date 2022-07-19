@@ -6,7 +6,6 @@ import {
   DidSolIdentifier,
   VerificationMethodFlags,
   VerificationMethodType,
-  INITIAL_MIN_ACCOUNT_SIZE,
   LegacyClient,
 } from "../dist/src/index";
 import { SolDid } from "../dist/target/types/sol_did";
@@ -58,12 +57,12 @@ const { exec } = require("child_process");
 
   // Init account
 
-  await service.initialize(INITIAL_MIN_ACCOUNT_SIZE).rpc();
+  await service.initialize().rpc();
 
   // write account
   exec(`solana account ${didData.toBase58()} -ul -o tests/fixtures/did-account-min.json --output json`);
 
-  const DEFAULT_ACCOUNT_SIZE = 10_000;
+  const DEFAULT_ACCOUNT_SIZE = 10_000; // TODO reduce fixture size for tests
 
   await service.resize(DEFAULT_ACCOUNT_SIZE, authority.publicKey).rpc();
 

@@ -18,4 +18,6 @@ pub enum DidSolError {
     InvalidOtherControllers,
     #[msg("Invalid native controllers. Cannot set itself as a controller")]
     InvalidNativeControllers,
+    #[msg("Initial Account size is insufficient for serialization")]
+    InsufficientInitialSize,
 }

@@ -184,4 +184,6 @@ export const mapControllers = (nativeControllers: PublicKey[], otherControllers:
   ];
 };
 
+export const getBinarySize = (input: string): number => Buffer.byteLength(input, 'utf8');
+
 
