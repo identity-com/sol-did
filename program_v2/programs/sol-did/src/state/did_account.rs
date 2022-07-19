@@ -114,7 +114,8 @@ impl DidAccount {
 
         // general case
         let vm_length_before = self.verification_methods.len();
-        self.verification_methods.retain(|x| x.fragment != *fragment);
+        self.verification_methods
+            .retain(|x| x.fragment != *fragment);
         let vm_length_after = self.verification_methods.len();
 
         if vm_length_after != vm_length_before {
@@ -124,7 +125,10 @@ impl DidAccount {
         }
     }
 
-    pub fn find_verification_method(&mut self, fragment: &String) -> Option<&mut VerificationMethod> {
+    pub fn find_verification_method(
+        &mut self,
+        fragment: &String,
+    ) -> Option<&mut VerificationMethod> {
         self.verification_methods_mut(None, None, None, Some(fragment))
             .into_iter()
             .next()
