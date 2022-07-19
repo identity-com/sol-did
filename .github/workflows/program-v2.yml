@@ -47,6 +47,41 @@ jobs:
           command: clippy
           args: --manifest-path program_v2/Cargo.toml --tests --workspace --all-targets -- --deny=warnings
 
+  client-lint:
+    name: Format and lint the sol client on node ${{ matrix.node }} and ${{ matrix.os }}
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node: [ '16.x' ]
+        os: [ubuntu-latest]
+
+    defaults:
+      run:
+        working-directory: ./program_v2
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Cache node dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ./program_v2/node_modules
+          key: yarn-client-${{ hashFiles('program_v2/yarn.lock') }}
+
+      - name: Install
+        run: yarn install
+
+      - name: Lint
+        run: yarn lint
+
   program-unit-test:
     name: Unit test program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
 
@@ -82,7 +117,7 @@ jobs:
           command: test
           args: --manifest-path program_v2/Cargo.toml
 
-  program-build:
+  anchor-e2e-test:
     name: Build and test the sol on-chain program on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
