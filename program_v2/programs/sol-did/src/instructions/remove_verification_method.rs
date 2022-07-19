@@ -5,7 +5,7 @@ use anchor_lang::prelude::*;
 
 pub fn remove_verification_method(
     ctx: Context<RemoveVerificationMethod>,
-    alias: String,
+    fragment: String,
     eth_signature: Option<Secp256k1RawSignature>,
 ) -> Result<()> {
     let data = &mut ctx.accounts.did_data;
@@ -13,7 +13,7 @@ pub fn remove_verification_method(
         data.nonce += 1;
     }
 
-    let _ = data.remove_verification_method(&alias);
+    let _ = data.remove_verification_method(&fragment);
 
     // prevent lockout
     require!(
@@ -25,13 +25,13 @@ pub fn remove_verification_method(
 }
 
 #[derive(Accounts)]
-#[instruction(alias: String, eth_signature: Option<Secp256k1RawSignature>)]
+#[instruction(fragment: String, eth_signature: Option<Secp256k1RawSignature>)]
 pub struct RemoveVerificationMethod<'info> {
     #[account(
         mut,
         seeds = [DID_ACCOUNT_SEED.as_bytes(), did_data.initial_verification_method.key_data.as_ref()],
         bump = did_data.bump,
-        constraint = did_data.find_authority(&authority.key(), &alias.try_to_vec().unwrap(), eth_signature.as_ref(), None).is_some(),
+        constraint = did_data.find_authority(&authority.key(), &fragment.try_to_vec().unwrap(), eth_signature.as_ref(), None).is_some(),
     )]
     pub did_data: Account<'info, DidAccount>,
     pub authority: Signer<'info>,

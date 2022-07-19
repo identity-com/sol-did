@@ -19,7 +19,7 @@
   },
   "include": [
     "src/**/*",
-    "target/types/gateway_derive.ts"
+    "target/types/sol_did.ts"
   ],
   "exclude": [
     "ui",

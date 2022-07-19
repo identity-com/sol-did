@@ -35,7 +35,7 @@ impl DidAccount {
         filter_types: Option<&[VerificationMethodType]>,
         filter_flags: Option<VerificationMethodFlags>,
         filter_key: Option<&[u8]>,
-        filter_alias: Option<&String>,
+        filter_fragment: Option<&String>,
     ) -> Vec<&VerificationMethod> {
         std::iter::once(&self.initial_verification_method)
             .chain(self.verification_methods.iter())
@@ -55,8 +55,8 @@ impl DidAccount {
                 Some(filter_key) => vm.key_data == filter_key,
                 None => true,
             })
-            .filter(|vm| match filter_alias {
-                Some(filter_alias) => vm.alias == *filter_alias,
+            .filter(|vm| match filter_fragment {
+                Some(filter_fragment) => vm.fragment == *filter_fragment,
                 None => true,
             })
             .collect()
@@ -70,7 +70,7 @@ impl DidAccount {
         filter_types: Option<&[VerificationMethodType]>,
         filter_flags: Option<VerificationMethodFlags>,
         filter_key: Option<&[u8]>,
-        filter_alias: Option<&String>,
+        filter_fragment: Option<&String>,
     ) -> Vec<&mut VerificationMethod> {
         std::iter::once(&mut self.initial_verification_method)
             .chain(self.verification_methods.iter_mut())
@@ -90,8 +90,8 @@ impl DidAccount {
                 Some(filter_key) => vm.key_data == filter_key,
                 None => true,
             })
-            .filter(|vm| match filter_alias {
-                Some(filter_alias) => vm.alias == *filter_alias,
+            .filter(|vm| match filter_fragment {
+                Some(filter_fragment) => vm.fragment == *filter_fragment,
                 None => true,
             })
             .collect()
@@ -105,27 +105,31 @@ impl DidAccount {
         Ok(())
     }
 
-    pub fn remove_verification_method(&mut self, alias: &String) -> Result<()> {
+    pub fn remove_verification_method(&mut self, fragment: &String) -> Result<()> {
         // default case
-        if alias == &self.initial_verification_method.alias {
+        if fragment == &self.initial_verification_method.fragment {
             self.initial_verification_method.flags = 0;
             return Ok(());
         }
 
         // general case
         let vm_length_before = self.verification_methods.len();
-        self.verification_methods.retain(|x| x.alias != *alias);
+        self.verification_methods
+            .retain(|x| x.fragment != *fragment);
         let vm_length_after = self.verification_methods.len();
 
         if vm_length_after != vm_length_before {
             Ok(())
         } else {
-            Err(error!(DidSolError::VmAliasNotFound))
+            Err(error!(DidSolError::VmFragmentNotFound))
         }
     }
 
-    pub fn find_verification_method(&mut self, alias: &String) -> Option<&mut VerificationMethod> {
-        self.verification_methods_mut(None, None, None, Some(alias))
+    pub fn find_verification_method(
+        &mut self,
+        fragment: &String,
+    ) -> Option<&mut VerificationMethod> {
+        self.verification_methods_mut(None, None, None, Some(fragment))
             .into_iter()
             .next()
     }
@@ -147,13 +151,13 @@ impl DidAccount {
         sol_authority: &Pubkey,
         eth_message: &[u8],
         eth_raw_signature: Option<&Secp256k1RawSignature>,
-        filter_alias: Option<&String>,
+        filter_fragment: Option<&String>,
     ) -> Option<&VerificationMethod> {
-        let mut vm = self.find_sol_authority(sol_authority, filter_alias);
+        let mut vm = self.find_sol_authority(sol_authority, filter_fragment);
         if vm.is_some() {
             return vm;
         }
-        vm = self.find_eth_authority(eth_message, eth_raw_signature, filter_alias);
+        vm = self.find_eth_authority(eth_message, eth_raw_signature, filter_fragment);
         if vm.is_some() {
             return vm;
         }
@@ -164,7 +168,7 @@ impl DidAccount {
     pub fn find_sol_authority(
         &self,
         authority: &Pubkey,
-        filter_alias: Option<&String>,
+        filter_fragment: Option<&String>,
     ) -> Option<&VerificationMethod> {
         msg!(
             "Checking if {} is an Ed25519VerificationKey2018 authority",
@@ -174,7 +178,7 @@ impl DidAccount {
             Some(&[VerificationMethodType::Ed25519VerificationKey2018]), // TODO: is this the best way to pass this?
             Some(VerificationMethodFlags::CAPABILITY_INVOCATION),
             Some(&authority.to_bytes()),
-            filter_alias,
+            filter_fragment,
         )
         .into_iter()
         .next()
@@ -184,7 +188,7 @@ impl DidAccount {
         &self,
         message: &[u8],
         raw_signature: Option<&Secp256k1RawSignature>,
-        filter_alias: Option<&String>,
+        filter_fragment: Option<&String>,
     ) -> Option<&VerificationMethod> {
         let raw_signature = raw_signature?;
         let message_with_nonce = [message, self.nonce.to_le_bytes().as_ref()].concat();
@@ -226,7 +230,7 @@ impl DidAccount {
                 Some(&[VerificationMethodType::EcdsaSecp256k1VerificationKey2019]),
                 Some(VerificationMethodFlags::CAPABILITY_INVOCATION),
                 Some(&secp256k1_pubkey.to_bytes()),
-                filter_alias,
+                filter_fragment,
             )
             .into_iter()
             .next();
@@ -246,7 +250,7 @@ impl DidAccount {
                 Some(&[VerificationMethodType::EcdsaSecp256k1RecoveryMethod2020]),
                 Some(VerificationMethodFlags::CAPABILITY_INVOCATION),
                 Some(&address),
-                filter_alias,
+                filter_fragment,
             )
             .into_iter()
             .next();
@@ -318,8 +322,8 @@ impl Default for VerificationMethodType {
 /// The native authority key for a [`DidAccount`]
 #[derive(Debug, AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct VerificationMethod {
-    /// alias
-    pub alias: String,
+    /// fragment
+    pub fragment: String,
     /// The permissions this key has
     pub flags: u16,
     /// The actual verification method
@@ -330,7 +334,7 @@ pub struct VerificationMethod {
 
 impl VerificationMethod {
     pub fn size(&self) -> usize {
-        4 + self.alias.len()
+        4 + self.fragment.len()
         + 2 // flags
         + 1 // method
         + 4 + self.key_data.len()
@@ -338,7 +342,7 @@ impl VerificationMethod {
 
     pub fn default(flags: VerificationMethodFlags, key_data: Vec<u8>) -> VerificationMethod {
         VerificationMethod {
-            alias: String::from("default"),
+            fragment: String::from("default"),
             flags: flags.bits(),
             method_type: VerificationMethodType::default().to_u8().unwrap(),
             key_data,
@@ -346,7 +350,7 @@ impl VerificationMethod {
     }
 
     pub fn default_size() -> usize {
-        4 + 7 // alias "default"
+        4 + 7 // fragment "default"
         + 2 // flags
         + 1 // method
         + 4 + 32 // ed25519 pubkey
@@ -356,14 +360,14 @@ impl VerificationMethod {
 /// A Service Definition [`DidAccount`]
 #[derive(Debug, AnchorSerialize, AnchorDeserialize, Default, Clone)]
 pub struct Service {
-    pub id: String,
+    pub fragment: String,
     pub service_type: String,
     pub service_endpoint: String,
 }
 
 impl Service {
     pub fn size(&self) -> usize {
-        4 + self.id.len() + 4 + self.service_type.len() + 4 + self.service_endpoint.len()
+        4 + self.fragment.len() + 4 + self.service_type.len() + 4 + self.service_endpoint.len()
     }
 }
 

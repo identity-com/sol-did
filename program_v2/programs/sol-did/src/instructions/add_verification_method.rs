@@ -24,9 +24,9 @@ pub fn add_verification_method(
     );
 
     require!(
-        data.find_verification_method(&verification_method.alias)
+        data.find_verification_method(&verification_method.fragment)
             .is_none(),
-        DidSolError::VmAliasAlreadyInUse
+        DidSolError::VmFragmentAlreadyInUse
     );
 
     data.add_verification_method(verification_method)

@@ -41,10 +41,10 @@ pub mod sol_did {
 
     pub fn remove_verification_method(
         ctx: Context<RemoveVerificationMethod>,
-        alias: String,
+        fragment: String,
         eth_signature: Option<Secp256k1RawSignature>,
     ) -> Result<()> {
-        instructions::remove_verification_method(ctx, alias, eth_signature)
+        instructions::remove_verification_method(ctx, fragment, eth_signature)
     }
 
     pub fn add_service(
@@ -57,10 +57,10 @@ pub mod sol_did {
 
     pub fn remove_service(
         ctx: Context<RemoveService>,
-        service_id: String,
+        fragment: String,
         eth_signature: Option<Secp256k1RawSignature>,
     ) -> Result<()> {
-        instructions::remove_service(ctx, service_id, eth_signature)
+        instructions::remove_service(ctx, fragment, eth_signature)
     }
 
     pub fn set_vm_flags(
