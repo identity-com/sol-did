@@ -15,7 +15,6 @@ import { getDerivationPath, MNEMONIC } from "../fixtures/config";
 
 chai.use(chaiAsPromised);
 
-
 describe("sol-did service operations", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
@@ -43,19 +42,20 @@ describe("sol-did service operations", () => {
       didData,
       TEST_CLUSTER,
       authority,
-      programProvider.opts);
+      programProvider.opts
+    );
 
     // size up
     await service.resize(1_000).rpc();
 
     didDataAccount = await service.getDidAccount();
-  })
+  });
 
   //add data
   it("add a new service to the data.services", async () => {
     const serviceLengthBefore = didDataAccount.services.length;
 
-    const tService = getTestService(1)
+    const tService = getTestService(1);
     await service.addService(tService).rpc();
 
     didDataAccount = await service.getDidAccount();
@@ -64,12 +64,10 @@ describe("sol-did service operations", () => {
 
   //add service with the same key, expect an error to pass the test
   it("should fail to add service with the same ID", async () => {
-    const tService = getTestService(1)
+    const tService = getTestService(1);
     tService.serviceEndpoint = "serviceEndpoint2"; // change to change payload
 
-    return expect(
-      service.addService(tService).rpc()
-    ).to.be.rejectedWith(
+    return expect(service.addService(tService).rpc()).to.be.rejectedWith(
       "Error Code: ServiceFragmentAlreadyInUse. Error Number: 6004. Error Message: Service already exists in current service list."
     );
   });
@@ -78,7 +76,7 @@ describe("sol-did service operations", () => {
   it("can successfully delete a service", async () => {
     const serviceLengthBefore = didDataAccount.services.length;
 
-    const tService = getTestService(1)
+    const tService = getTestService(1);
     await service.removeService(tService.fragment).rpc();
 
     didDataAccount = await service.getDidAccount();
@@ -88,7 +86,7 @@ describe("sol-did service operations", () => {
   // delete a service that doesn't exist, expect an error to pass the test.
   it("should fail to delete non-existing service", async () => {
     return expect(
-      service.removeService('non-existing-service-id').rpc()
+      service.removeService("non-existing-service-id").rpc()
     ).to.be.rejectedWith(
       "Error Code: ServiceFragmentNotFound. Error Number: 6005. Error Message: Service doesn't exists in current service list."
     );
@@ -97,8 +95,9 @@ describe("sol-did service operations", () => {
   it("add a new service to the data.services with an ethereum key", async () => {
     const serviceLengthBefore = didDataAccount.services.length;
 
-    const tService = getTestService(2)
-    await service.addService(tService, nonAuthoritySigner.publicKey)
+    const tService = getTestService(2);
+    await service
+      .addService(tService, nonAuthoritySigner.publicKey)
       .withEthSigner(ethAuthority0)
       .withPartialSigners(nonAuthoritySigner)
       .rpc();
@@ -110,8 +109,9 @@ describe("sol-did service operations", () => {
   it("can successfully delete a service with an ethereum key", async () => {
     const serviceLengthBefore = didDataAccount.services.length;
 
-    const tService = getTestService(2)
-    await service.removeService(tService.fragment, nonAuthoritySigner.publicKey)
+    const tService = getTestService(2);
+    await service
+      .removeService(tService.fragment, nonAuthoritySigner.publicKey)
       .withEthSigner(ethAuthority1)
       .withPartialSigners(nonAuthoritySigner)
       .rpc();

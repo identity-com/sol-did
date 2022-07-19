@@ -18,20 +18,20 @@ export type DidDataAccount = {
   services: Service[];
   nativeControllers: web3.PublicKey[];
   otherControllers: string[];
-}
+};
 
 export type VerificationMethod = {
   fragment: string;
   keyData: Bytes;
   methodType: VerificationMethodType;
   flags: VerificationMethodFlags;
-}
+};
 
 export type Service = {
   fragment: string;
   serviceType: string;
   serviceEndpoint: string;
-}
+};
 
 export enum VerificationMethodFlags {
   None = 0,
@@ -42,7 +42,13 @@ export enum VerificationMethodFlags {
   CapabilityDelegation = 1 << 4,
   DidDocHidden = 1 << 5,
   OwnershipProof = 1 << 6,
-  All = Authentication | Assertion | KeyAgreement | CapabilityInvocation | CapabilityDelegation | DidDocHidden | OwnershipProof
+  All = Authentication |
+    Assertion |
+    KeyAgreement |
+    CapabilityInvocation |
+    CapabilityDelegation |
+    DidDocHidden |
+    OwnershipProof,
 }
 
 export enum VerificationMethodType {
@@ -59,16 +65,16 @@ export type DecentralizedIdentifierConstructor = {
   clusterType: ExtendedCluster | undefined;
   authority: PublicKey;
   urlField?: string;
-}
+};
 
 export type DidVerificationMethodComponents = {
-  verificationMethod: DidVerificationMethod[]
-  authentication: (string | DidVerificationMethod)[]
-  assertionMethod: (string | DidVerificationMethod)[]
-  keyAgreement: (string | DidVerificationMethod)[]
-  capabilityInvocation: (string | DidVerificationMethod)[]
-  capabilityDelegation: (string | DidVerificationMethod)[]
-}
+  verificationMethod: DidVerificationMethod[];
+  authentication: (string | DidVerificationMethod)[];
+  assertionMethod: (string | DidVerificationMethod)[];
+  keyAgreement: (string | DidVerificationMethod)[];
+  capabilityInvocation: (string | DidVerificationMethod)[];
+  capabilityDelegation: (string | DidVerificationMethod)[];
+};
 
 // TODO: Change back to Anchor import does not export the correct Wallet type.
 // TODO: Create Ticket within Anchor (and post PR?)
@@ -77,4 +83,3 @@ export interface Wallet {
   signAllTransactions(txs: Transaction[]): Promise<Transaction[]>;
   publicKey: PublicKey;
 }
-

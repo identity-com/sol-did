@@ -11,8 +11,10 @@ import {
   DidAccountSizeHelper,
   DidDataAccount,
   DidSolIdentifier,
-  DidSolService, VerificationMethod,
-  VerificationMethodFlags, VerificationMethodType
+  DidSolService,
+  VerificationMethod,
+  VerificationMethodFlags,
+  VerificationMethodType,
 } from "../../src";
 import { findProgramAddress, INITIAL_MIN_ACCOUNT_SIZE } from "../../src";
 import { TEST_CLUSTER } from "../utils/const";
@@ -81,7 +83,7 @@ describe("sol-did alloc operations", () => {
       service.close(destination.publicKey).rpc()
     ).to.be.rejectedWith(
       "Error Code: AccountNotInitialized. Error Number: 3012. " +
-      "Error Message: The program expected this account to be already initialized"
+        "Error Message: The program expected this account to be already initialized"
     );
   });
 
@@ -89,7 +91,8 @@ describe("sol-did alloc operations", () => {
     await service.initialize().rpc();
 
     // check data
-    [didDataAccount, didDataAccountSize] = await service.getDidAccountWithSize();
+    [didDataAccount, didDataAccountSize] =
+      await service.getDidAccountWithSize();
     expect(didDataAccount.version).to.equal(0);
     expect(didDataAccount.bump).to.equal(didDataPDABump);
     expect(didDataAccount.nonce.eq(new anchor.BN(0))).to.be.true;
@@ -116,31 +119,48 @@ describe("sol-did alloc operations", () => {
 
   it("can automatically initialize an account with autoAlloc", async () => {
     const tService = getTestService(1);
-    await service.addService(tService).withAutomaticAlloc(authority.publicKey).rpc();
+    await service
+      .addService(tService)
+      .withAutomaticAlloc(authority.publicKey)
+      .rpc();
 
     // check data
-    [didDataAccount, didDataAccountSize] = await service.getDidAccountWithSize();
+    [didDataAccount, didDataAccountSize] =
+      await service.getDidAccountWithSize();
     expect(didDataAccount.services.length).to.equal(1);
-    expect(didDataAccountSize).to.equal(INITIAL_MIN_ACCOUNT_SIZE + DidAccountSizeHelper.getServiceSize(tService));
+    expect(didDataAccountSize).to.equal(
+      INITIAL_MIN_ACCOUNT_SIZE + DidAccountSizeHelper.getServiceSize(tService)
+    );
   });
 
   it("can automatically resize an account with autoAlloc", async () => {
     const tService = getTestService(2);
-    await service.addService(tService).withAutomaticAlloc(authority.publicKey).rpc();
+    await service
+      .addService(tService)
+      .withAutomaticAlloc(authority.publicKey)
+      .rpc();
 
     // check data
-    [didDataAccount, didDataAccountSize] = await service.getDidAccountWithSize();
+    [didDataAccount, didDataAccountSize] =
+      await service.getDidAccountWithSize();
     expect(didDataAccount.services.length).to.equal(2);
-    expect(didDataAccountSize).to.equal(INITIAL_MIN_ACCOUNT_SIZE + 2*DidAccountSizeHelper.getServiceSize(tService));
+    expect(didDataAccountSize).to.equal(
+      INITIAL_MIN_ACCOUNT_SIZE +
+        2 * DidAccountSizeHelper.getServiceSize(tService)
+    );
   });
 
   it("will not shrink an account", async () => {
     const didDataAccountSizeBefore = didDataAccountSize;
     const tService = getTestService(1);
-    await service.removeService(tService.fragment).withAutomaticAlloc(authority.publicKey).rpc();
+    await service
+      .removeService(tService.fragment)
+      .withAutomaticAlloc(authority.publicKey)
+      .rpc();
 
     // check data
-    [didDataAccount, didDataAccountSize] = await service.getDidAccountWithSize();
+    [didDataAccount, didDataAccountSize] =
+      await service.getDidAccountWithSize();
     expect(didDataAccount.services.length).to.equal(1);
     expect(didDataAccountSize).to.equal(didDataAccountSizeBefore);
   });
@@ -148,11 +168,22 @@ describe("sol-did alloc operations", () => {
   it("will not resize if the current account size is sufficient.", async () => {
     const didDataAccountSizeBefore = didDataAccountSize;
     const solKey = anchor.web3.Keypair.generate();
-    const controllerDid = DidSolIdentifier.create(solKey.publicKey, TEST_CLUSTER).toString();
-    await service.setControllers([controllerDid]).withAutomaticAlloc(authority.publicKey).rpc();
-    expect(didDataAccountSizeBefore).to.be.greaterThan(DidAccountSizeHelper.fromAccount(didDataAccount).getTotalNativeAccountSize() + 32);
+    const controllerDid = DidSolIdentifier.create(
+      solKey.publicKey,
+      TEST_CLUSTER
+    ).toString();
+    await service
+      .setControllers([controllerDid])
+      .withAutomaticAlloc(authority.publicKey)
+      .rpc();
+    expect(didDataAccountSizeBefore).to.be.greaterThan(
+      DidAccountSizeHelper.fromAccount(
+        didDataAccount
+      ).getTotalNativeAccountSize() + 32
+    );
 
-    [didDataAccount, didDataAccountSize] = await service.getDidAccountWithSize();
+    [didDataAccount, didDataAccountSize] =
+      await service.getDidAccountWithSize();
     expect(didDataAccount.nativeControllers.length).to.equal(1);
     expect(didDataAccountSize).to.equal(didDataAccountSizeBefore);
   });
@@ -162,48 +193,74 @@ describe("sol-did alloc operations", () => {
     const ethAddressAsBytes = utils.arrayify(ethKey.address);
 
     const method: VerificationMethod = {
-      fragment: 'eth-key',
+      fragment: "eth-key",
       keyData: Buffer.from(ethAddressAsBytes),
       methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
       flags: VerificationMethodFlags.CapabilityInvocation,
-    }
+    };
     const vmSize = DidAccountSizeHelper.getVerificationMethodSize(method);
-    const removedServiceSize = DidAccountSizeHelper.getServiceSize(getTestService(1));
+    const removedServiceSize = DidAccountSizeHelper.getServiceSize(
+      getTestService(1)
+    );
 
-    await service.addVerificationMethod(method).withAutomaticAlloc(authority.publicKey).rpc();
+    await service
+      .addVerificationMethod(method)
+      .withAutomaticAlloc(authority.publicKey)
+      .rpc();
 
     // check data
-    [didDataAccount, didDataAccountSize] = await service.getDidAccountWithSize();
+    [didDataAccount, didDataAccountSize] =
+      await service.getDidAccountWithSize();
     expect(didDataAccount.verificationMethods.length).to.equal(1);
-    expect(didDataAccountSize).to.equal(didDataAccountSizeBefore + vmSize + 32 - removedServiceSize);
+    expect(didDataAccountSize).to.equal(
+      didDataAccountSizeBefore + vmSize + 32 - removedServiceSize
+    );
   });
 
   // resize also works with ethereum keys
   it("will also auto-alloc with ethereum keys", async () => {
     const didDataAccountSizeBefore = didDataAccountSize;
 
-    const existingControllers = await service.resolve().then(res => res.controller) as string[];
+    const existingControllers = (await service
+      .resolve()
+      .then((res) => res.controller)) as string[];
     expect(existingControllers.length).to.equal(1);
     const newController = `did:ethr:${ethKey.address}`;
-    await service.setControllers([...existingControllers, newController], nonAuthoritySigner.publicKey)
+    await service
+      .setControllers(
+        [...existingControllers, newController],
+        nonAuthoritySigner.publicKey
+      )
       .withAutomaticAlloc(nonAuthoritySigner.publicKey)
       .withEthSigner(ethKey)
       .withPartialSigners(nonAuthoritySigner)
       .rpc();
 
-    [didDataAccount, didDataAccountSize] = await service.getDidAccountWithSize();
+    [didDataAccount, didDataAccountSize] =
+      await service.getDidAccountWithSize();
     expect(didDataAccount.nativeControllers.length).to.equal(1);
     expect(didDataAccount.otherControllers.length).to.equal(1);
 
-    expect(didDataAccountSize).to.equal(didDataAccountSizeBefore + newController.length + 4);
+    expect(didDataAccountSize).to.equal(
+      didDataAccountSizeBefore + newController.length + 4
+    );
   });
 
   it("will reuse the authority of the original instruction for the resize", async () => {
-    const existingControllers = await service.resolve().then(res => res.controller) as string[];
+    const existingControllers = (await service
+      .resolve()
+      .then((res) => res.controller)) as string[];
     expect(existingControllers.length).to.equal(2);
     const newSolKey = anchor.web3.Keypair.generate();
-    const newController = DidSolIdentifier.create(newSolKey.publicKey, TEST_CLUSTER).toString();
-    const instructions = await service.setControllers([...existingControllers, newController], nonAuthoritySigner.publicKey)
+    const newController = DidSolIdentifier.create(
+      newSolKey.publicKey,
+      TEST_CLUSTER
+    ).toString();
+    const instructions = await service
+      .setControllers(
+        [...existingControllers, newController],
+        nonAuthoritySigner.publicKey
+      )
       .withAutomaticAlloc(nonAuthoritySigner.publicKey)
       .withEthSigner(ethKey)
       .withPartialSigners(nonAuthoritySigner)
@@ -218,14 +275,14 @@ describe("sol-did alloc operations", () => {
 
   it("fails when trying to initialize a did:sol account twice", async () => {
     return expect(
-      service.initialize(INITIAL_MIN_ACCOUNT_SIZE+1).rpc()
+      service.initialize(INITIAL_MIN_ACCOUNT_SIZE + 1).rpc()
     ).to.be.rejectedWith(
       `Error processing Instruction 0: custom program error: 0x0`
     );
   });
 
   it("can successfully resize an account", async () => {
-    const NEW_ACCOUNT_SIZE = (9_999);
+    const NEW_ACCOUNT_SIZE = 9_999;
 
     await service.resize(NEW_ACCOUNT_SIZE, authority.publicKey).rpc();
 
@@ -241,7 +298,7 @@ describe("sol-did alloc operations", () => {
     return expect(
       service.resize(NEW_ACCOUNT_SIZE, authority.publicKey).rpc()
     ).to.be.rejectedWith(
-      'Error Code: AccountDidNotSerialize. Error Number: 3004. Error Message: Failed to serialize the account'
+      "Error Code: AccountDidNotSerialize. Error Number: 3004. Error Message: Failed to serialize the account"
     );
   });
 });

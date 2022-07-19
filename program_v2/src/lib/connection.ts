@@ -15,8 +15,8 @@ import {
 import { SOLANA_COMMITMENT } from "./const";
 
 export type ExtendedCluster = Cluster | "localnet" | "civicnet";
-export const CIVICNET_CLUSTER_URL = 'https://d3ab7dlfud2b5u.cloudfront.net'
-export const LOCALNET_CLUSTER_URL = 'http://localhost:8899'
+export const CIVICNET_CLUSTER_URL = "https://d3ab7dlfud2b5u.cloudfront.net";
+export const LOCALNET_CLUSTER_URL = "http://localhost:8899";
 
 export const getClusterUrl = (cluster: ExtendedCluster) => {
   // Allow ENV Variable Overwrite

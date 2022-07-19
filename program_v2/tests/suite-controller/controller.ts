@@ -15,7 +15,6 @@ import { getDerivationPath, MNEMONIC } from "../fixtures/config";
 
 chai.use(chaiAsPromised);
 
-
 describe("sol-did controller operations", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
@@ -44,30 +43,33 @@ describe("sol-did controller operations", () => {
       didData,
       TEST_CLUSTER,
       authority,
-      programProvider.opts);
+      programProvider.opts
+    );
 
     didDataAccount = await service.getDidAccount();
-  })
+  });
 
   it("fails to update the controller if it includes an invalid DID.", async () => {
-    return expect(
-      () => service.setControllers([`did:ethr:${ethKey.address}`, DidSolIdentifier.create(solKey.publicKey, TEST_CLUSTER).toString(), 'wrong-did' ])
-    ).to.be.throw(
-      "Invalid DID found in controllers"
-    );
+    return expect(() =>
+      service.setControllers([
+        `did:ethr:${ethKey.address}`,
+        DidSolIdentifier.create(solKey.publicKey, TEST_CLUSTER).toString(),
+        "wrong-did",
+      ])
+    ).to.be.throw("Invalid DID found in controllers");
   });
 
   it("can update the controllers of a DID.", async () => {
     const ethrDid = `did:ethr:${ethKey.address}`;
-    const solDid = DidSolIdentifier.create(solKey.publicKey, TEST_CLUSTER).toString();
+    const solDid = DidSolIdentifier.create(
+      solKey.publicKey,
+      TEST_CLUSTER
+    ).toString();
 
-    await service.setControllers(
-      [
-        ethrDid,
-        solDid,
-      ])
+    await service
+      .setControllers([ethrDid, solDid])
       .withAutomaticAlloc(authority.publicKey)
-      .rpc()
+      .rpc();
 
     didDataAccount = await service.getDidAccount();
     expect(didDataAccount.nativeControllers).to.deep.equal([solKey.publicKey]);
@@ -76,19 +78,15 @@ describe("sol-did controller operations", () => {
 
   it("can update the controllers of a DID and successfully filters duplicates", async () => {
     const ethrDid = `did:ethr:${ethKey.address}`;
-    const solDid = DidSolIdentifier.create(solKey.publicKey, TEST_CLUSTER).toString();
+    const solDid = DidSolIdentifier.create(
+      solKey.publicKey,
+      TEST_CLUSTER
+    ).toString();
 
-    await service.setControllers(
-      [
-        ethrDid,
-        solDid,
-        ethrDid,
-        solDid,
-        ethrDid,
-        solDid,
-      ])
+    await service
+      .setControllers([ethrDid, solDid, ethrDid, solDid, ethrDid, solDid])
       .withAutomaticAlloc(authority.publicKey)
-      .rpc()
+      .rpc();
 
     didDataAccount = await service.getDidAccount();
     expect(didDataAccount.nativeControllers).to.deep.equal([solKey.publicKey]);
@@ -100,12 +98,7 @@ describe("sol-did controller operations", () => {
     const selfSolDid = service.did;
 
     return expect(
-      service.setControllers(
-        [
-          ethrDid,
-          selfSolDid,
-        ])
-        .rpc()
+      service.setControllers([ethrDid, selfSolDid]).rpc()
     ).to.be.rejectedWith(
       "Error Code: InvalidNativeControllers. Error Number: 6007. Error Message: Invalid native controllers. Cannot set itself as a controller."
     );
@@ -114,19 +107,15 @@ describe("sol-did controller operations", () => {
   it("can add update the controllers of a DID and sign with an Ethereum Key", async () => {
     const ethrDid = `did:ethr:${ethKey.address}`;
 
-    await service.setControllers(
-      [
-        ethrDid,
-      ], nonAuthoritySigner.publicKey)
+    await service
+      .setControllers([ethrDid], nonAuthoritySigner.publicKey)
       .withAutomaticAlloc(authority.publicKey)
       .withEthSigner(ethAuthority)
       .withPartialSigners(nonAuthoritySigner)
-      .rpc()
+      .rpc();
 
     didDataAccount = await service.getDidAccount();
     expect(didDataAccount.nativeControllers).to.deep.equal([]);
     expect(didDataAccount.otherControllers).to.deep.equal([ethrDid]);
   });
-
-
 });

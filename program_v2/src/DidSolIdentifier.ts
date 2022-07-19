@@ -30,16 +30,16 @@ export class DidSolIdentifier {
    * @param constructor The construction values
    */
   constructor(constructor: DecentralizedIdentifierConstructor) {
-      this.clusterType = constructor.clusterType;
-      this.authority = constructor.authority;
-      this.urlField = constructor.urlField;
+    this.clusterType = constructor.clusterType;
+    this.authority = constructor.authority;
+    this.urlField = constructor.urlField;
   }
 
   /**
    * Get the key to the DID data
    */
   async pdaPubkey(): Promise<PublicKey> {
-    return (await findProgramAddress(this.authority))[0]
+    return (await findProgramAddress(this.authority))[0];
   }
 
   async pdaSolanaPubkey(): Promise<PublicKey> {
@@ -70,18 +70,20 @@ export class DidSolIdentifier {
 
   private get clusterString(): string {
     if (!this.clusterType) {
-      return 'unknown:';
+      return "unknown:";
     }
-    if (this.clusterType === 'mainnet-beta') {
-      return '';
+    if (this.clusterType === "mainnet-beta") {
+      return "";
     }
-    return `${this.clusterType}:`
+    return `${this.clusterType}:`;
   }
 
   toString(): string {
     const urlField =
-      !this.urlField || this.urlField === '' ? '' : `#${this.urlField}`; // TODO add support for / urls
-    return `${DID_SOL_PREFIX}${this.clusterString}${this.authority.toBase58()}${urlField}`;
+      !this.urlField || this.urlField === "" ? "" : `#${this.urlField}`; // TODO add support for / urls
+    return `${DID_SOL_PREFIX}${
+      this.clusterString
+    }${this.authority.toBase58()}${urlField}`;
   }
 
   static REGEX = new RegExp(`^${DID_SOL_PREFIX}:?(\\w*):(\\w+)#?(\\w*)$`);
@@ -91,10 +93,10 @@ export class DidSolIdentifier {
    * @param did the did string
    */
   static parse(did: string | VerificationMethod): DidSolIdentifier {
-    if (typeof did == 'string') {
+    if (typeof did == "string") {
       const matches = DidSolIdentifier.REGEX.exec(did);
 
-      if (!matches) throw new Error('Invalid DID');
+      if (!matches) throw new Error("Invalid DID");
 
       const authority = new PublicKey(matches[2]);
 
@@ -104,7 +106,7 @@ export class DidSolIdentifier {
         urlField: matches[3],
       });
     } else {
-      throw new Error('Provided DID is not a string');
+      throw new Error("Provided DID is not a string");
     }
   }
 
@@ -150,18 +152,20 @@ export class DidSolIdentifier {
   }
 }
 
-export const mapMethodExtension = (clusterString: string): ExtendedCluster | undefined => {
+export const mapMethodExtension = (
+  clusterString: string
+): ExtendedCluster | undefined => {
   switch (clusterString) {
-    case '':
-      return 'mainnet-beta';
-    case 'devnet':
-      return 'devnet';
-    case 'testnet':
-      return 'testnet';
-    case 'localnet':
-      return 'localnet';
-    case 'civicnet':
-      return 'civicnet';
+    case "":
+      return "mainnet-beta";
+    case "devnet":
+      return "devnet";
+    case "testnet":
+      return "testnet";
+    case "localnet":
+      return "localnet";
+    case "civicnet":
+      return "civicnet";
   }
   // return undefined if not found
-}
+};

@@ -9,13 +9,21 @@ import {
   Service,
   VerificationMethod,
   VerificationMethodFlags,
-  VerificationMethodType
+  VerificationMethodType,
 } from "./types";
-import { DEFAULT_KEY_ID, DEFAULT_SEED_STRING, DID_SOL_PREFIX, DID_SOL_PROGRAM, VALID_DID_REGEX } from "./const";
-import { VerificationMethod as DidVerificationMethod, ServiceEndpoint as DidService } from "did-resolver";
+import {
+  DEFAULT_KEY_ID,
+  DEFAULT_SEED_STRING,
+  DID_SOL_PREFIX,
+  DID_SOL_PROGRAM,
+  VALID_DID_REGEX,
+} from "./const";
+import {
+  VerificationMethod as DidVerificationMethod,
+  ServiceEndpoint as DidService,
+} from "did-resolver";
 import { DidSolIdentifier } from "../DidSolIdentifier";
 import { ExtendedCluster } from "./connection";
-
 
 export const fetchProgram = async (
   provider: Provider
@@ -37,15 +45,15 @@ export const ethSignPayload = async (
   instruction: TransactionInstruction,
   nonce: anchor.BN,
   signer: EthSigner
-) : Promise<TransactionInstruction> => {
+): Promise<TransactionInstruction> => {
   // Anchor 8 bytes prefix, Option<T> byte suffix
-  const nonceBytes = nonce.toBuffer('le', 8);
-  const message = Buffer.concat([instruction.data.subarray(8,-1), nonceBytes]);
+  const nonceBytes = nonce.toBuffer("le", 8);
+  const message = Buffer.concat([instruction.data.subarray(8, -1), nonceBytes]);
 
-  const signatureFull = await signer.signMessage(message)
+  const signatureFull = await signer.signMessage(message);
   // add signature to payload
   const signatureBytes = ethersUtils.arrayify(signatureFull);
-  const signature = Array.from(signatureBytes.slice(0,-1))
+  const signature = Array.from(signatureBytes.slice(0, -1));
   // // map [0x1b, 0x1c] to [0, 1]
   // https://docs.ethers.io/v4/api-utils.html#signatures
   // @ts-ignore // can never be 0
@@ -72,24 +80,25 @@ export const ethSignPayload = async (
     instruction.data.slice(0, -1), // Remove Option<T> == None
     new Uint8Array([1]), // Add Option<T> == Some
     new Uint8Array(signature),
-    new Uint8Array([recoveryId])
-  ])
+    new Uint8Array([recoveryId]),
+  ]);
   // return { signature, recoveryId };
 
-  return instruction
+  return instruction;
 };
 
 export const isValidDid = (did: string): boolean => VALID_DID_REGEX.test(did);
-export const isDidSol = (did: string): boolean => did.startsWith(DID_SOL_PREFIX);
+export const isDidSol = (did: string): boolean =>
+  did.startsWith(DID_SOL_PREFIX);
 
 export const validateAndSplitControllers = (controllerDids: string[]) => {
-  if (controllerDids.some(did => !isValidDid(did))) {
-    throw new Error('Invalid DID found in controllers');
+  if (controllerDids.some((did) => !isValidDid(did))) {
+    throw new Error("Invalid DID found in controllers");
   }
 
   const nativeControllers: PublicKey[] = [];
   const otherControllers: string[] = [];
-  controllerDids.forEach(did => {
+  controllerDids.forEach((did) => {
     if (isDidSol(did)) {
       const id = DidSolIdentifier.parse(did);
       nativeControllers.push(id.authority);
@@ -100,20 +109,26 @@ export const validateAndSplitControllers = (controllerDids: string[]) => {
 
   return {
     nativeControllers,
-    otherControllers
-  }
-}
+    otherControllers,
+  };
+};
 
-
-export const defaultVerificationMethod = (authority: PublicKey): VerificationMethod => ({
+export const defaultVerificationMethod = (
+  authority: PublicKey
+): VerificationMethod => ({
   fragment: DEFAULT_KEY_ID,
   methodType: VerificationMethodType.Ed25519VerificationKey2018,
-  flags: VerificationMethodFlags.CapabilityInvocation | VerificationMethodFlags.OwnershipProof,
+  flags:
+    VerificationMethodFlags.CapabilityInvocation |
+    VerificationMethodFlags.OwnershipProof,
   keyData: authority.toBuffer(),
-})
+});
 
 // Note: VerificationMethodFlags.OwnershipProof is not mapped to DID components
-export const mapVerificationMethodsToDidComponents = (methods: VerificationMethod[], identifier: DidSolIdentifier): DidVerificationMethodComponents => {
+export const mapVerificationMethodsToDidComponents = (
+  methods: VerificationMethod[],
+  identifier: DidSolIdentifier
+): DidVerificationMethodComponents => {
   const didComponents: DidVerificationMethodComponents = {
     verificationMethod: new Array<DidVerificationMethod>(),
     authentication: new Array<string>(),
@@ -121,27 +136,44 @@ export const mapVerificationMethodsToDidComponents = (methods: VerificationMetho
     keyAgreement: new Array<string>(),
     capabilityInvocation: new Array<string>(),
     capabilityDelegation: new Array<string>(),
-  }
+  };
 
   for (const method of methods) {
-
     // skip hidden methods
-    if ((method.flags & VerificationMethodFlags.DidDocHidden) === VerificationMethodFlags.DidDocHidden) {
+    if (
+      (method.flags & VerificationMethodFlags.DidDocHidden) ===
+      VerificationMethodFlags.DidDocHidden
+    ) {
       continue;
     }
-    if ((method.flags & VerificationMethodFlags.Authentication) === VerificationMethodFlags.Authentication) {
+    if (
+      (method.flags & VerificationMethodFlags.Authentication) ===
+      VerificationMethodFlags.Authentication
+    ) {
       didComponents.authentication.push(`#${method.fragment}`);
     }
-    if ((method.flags & VerificationMethodFlags.Assertion) === VerificationMethodFlags.Assertion) {
+    if (
+      (method.flags & VerificationMethodFlags.Assertion) ===
+      VerificationMethodFlags.Assertion
+    ) {
       didComponents.assertionMethod.push(`#${method.fragment}`);
     }
-    if ((method.flags & VerificationMethodFlags.KeyAgreement) === VerificationMethodFlags.KeyAgreement) {
+    if (
+      (method.flags & VerificationMethodFlags.KeyAgreement) ===
+      VerificationMethodFlags.KeyAgreement
+    ) {
       didComponents.keyAgreement.push(`#${method.fragment}`);
     }
-    if ((method.flags & VerificationMethodFlags.CapabilityInvocation) === VerificationMethodFlags.CapabilityInvocation) {
+    if (
+      (method.flags & VerificationMethodFlags.CapabilityInvocation) ===
+      VerificationMethodFlags.CapabilityInvocation
+    ) {
       didComponents.capabilityInvocation.push(`#${method.fragment}`);
     }
-    if ((method.flags & VerificationMethodFlags.CapabilityDelegation) === VerificationMethodFlags.CapabilityDelegation) {
+    if (
+      (method.flags & VerificationMethodFlags.CapabilityDelegation) ===
+      VerificationMethodFlags.CapabilityDelegation
+    ) {
       didComponents.capabilityDelegation.push(`#${method.fragment}`);
     }
 
@@ -153,37 +185,47 @@ export const mapVerificationMethodsToDidComponents = (methods: VerificationMetho
 
     switch (method.methodType) {
       case VerificationMethodType.Ed25519VerificationKey2018:
-        vm.publicKeyBase58 = new PublicKey(method.keyData).toBase58()
+        vm.publicKeyBase58 = new PublicKey(method.keyData).toBase58();
         break;
       case VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020:
-        vm.ethereumAddress = ethersUtils.getAddress(ethersUtils.hexlify(method.keyData))
+        vm.ethereumAddress = ethersUtils.getAddress(
+          ethersUtils.hexlify(method.keyData)
+        );
         break;
       case VerificationMethodType.EcdsaSecp256k1VerificationKey2019:
-        vm.publicKeyHex = ethersUtils.hexlify(method.keyData).replace('0x','');
+        vm.publicKeyHex = ethersUtils.hexlify(method.keyData).replace("0x", "");
         break;
       default:
-        throw new Error(`Verification method type '${method.methodType}' not recognized`);
+        throw new Error(
+          `Verification method type '${method.methodType}' not recognized`
+        );
     }
 
-    didComponents.verificationMethod.push(vm)
+    didComponents.verificationMethod.push(vm);
   }
 
   return didComponents;
-}
+};
 
-export const mapServices = (services: Service[]): DidService[] => services.map(service => ({
-  id: `#${service.fragment}`,
-  type: service.serviceType,
-  serviceEndpoint: service.serviceEndpoint,
-}));
+export const mapServices = (services: Service[]): DidService[] =>
+  services.map((service) => ({
+    id: `#${service.fragment}`,
+    type: service.serviceType,
+    serviceEndpoint: service.serviceEndpoint,
+  }));
 
-export const mapControllers = (nativeControllers: PublicKey[], otherControllers: string[], clusterType: ExtendedCluster | undefined): string[] => {
+export const mapControllers = (
+  nativeControllers: PublicKey[],
+  otherControllers: string[],
+  clusterType: ExtendedCluster | undefined
+): string[] => {
   return [
-    ...nativeControllers.map(key => DidSolIdentifier.create(key, clusterType).toString()),
-    ...otherControllers
+    ...nativeControllers.map((key) =>
+      DidSolIdentifier.create(key, clusterType).toString()
+    ),
+    ...otherControllers,
   ];
 };
 
-export const getBinarySize = (input: string): number => Buffer.byteLength(input, 'utf8');
-
-
+export const getBinarySize = (input: string): number =>
+  Buffer.byteLength(input, "utf8");
