@@ -43,7 +43,7 @@ pub struct Update<'info> {
         constraint = {
             let services =&mut  account.services.try_to_vec().unwrap();
             services.append(&mut account.verification_methods.try_to_vec().unwrap());
-            did_data.is_authority(authority.key()) || did_data.is_eth_authority(services.to_vec(), eth_signature)
+            did_data.find_authority(&authority.key(), &services.try_to_vec().unwrap(), eth_signature.as_ref(), None).is_some()
         }
     )]
     pub did_data: Account<'info, DidAccount>,
