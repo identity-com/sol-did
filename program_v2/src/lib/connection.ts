@@ -11,12 +11,12 @@ import {
   Transaction,
   TransactionError,
   TransactionSignature,
-} from "@solana/web3.js";
-import { SOLANA_COMMITMENT } from "./const";
+} from '@solana/web3.js';
+import { SOLANA_COMMITMENT } from './const';
 
-export type ExtendedCluster = Cluster | "localnet" | "civicnet";
-export const CIVICNET_CLUSTER_URL = 'https://d3ab7dlfud2b5u.cloudfront.net'
-export const LOCALNET_CLUSTER_URL = 'http://localhost:8899'
+export type ExtendedCluster = Cluster | 'localnet' | 'civicnet';
+export const CIVICNET_CLUSTER_URL = 'https://d3ab7dlfud2b5u.cloudfront.net';
+export const LOCALNET_CLUSTER_URL = 'http://localhost:8899';
 
 export const getClusterUrl = (cluster: ExtendedCluster) => {
   // Allow ENV Variable Overwrite
@@ -25,9 +25,9 @@ export const getClusterUrl = (cluster: ExtendedCluster) => {
   }
 
   switch (cluster) {
-    case "localnet":
+    case 'localnet':
       return LOCALNET_CLUSTER_URL;
-    case "civicnet":
+    case 'civicnet':
       return CIVICNET_CLUSTER_URL;
     default:
       return clusterApiUrl(cluster);
@@ -58,16 +58,16 @@ export type HashOrNonce =
       recentBlockhash: Blockhash;
     }
   | { nonce: NonceInformation }
-  | "find";
+  | 'find';
 export async function addHashOrNonce(
   transaction: TransactionHolder,
   hashOrNonce: HashOrNonce
 ) {
-  if (hashOrNonce === "find") {
+  if (hashOrNonce === 'find') {
     transaction.transaction.recentBlockhash = await transaction.connection
       .getRecentBlockhash()
       .then((rbh) => rbh.blockhash);
-  } else if ("recentBlockhash" in hashOrNonce) {
+  } else if ('recentBlockhash' in hashOrNonce) {
     transaction.transaction.recentBlockhash = hashOrNonce.recentBlockhash;
   } else {
     transaction.transaction.nonceInfo = hashOrNonce.nonce;
@@ -175,7 +175,7 @@ export type DataOrGeneralDataCallback<T> = T | (() => T | Promise<T>);
 // checks if the input is a data callback or purely data.
 const isGeneralDataCallback = <T>(
   data: DataOrGeneralDataCallback<T>
-): data is () => T | Promise<T> => typeof data === "function";
+): data is () => T | Promise<T> => typeof data === 'function';
 
 // Convert the input callback into a standardised function that returns a promise of data
 const normalizeDataCallback = <T>(

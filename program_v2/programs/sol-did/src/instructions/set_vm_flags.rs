@@ -13,8 +13,8 @@ pub fn set_vm_flags(
         data.nonce += 1;
     }
 
-    let vm = data.find_verification_method(&flags_vm.alias);
-    require!(vm.is_some(), DidSolError::VmAliasNotFound);
+    let vm = data.find_verification_method(&flags_vm.fragment);
+    require!(vm.is_some(), DidSolError::VmFragmentNotFound);
     let vm = vm.unwrap();
     vm.flags = flags_vm.flags;
 
@@ -33,7 +33,7 @@ pub struct SetVmFlagsMethod<'info> {
         mut,
         seeds = [DID_ACCOUNT_SEED.as_bytes(), did_data.initial_verification_method.key_data.as_ref()],
         bump = did_data.bump,
-        constraint = did_data.find_authority(&authority.key(), &flags_vm.try_to_vec().unwrap(), eth_signature.as_ref(), flags_vm.get_filter_alias()).is_some(),
+        constraint = did_data.find_authority(&authority.key(), &flags_vm.try_to_vec().unwrap(), eth_signature.as_ref(), flags_vm.get_filter_fragment()).is_some(),
     )]
     pub did_data: Account<'info, DidAccount>,
     pub authority: Signer<'info>,
@@ -43,15 +43,15 @@ pub struct SetVmFlagsMethod<'info> {
 /// Argument
 #[derive(Debug, AnchorSerialize, AnchorDeserialize, Default, Clone)]
 pub struct UpdateFlagsVerificationMethod {
-    pub alias: String,
+    pub fragment: String,
     pub flags: u16,
 }
 
 impl UpdateFlagsVerificationMethod {
-    pub fn get_filter_alias(&self) -> Option<&String> {
+    pub fn get_filter_fragment(&self) -> Option<&String> {
         let flags = VerificationMethodFlags::from_bits(self.flags).unwrap();
         if flags.contains(VerificationMethodFlags::OWNERSHIP_PROOF) {
-            Some(&self.alias)
+            Some(&self.fragment)
         } else {
             None
         }

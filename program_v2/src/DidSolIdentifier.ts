@@ -1,9 +1,9 @@
-import { PublicKey } from "@solana/web3.js";
-import { DecentralizedIdentifierConstructor } from "./lib/types";
-import { findProgramAddress } from "./lib/utils";
-import { DID_SOL_PREFIX } from "./lib/const";
-import { VerificationMethod } from "did-resolver";
-import { ExtendedCluster } from "./lib/connection";
+import { PublicKey } from '@solana/web3.js';
+import { DecentralizedIdentifierConstructor } from './lib/types';
+import { findProgramAddress } from './lib/utils';
+import { DID_SOL_PREFIX } from './lib/const';
+import { VerificationMethod } from 'did-resolver';
+import { ExtendedCluster } from './lib/connection';
 
 /**
  * A class representing a SOL Did
@@ -30,16 +30,16 @@ export class DidSolIdentifier {
    * @param constructor The construction values
    */
   constructor(constructor: DecentralizedIdentifierConstructor) {
-      this.clusterType = constructor.clusterType;
-      this.authority = constructor.authority;
-      this.urlField = constructor.urlField;
+    this.clusterType = constructor.clusterType;
+    this.authority = constructor.authority;
+    this.urlField = constructor.urlField;
   }
 
   /**
    * Get the key to the DID data
    */
   async pdaPubkey(): Promise<PublicKey> {
-    return (await findProgramAddress(this.authority))[0]
+    return (await findProgramAddress(this.authority))[0];
   }
 
   async pdaSolanaPubkey(): Promise<PublicKey> {
@@ -75,13 +75,15 @@ export class DidSolIdentifier {
     if (this.clusterType === 'mainnet-beta') {
       return '';
     }
-    return `${this.clusterType}:`
+    return `${this.clusterType}:`;
   }
 
   toString(): string {
     const urlField =
       !this.urlField || this.urlField === '' ? '' : `#${this.urlField}`; // TODO add support for / urls
-    return `${DID_SOL_PREFIX}${this.clusterString}${this.authority.toBase58()}${urlField}`;
+    return `${DID_SOL_PREFIX}${
+      this.clusterString
+    }${this.authority.toBase58()}${urlField}`;
   }
 
   static REGEX = new RegExp(`^${DID_SOL_PREFIX}:?(\\w*):(\\w+)#?(\\w*)$`);
@@ -150,7 +152,9 @@ export class DidSolIdentifier {
   }
 }
 
-export const mapMethodExtension = (clusterString: string): ExtendedCluster | undefined => {
+export const mapMethodExtension = (
+  clusterString: string
+): ExtendedCluster | undefined => {
   switch (clusterString) {
     case '':
       return 'mainnet-beta';
@@ -164,4 +168,4 @@ export const mapMethodExtension = (clusterString: string): ExtendedCluster | und
       return 'civicnet';
   }
   // return undefined if not found
-}
+};

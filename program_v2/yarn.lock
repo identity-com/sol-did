@@ -362,6 +362,11 @@
     did-resolver "^3.0.1"
     ramda "^0.27.1"
 
+"@project-serum/anchor-cli@^0.25.0":
+  version "0.25.0"
+  resolved "https://registry.yarnpkg.com/@project-serum/anchor-cli/-/anchor-cli-0.25.0.tgz#31dcd64386f3f21a44fde28f52fd652cd34c39cc"
+  integrity sha512-Reegeycezs61M1H19susuaQzxkXGuhDH1GJy/R9H0OEECEFcEDJHe0E0Hmy619B8V5gzc97fFirI0F+0vwg1IA==
+
 "@project-serum/anchor@0.25.0":
   version "0.25.0"
   resolved "https://registry.yarnpkg.com/@project-serum/anchor/-/anchor-0.25.0.tgz#88ee4843336005cf5a64c80636ce626f0996f503"
@@ -1074,6 +1079,11 @@ hmac-drbg@^1.0.1:
     hash.js "^1.0.3"
     minimalistic-assert "^1.0.0"
     minimalistic-crypto-utils "^1.0.1"
+
+husky@^8.0.1:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/husky/-/husky-8.0.1.tgz#511cb3e57de3e3190514ae49ed50f6bc3f50b3e9"
+  integrity sha512-xs7/chUH/CKdOCs7Zy0Aev9e/dKOMZf3K1Az1nar3tzlv0jfqnYtu235bstsWTmXOR0EfINrPa97yy4Lz6RiKw==
 
 ieee754@^1.1.13, ieee754@^1.2.1:
   version "1.2.1"
