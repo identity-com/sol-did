@@ -6,7 +6,7 @@ mod utils;
 
 use anchor_lang::prelude::*;
 use instructions::*;
-use state::{Secp256k1RawSignature, Service, UpdateStruct, VerificationMethod};
+use state::{Secp256k1RawSignature, Service, VerificationMethod};
 
 declare_id!("didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc");
 
@@ -79,12 +79,12 @@ pub mod sol_did {
         instructions::set_controllers(ctx, set_controllers_arg, eth_signature)
     }
 
-    pub fn update_data(
+    pub fn update(
         ctx: Context<Update>,
-        information: UpdateStruct,
+        update_arg: UpdateArg,
         eth_signature: Option<Secp256k1RawSignature>,
     ) -> Result<()> {
-        instructions::update(ctx, information, eth_signature)
+        instructions::update(ctx, update_arg, eth_signature)
     }
 }
 

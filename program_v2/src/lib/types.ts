@@ -33,6 +33,13 @@ export type Service = {
   serviceEndpoint: string;
 };
 
+export type DidSolUpdateArgs = {
+  verificationMethods: VerificationMethod[];
+  services: Service[];
+  nativeControllers: web3.PublicKey[];
+  otherControllers: string[];
+}
+
 export enum VerificationMethodFlags {
   None = 0,
   Authentication = 1 << 0,

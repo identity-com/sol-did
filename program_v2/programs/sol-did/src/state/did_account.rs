@@ -3,6 +3,7 @@ use anchor_lang::prelude::*;
 use bitflags::bitflags;
 use num_derive::*;
 use num_traits::*;
+use itertools::Itertools;
 
 use crate::utils::convert_secp256k1pub_key_to_address;
 use solana_program::{keccak, secp256k1_recover::secp256k1_recover};
@@ -261,6 +262,19 @@ impl DidAccount {
         None
     }
 
+    pub fn set_services(&mut self, services: Vec<Service>) -> Result<()> {
+        let length = services.len();
+        // make sure there are not duplicate services
+        let unique_services = services.into_iter().unique_by(|x| x.fragment.to_string()).collect_vec();
+        require!(
+            unique_services.len() == length,
+            DidSolError::ServiceFragmentAlreadyInUse
+        );
+
+        self.services = unique_services;
+        Ok(())
+    }
+
     pub fn size(&self) -> usize {
         1 // version
         + 1 // bump
@@ -376,6 +390,7 @@ pub struct Secp256k1RawSignature {
     signature: [u8; 64],
     recovery_id: u8,
 }
+
 
 bitflags! {
     pub struct VerificationMethodFlags: u16 {

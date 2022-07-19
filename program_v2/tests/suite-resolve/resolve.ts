@@ -94,7 +94,26 @@ describe('sol-did resolve operations', () => {
 
   // TODO: Implement Migration Tests
   it.skip('can successfully migrate a legacy DID', async () => {
+    // TODO: Frank test update in here.
     throw new Error('Not implemented');
+  });
+
+  it('can successfully update the state of a DID', async () => {
+    const existing = await service.getDidAccount();
+    expect(existing).to.not.be.equal(null);
+
+    // take values and manipulate
+    // existing.verificationMethods...
+
+    // call update with manipulated values
+    const updated = await service.update({
+      nativeControllers: [],
+      otherControllers: [],
+      services: [],
+      verificationMethods: [],
+    })
+      .withSolWallet(authority)
+      .rpc();
   });
 
   it('prioritises the new resolver over the legacy resolver', async () => {

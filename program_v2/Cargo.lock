@@ -1115,6 +1115,7 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "bitflags",
+ "itertools",
  "num-derive",
  "num-traits",
  "solana-program",

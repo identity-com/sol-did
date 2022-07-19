@@ -13,12 +13,9 @@ pub fn add_service(
         data.nonce += 1;
     }
 
-    if data.services.iter().all(|x| x.fragment != service.fragment) {
-        data.services.push(service);
-        Ok(())
-    } else {
-        Err(error!(DidSolError::ServiceFragmentAlreadyInUse))
-    }
+    let mut joint_services = data.services.clone();
+    joint_services.push(service);
+    data.set_services(joint_services)
 }
 
 #[derive(Accounts)]

@@ -26,7 +26,7 @@ import {
 } from '@solana/web3.js';
 import { DIDDocument } from 'did-resolver';
 import {
-  DidDataAccount,
+  DidDataAccount, DidSolUpdateArgs,
   EthSigner,
   Service,
   VerificationMethod,
@@ -476,6 +476,32 @@ export class DidSolService {
       authority,
     });
   }
+
+  /**
+   * Updates several properties of a service.
+   * @param updateArgs A subset of DID properties to update
+   * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
+   */
+  update(
+    updateArgs: DidSolUpdateArgs,
+    authority: PublicKey = this._didAuthority
+  ): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods
+      .update(updateArgs, null)
+      .accounts({
+        didData: this._didDataAccount,
+        authority,
+      })
+      .instruction();
+
+    return new DidSolServiceBuilder(this, {
+      instructionPromise,
+      ethSignStatus: DidSolEthSignStatusType.Unsigned,
+      didAccountSizeDeltaCallback: () => 10_000, // TODO: Martin calculate size change
+      allowsDynamicAlloc: false,
+      authority,
+    });
+  };
 
   /**
    * Resolves the DID Document for the did:sol account.
