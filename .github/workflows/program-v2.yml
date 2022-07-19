@@ -125,12 +125,6 @@ jobs:
           sh -c "$(curl -sSfL https://release.solana.com/${{ matrix.solana }}/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
-      - name: Install Anchor
-        run: |
-          cargo install --git https://github.com/project-serum/anchor avm --locked --force
-          avm install latest
-          avm use latest
-
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v1
         with:
@@ -151,4 +145,4 @@ jobs:
 
       - name: Build program and run integration tests
         run: |
-          anchor test
+          yarn anchor test
