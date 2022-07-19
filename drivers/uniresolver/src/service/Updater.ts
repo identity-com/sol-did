@@ -1,4 +1,4 @@
-import * as DID from '@identity.com/sol-did-client';
+import * as DID from '@identity.com/sol-did-client-legacy';
 import { UpdateRequest, UpdateState } from './DefaultService';
 
 export const update = async (request: UpdateRequest): Promise<UpdateState> => {

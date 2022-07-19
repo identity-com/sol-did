@@ -2,9 +2,9 @@ import {
   ClusterType,
   PrivateKey,
   PublicKeyBase58,
-} from '@identity.com/sol-did-client';
+} from '@identity.com/sol-did-client-legacy';
 import DIDKey from 'did-method-key';
-import * as DIDSol from '@identity.com/sol-did-client';
+import * as DIDSol from '@identity.com/sol-did-client-legacy';
 import { Cluster, PublicKey } from '@solana/web3.js';
 import { normalizeDidKeyDocument, publicKeyBase58ToCryptoLD } from './util';
 import { DIDDocument } from 'did-resolver';
