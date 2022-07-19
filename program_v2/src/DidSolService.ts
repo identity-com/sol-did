@@ -17,7 +17,7 @@ import {
 } from "@solana/web3.js";
 import { DIDDocument } from "did-resolver";
 import { DidDataAccount, EthSigner, Service, VerificationMethod, VerificationMethodFlags, Wallet } from "./lib/types";
-import { INITIAL_MIN_ACCOUNT_SIZE, SOLANA_COMMITMENT } from "./lib/const";
+import { INITIAL_MIN_ACCOUNT_SIZE } from "./lib/const";
 import { DidSolDocument } from "./DidSolDocument";
 import { ExtendedCluster, getConnectionByCluster } from "./lib/connection";
 import { DidSolIdentifier } from "./DidSolIdentifier";
@@ -37,17 +37,18 @@ import { DidAccountSizeHelper } from "./DidAccountSizeHelper";
  * Please use DidSolServiceBuilder instead
  */
 export class DidSolService {
-  private identifier: DidSolIdentifier;
+  private _identifier: DidSolIdentifier;
 
   static async build(
     didIdentifier: PublicKey,
     cluster: ExtendedCluster,
-    preflightCommitment: Commitment = SOLANA_COMMITMENT,
+    wallet: Wallet = new DummyWallet(),
+    opts: ConfirmOptions = AnchorProvider.defaultOptions()
   ): Promise<DidSolService> {
 
-    const connection = getConnectionByCluster(cluster, preflightCommitment);
+    const connection = getConnectionByCluster(cluster, opts.preflightCommitment);
     // Note, DidSolService never signs, so provider does not need a valid Wallet or confirmOptions.
-    const provider = new AnchorProvider(connection, new DummyWallet(), AnchorProvider.defaultOptions());
+    const provider = new AnchorProvider(connection, wallet, opts);
 
     const program = await fetchProgram(provider);
     const [didDataAccount, _] = await findProgramAddress(didIdentifier);
@@ -62,22 +63,26 @@ export class DidSolService {
   }
 
   constructor(
-    private program: Program<SolDid>,
-    private didAuthority: PublicKey,
-    private didDataAccount: PublicKey,
-    private cluster: ExtendedCluster = 'mainnet-beta',
-    private wallet: Wallet = new DummyWallet(),
-    private opts: ConfirmOptions = AnchorProvider.defaultOptions(),
+    private _program: Program<SolDid>,
+    private _didAuthority: PublicKey,
+    private _didDataAccount: PublicKey,
+    private _cluster: ExtendedCluster = 'mainnet-beta',
+    private _wallet: Wallet = new DummyWallet(),
+    private _opts: ConfirmOptions = AnchorProvider.defaultOptions(),
   ) {
-    this.identifier = DidSolIdentifier.create(didAuthority, cluster);
+    this._identifier = DidSolIdentifier.create(_didAuthority, _cluster);
+  }
+
+  get connection(): Connection {
+    return this._program.provider.connection;
   }
 
   async getDidAccount(): Promise<DidDataAccount|null> {
-    return await this.program.account.didAccount.fetchNullable(this.didDataAccount) as DidDataAccount
+    return await this._program.account.didAccount.fetchNullable(this._didDataAccount) as DidDataAccount
   }
 
   async getDidAccountWithSize(commitment?: Commitment): Promise<[DidDataAccount|null, number]> {
-    const accountInfo = await this.program.account.didAccount.getAccountInfo(this.didDataAccount, commitment);
+    const accountInfo = await this._program.account.didAccount.getAccountInfo(this._didDataAccount, commitment);
     if (accountInfo === null) {
       return [null, 0];
     }
@@ -85,7 +90,7 @@ export class DidSolService {
     const size = accountInfo.data.length;
 
     // console.log(`name: ${this.program.account.didAccount._idlAccount.name}`);
-    const didAccount = this.program.account.didAccount.coder.accounts.decode<DidDataAccount>(
+    const didAccount = this._program.account.didAccount.coder.accounts.decode<DidDataAccount>(
       "DidAccount", // TODO: How to get this from IDL?
       accountInfo.data,
     );
@@ -94,28 +99,28 @@ export class DidSolService {
   }
 
   get did(): string {
-    return this.identifier.toString();
+    return this._identifier.toString();
   }
 
   getIdl(): Idl {
-    return this.program.idl;
+    return this._program.idl;
   }
 
   async getNonce(): Promise<BN> {
-    const account = await this.program.account.didAccount.fetchNullable(this.didDataAccount)
+    const account = await this._program.account.didAccount.fetchNullable(this._didDataAccount)
     return account ? account.nonce : new BN(0);
   }
 
   getWallet(): Wallet {
-    return this.wallet;
+    return this._wallet;
   }
 
   getConnection(): Connection {
-    return this.program.provider.connection;
+    return this._program.provider.connection;
   }
 
   getConfrirmOptions(): ConfirmOptions {
-    return this.opts;
+    return this._opts;
   }
 
   /**
@@ -124,16 +129,16 @@ export class DidSolService {
    * @param size The initial size of the account
    * @param payer The account to pay the rent-exempt fee with.
    */
-  initialize(size: number = INITIAL_MIN_ACCOUNT_SIZE, payer: PublicKey = this.didAuthority): DidSolServiceBuilder {
+  initialize(size: number = INITIAL_MIN_ACCOUNT_SIZE, payer: PublicKey = this._didAuthority): DidSolServiceBuilder {
     if (size < INITIAL_MIN_ACCOUNT_SIZE) {
       throw new Error(`Account size must be at least ${INITIAL_MIN_ACCOUNT_SIZE}`);
     }
 
-    const instructionPromise = this.program.methods
+    const instructionPromise = this._program.methods
       .initialize(size)
       .accounts({
-        didData: this.didDataAccount,
-        authority: this.didAuthority,
+        didData: this._didDataAccount,
+        authority: this._didAuthority,
         payer,
       })
       .instruction();
@@ -143,7 +148,7 @@ export class DidSolService {
       ethSignStatus: DidSolEthSignStatusType.NotSupported,
       didAccountSizeDeltaCallback: () => size,
       allowsDynamicAlloc: false,
-      authority: this.didAuthority,
+      authority: this._didAuthority,
     });
   }
 
@@ -154,11 +159,11 @@ export class DidSolService {
    * @param payer The account to pay the rent-exempt fee with.
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  resize(size: number, payer: PublicKey = this.didAuthority, authority: PublicKey = this.didAuthority): DidSolServiceBuilder {
-    const instructionPromise = this.program.methods
+  resize(size: number, payer: PublicKey = this._didAuthority, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods
       .resize(size, null)
       .accounts({
-        didData: this.didDataAccount,
+        didData: this._didDataAccount,
         payer,
         authority,
       })
@@ -185,11 +190,11 @@ export class DidSolService {
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    * @param destination The destination account to move the lamports to.
    */
-  close(destination: PublicKey, authority: PublicKey = this.didAuthority): DidSolServiceBuilder {
-    const instructionPromise = this.program.methods
+  close(destination: PublicKey, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods
       .close(null)
       .accounts({
-        didData: this.didDataAccount,
+        didData: this._didDataAccount,
         authority,
         destination,
       })
@@ -216,14 +221,14 @@ export class DidSolService {
    * @param method The new VerificationMethod to add
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  addVerificationMethod(method: VerificationMethod, authority: PublicKey = this.didAuthority): DidSolServiceBuilder {
-    const instructionPromise = this.program.methods.addVerificationMethod({
+  addVerificationMethod(method: VerificationMethod, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods.addVerificationMethod({
       alias: method.alias,
       keyData: method.keyData,
       methodType: method.methodType,
       flags: method.flags,
     }, null).accounts({
-      didData: this.didDataAccount,
+      didData: this._didDataAccount,
       authority
     }).instruction();
 
@@ -241,9 +246,9 @@ export class DidSolService {
    * @param alias The alias of the VerificationMethod to remove
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  removeVerificationMethod(alias: string, authority: PublicKey = this.didAuthority): DidSolServiceBuilder {
-    const instructionPromise = this.program.methods.removeVerificationMethod(alias, null).accounts({
-      didData: this.didDataAccount,
+  removeVerificationMethod(alias: string, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods.removeVerificationMethod(alias, null).accounts({
+      didData: this._didDataAccount,
       authority
     }).instruction();
 
@@ -267,9 +272,9 @@ export class DidSolService {
    * @param service The service to add
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  addService(service: Service, authority: PublicKey = this.didAuthority): DidSolServiceBuilder {
-    const instructionPromise = this.program.methods.addService(service, null).accounts({
-      didData: this.didDataAccount,
+  addService(service: Service, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods.addService(service, null).accounts({
+      didData: this._didDataAccount,
       authority
     }).instruction()
 
@@ -288,9 +293,9 @@ export class DidSolService {
    * @param id The id of the service to remove
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  removeService(id: string, authority: PublicKey = this.didAuthority): DidSolServiceBuilder {
-    const instructionPromise = this.program.methods.removeService(id, null).accounts({
-      didData: this.didDataAccount,
+  removeService(id: string, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods.removeService(id, null).accounts({
+      didData: this._didDataAccount,
       authority
     }).instruction()
 
@@ -317,12 +322,12 @@ export class DidSolService {
    */
   setVerificationMethodFlags(alias: string,
                              flags: VerificationMethodFlags,
-                             authority: PublicKey = this.didAuthority): DidSolServiceBuilder {
-    const instructionPromise = this.program.methods.setVmFlags({
+                             authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods.setVmFlags({
       alias,
       flags
     }, null).accounts({
-      didData: this.didDataAccount,
+      didData: this._didDataAccount,
       authority
     }).instruction()
 
@@ -342,12 +347,12 @@ export class DidSolService {
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
   setControllers(controllerDIDs: string[],
-                 authority: PublicKey = this.didAuthority): DidSolServiceBuilder {
+                 authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
 
     const updateControllers = validateAndSplitControllers(controllerDIDs);
 
-    const instructionPromise = this.program.methods.setControllers(updateControllers, null).accounts({
-      didData: this.didDataAccount,
+    const instructionPromise = this._program.methods.setControllers(updateControllers, null).accounts({
+      didData: this._didDataAccount,
       authority
     }).instruction()
 
@@ -377,7 +382,7 @@ export class DidSolService {
   async resolve(checkLegacy = true): Promise<DIDDocument> {
     const didDataAccount = await this.getDidAccount();
     if (didDataAccount) {
-      return DidSolDocument.from(didDataAccount as DidDataAccount, this.cluster);
+      return DidSolDocument.from(didDataAccount as DidDataAccount, this._cluster);
     }
 
     // backwards compatibility
@@ -389,7 +394,7 @@ export class DidSolService {
     }
 
     // generative case
-    return DidSolDocument.sparse(DidSolIdentifier.create(this.didAuthority, this.cluster))
+    return DidSolDocument.sparse(DidSolIdentifier.create(this._didAuthority, this._cluster))
   }
 
   /**
@@ -398,10 +403,10 @@ export class DidSolService {
    */
   private async resolveLegacy(): Promise<DIDDocument|null> {
     const id = new DecentralizedIdentifier({
-      clusterType: ClusterType.parse(this.cluster),
-      authorityPubkey: SolPublicKey.fromPublicKey(this.didAuthority),
+      clusterType: ClusterType.parse(this._cluster),
+      authorityPubkey: SolPublicKey.fromPublicKey(this._didAuthority),
     });
-    const connection = this.program.provider.connection
+    const connection = this._program.provider.connection
     const solData = await SolTransaction.getSol(
       connection,
       id.clusterType,
