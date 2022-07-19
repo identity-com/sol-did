@@ -1,3 +1,4 @@
+use crate::constants::DID_ACCOUNT_SEED;
 use crate::errors::DidSolError;
 use crate::state::{
     DidAccount, Secp256k1RawSignature, VerificationMethod, VerificationMethodFlags,
@@ -10,8 +11,6 @@ pub fn add_verification_method(
     eth_signature: Option<Secp256k1RawSignature>,
 ) -> Result<()> {
     let data = &mut ctx.accounts.did_data;
-
-    // increase the nonce. TODO: check if this can be moved to a constraint.
     if eth_signature.is_some() {
         data.nonce += 1;
     }
@@ -25,7 +24,8 @@ pub fn add_verification_method(
     );
 
     require!(
-        !data.has_verification_method(&verification_method.alias),
+        data.find_verification_method(&verification_method.alias)
+            .is_none(),
         DidSolError::VmAliasAlreadyInUse
     );
 
@@ -37,9 +37,9 @@ pub fn add_verification_method(
 pub struct AddVerificationMethod<'info> {
     #[account(
         mut,
-        seeds = [b"did-account", did_data.initial_verification_method.key_data.as_ref()],
+        seeds = [DID_ACCOUNT_SEED.as_bytes(), did_data.initial_verification_method.key_data.as_ref()],
         bump = did_data.bump,
-        constraint = did_data.is_authority(authority.key()) || did_data.is_eth_authority(verification_method.try_to_vec().unwrap(), eth_signature),
+        constraint = did_data.find_authority(&authority.key(), &verification_method.try_to_vec().unwrap(), eth_signature.as_ref(), None).is_some(),
     )]
     pub did_data: Account<'info, DidAccount>,
     pub authority: Signer<'info>,

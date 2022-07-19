@@ -11,9 +11,10 @@ import {
   VerificationMethodFlags,
   VerificationMethodType
 } from "./types";
-import { DEFAULT_KEY_ID, DEFAULT_SEED_STRING, DID_SOL_PROGRAM } from "./const";
+import { DEFAULT_KEY_ID, DEFAULT_SEED_STRING, DID_SOL_PREFIX, DID_SOL_PROGRAM, VALID_DID_REGEX } from "./const";
 import { VerificationMethod as DidVerificationMethod, ServiceEndpoint as DidService } from "did-resolver";
 import { DidSolIdentifier } from "../DidSolIdentifier";
+import { ExtendedCluster } from "./connection";
 
 
 export const fetchProgram = async (
@@ -77,6 +78,32 @@ export const ethSignPayload = async (
 
   return instruction
 };
+
+export const isValidDid = (did: string): boolean => VALID_DID_REGEX.test(did);
+export const isDidSol = (did: string): boolean => did.startsWith(DID_SOL_PREFIX);
+
+export const validateAndSplitControllers = (controllerDids: string[]) => {
+  if (controllerDids.some(did => !isValidDid(did))) {
+    throw new Error('Invalid DID found in controllers');
+  }
+
+  const nativeControllers: PublicKey[] = [];
+  const otherControllers: string[] = [];
+  controllerDids.forEach(did => {
+    if (isDidSol(did)) {
+      const id = DidSolIdentifier.parse(did);
+      nativeControllers.push(id.authority);
+    } else {
+      otherControllers.push(did);
+    }
+  });
+
+  return {
+    nativeControllers,
+    otherControllers
+  }
+}
+
 
 export const defaultVerificationMethod = (authority: PublicKey): VerificationMethod => ({
   alias: DEFAULT_KEY_ID,
@@ -149,5 +176,14 @@ export const mapServices = (services: Service[]): DidService[] => services.map(s
   type: service.serviceType,
   serviceEndpoint: service.serviceEndpoint,
 }));
+
+export const mapControllers = (nativeControllers: PublicKey[], otherControllers: string[], clusterType: ExtendedCluster | undefined): string[] => {
+  return [
+    ...nativeControllers.map(key => DidSolIdentifier.create(key, clusterType).toString()),
+    ...otherControllers
+  ];
+};
+
+export const getBinarySize = (input: string): number => Buffer.byteLength(input, 'utf8');
 
 

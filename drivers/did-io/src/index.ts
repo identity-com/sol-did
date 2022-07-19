@@ -2,8 +2,8 @@ import {
   PublicKeyBase58,
   PrivateKey,
   ClusterType,
-} from '@identity.com/sol-did-client';
-import * as DID from '@identity.com/sol-did-client';
+} from '@identity.com/sol-did-client-legacy';
+import * as DID from '@identity.com/sol-did-client-legacy';
 import { Cluster } from '@solana/web3.js';
 import { DIDDocument, VerificationMethod } from 'did-resolver';
 import { Ed25519VerificationKey2018 } from '@digitalbazaar/ed25519-verification-key-2018';

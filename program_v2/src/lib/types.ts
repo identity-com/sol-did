@@ -1,5 +1,5 @@
 import { BN, web3 } from "@project-serum/anchor";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Transaction } from "@solana/web3.js";
 import { VerificationMethod as DidVerificationMethod } from "did-resolver";
 import { ExtendedCluster } from "./connection";
 
@@ -69,3 +69,12 @@ export type DidVerificationMethodComponents = {
   capabilityInvocation: (string | DidVerificationMethod)[]
   capabilityDelegation: (string | DidVerificationMethod)[]
 }
+
+// TODO: Change back to Anchor import does not export the correct Wallet type.
+// TODO: Create Ticket within Anchor (and post PR?)
+export interface Wallet {
+  signTransaction(tx: Transaction): Promise<Transaction>;
+  signAllTransactions(txs: Transaction[]): Promise<Transaction[]>;
+  publicKey: PublicKey;
+}
+

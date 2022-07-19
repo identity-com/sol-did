@@ -35,7 +35,7 @@
   "dependencies": {
     "@digitalbazaar/did-io": "^1.1.0",
     "@digitalbazaar/ed25519-verification-key-2018": "^3.1.1",
-    "@identity.com/sol-did-client": "^1.0.0-beta",
+    "@identity.com/sol-did-client-legacy": "^2.0.3",
     "@solana/web3.js": "^1.21.0"
   }
 }

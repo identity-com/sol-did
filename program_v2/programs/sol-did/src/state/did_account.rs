@@ -4,10 +4,8 @@ use bitflags::bitflags;
 use num_derive::*;
 use num_traits::*;
 
-use solana_program::{
-    keccak,
-    secp256k1_recover::{secp256k1_recover, Secp256k1Pubkey},
-};
+use crate::utils::convert_secp256k1pub_key_to_address;
+use solana_program::{keccak, secp256k1_recover::secp256k1_recover};
 
 #[account]
 pub struct DidAccount {
@@ -30,12 +28,73 @@ pub struct DidAccount {
 }
 
 impl DidAccount {
-    // TODO: Easy way to return a non-mutable reference to the data?
-    fn verification_methods(&self) -> Vec<&VerificationMethod> {
+    /// Accessor for all verification methods (including the initial one)
+    /// Enables to pass several filters that are ANDed together.
+    fn verification_methods(
+        &self,
+        filter_types: Option<&[VerificationMethodType]>,
+        filter_flags: Option<VerificationMethodFlags>,
+        filter_key: Option<&[u8]>,
+        filter_alias: Option<&String>,
+    ) -> Vec<&VerificationMethod> {
         std::iter::once(&self.initial_verification_method)
             .chain(self.verification_methods.iter())
+            .filter(|vm| match filter_types {
+                Some(filter_types) => {
+                    filter_types.contains(&VerificationMethodType::from_u8(vm.method_type).unwrap())
+                }
+                None => true,
+            })
+            .filter(|vm| match filter_flags {
+                Some(filter_flags) => VerificationMethodFlags::from_bits(vm.flags)
+                    .unwrap()
+                    .contains(filter_flags),
+                None => true,
+            })
+            .filter(|vm| match filter_key {
+                Some(filter_key) => vm.key_data == filter_key,
+                None => true,
+            })
+            .filter(|vm| match filter_alias {
+                Some(filter_alias) => vm.alias == *filter_alias,
+                None => true,
+            })
             .collect()
-        // self.verification_methods.iter().collect()
+    }
+
+    /// Accessor for all verification methods (including the initial one)
+    /// Enables to pass several filters that are ANDed together.
+    /// Mutable Version
+    fn verification_methods_mut(
+        &mut self,
+        filter_types: Option<&[VerificationMethodType]>,
+        filter_flags: Option<VerificationMethodFlags>,
+        filter_key: Option<&[u8]>,
+        filter_alias: Option<&String>,
+    ) -> Vec<&mut VerificationMethod> {
+        std::iter::once(&mut self.initial_verification_method)
+            .chain(self.verification_methods.iter_mut())
+            .filter(|vm| match filter_types {
+                Some(filter_types) => {
+                    filter_types.contains(&VerificationMethodType::from_u8(vm.method_type).unwrap())
+                }
+                None => true,
+            })
+            .filter(|vm| match filter_flags {
+                Some(filter_flags) => VerificationMethodFlags::from_bits(vm.flags)
+                    .unwrap()
+                    .contains(filter_flags),
+                None => true,
+            })
+            .filter(|vm| match filter_key {
+                Some(filter_key) => vm.key_data == filter_key,
+                None => true,
+            })
+            .filter(|vm| match filter_alias {
+                Some(filter_alias) => vm.alias == *filter_alias,
+                None => true,
+            })
+            .collect()
     }
 
     pub fn add_verification_method(
@@ -61,67 +120,74 @@ impl DidAccount {
         if vm_length_after != vm_length_before {
             Ok(())
         } else {
-            Err(error!(DidSolError::VmDoesNotExists))
+            Err(error!(DidSolError::VmAliasNotFound))
         }
     }
 
-    pub fn has_verification_method(&self, alias: &String) -> bool {
-        self.verification_methods()
-            .iter()
-            .any(|x| x.alias == *alias)
-    }
-
-    fn find_verification_method_match(
-        &self,
-        vm_type: VerificationMethodType,
-        key: &[u8],
-    ) -> Option<&VerificationMethod> {
-        self.verification_methods()
+    pub fn find_verification_method(&mut self, alias: &String) -> Option<&mut VerificationMethod> {
+        self.verification_methods_mut(None, None, None, Some(alias))
             .into_iter()
-            .filter(|x| x.method_type == vm_type.to_u8().unwrap())
-            .filter(|x| {
-                VerificationMethodFlags::from_bits(x.flags)
-                    .unwrap()
-                    .contains(VerificationMethodFlags::CAPABILITY_INVOCATION)
-            })
-            .find(|v| v.key_data == key)
+            .next()
     }
 
     pub fn has_authority_verification_methods(&self) -> bool {
-        self.verification_methods()
-            .into_iter()
-            .filter(|x| VerificationMethodType::is_authority_type(x.method_type))
-            .filter(|x| {
-                VerificationMethodFlags::from_bits(x.flags)
-                    .unwrap()
-                    .contains(VerificationMethodFlags::CAPABILITY_INVOCATION)
-            })
-            .any(|_x| true) // TODO: there must be a nicer way here.
+        !self
+            .verification_methods(
+                Some(&VerificationMethodType::authority_types()),
+                Some(VerificationMethodFlags::CAPABILITY_INVOCATION),
+                None,
+                None,
+            )
+            .is_empty()
     }
 
-    pub fn is_authority(&self, authority: Pubkey) -> bool {
+    // TODO change to ref
+    pub fn find_authority(
+        &self,
+        sol_authority: &Pubkey,
+        eth_message: &[u8],
+        eth_raw_signature: Option<&Secp256k1RawSignature>,
+        filter_alias: Option<&String>,
+    ) -> Option<&VerificationMethod> {
+        let mut vm = self.find_sol_authority(sol_authority, filter_alias);
+        if vm.is_some() {
+            return vm;
+        }
+        vm = self.find_eth_authority(eth_message, eth_raw_signature, filter_alias);
+        if vm.is_some() {
+            return vm;
+        }
+
+        None
+    }
+
+    pub fn find_sol_authority(
+        &self,
+        authority: &Pubkey,
+        filter_alias: Option<&String>,
+    ) -> Option<&VerificationMethod> {
         msg!(
             "Checking if {} is an Ed25519VerificationKey2018 authority",
             authority.to_string()
         );
-        self.find_verification_method_match(
-            VerificationMethodType::Ed25519VerificationKey2018,
-            &authority.to_bytes(),
+        self.verification_methods(
+            Some(&[VerificationMethodType::Ed25519VerificationKey2018]), // TODO: is this the best way to pass this?
+            Some(VerificationMethodFlags::CAPABILITY_INVOCATION),
+            Some(&authority.to_bytes()),
+            filter_alias,
         )
-        .is_some()
+        .into_iter()
+        .next()
     }
 
-    pub fn is_eth_authority(
+    pub fn find_eth_authority(
         &self,
-        message: Vec<u8>,
-        raw_signature: Option<Secp256k1RawSignature>,
-    ) -> bool {
-        if raw_signature.is_none() {
-            return false;
-        }
-
-        let raw_signature = raw_signature.unwrap();
-        let message_with_nonce = [message.as_ref(), self.nonce.to_le_bytes().as_ref()].concat();
+        message: &[u8],
+        raw_signature: Option<&Secp256k1RawSignature>,
+        filter_alias: Option<&String>,
+    ) -> Option<&VerificationMethod> {
+        let raw_signature = raw_signature?;
+        let message_with_nonce = [message, self.nonce.to_le_bytes().as_ref()].concat();
         // Ethereum conforming Message Input
         // https://docs.ethers.io/v4/api-utils.html?highlight=hashmessage#hash-function-helpers
         let sign_message_input = [
@@ -155,14 +221,17 @@ impl DidAccount {
         //     "Checking if {:x?} is an EcdsaSecp256k1VerificationKey2019 authority",
         //     secp256k1_pubkey.to_bytes()
         // );
-        if self
-            .find_verification_method_match(
-                VerificationMethodType::EcdsaSecp256k1VerificationKey2019,
-                &secp256k1_pubkey.to_bytes(),
+        let mut vm = self
+            .verification_methods(
+                Some(&[VerificationMethodType::EcdsaSecp256k1VerificationKey2019]),
+                Some(VerificationMethodFlags::CAPABILITY_INVOCATION),
+                Some(&secp256k1_pubkey.to_bytes()),
+                filter_alias,
             )
-            .is_some()
-        {
-            return true;
+            .into_iter()
+            .next();
+        if vm.is_some() {
+            return vm;
         }
 
         let address = convert_secp256k1pub_key_to_address(&secp256k1_pubkey);
@@ -172,17 +241,20 @@ impl DidAccount {
         //     "Checking if {:x?} is an EcdsaSecp256k1RecoveryMethod2020 authority",
         //     address
         // );
-        if self
-            .find_verification_method_match(
-                VerificationMethodType::EcdsaSecp256k1RecoveryMethod2020,
-                &address,
+        vm = self
+            .verification_methods(
+                Some(&[VerificationMethodType::EcdsaSecp256k1RecoveryMethod2020]),
+                Some(VerificationMethodFlags::CAPABILITY_INVOCATION),
+                Some(&address),
+                filter_alias,
             )
-            .is_some()
-        {
-            return true;
+            .into_iter()
+            .next();
+        if vm.is_some() {
+            return vm;
         }
 
-        false
+        None
     }
 
     pub fn size(&self) -> usize {
@@ -209,13 +281,6 @@ impl DidAccount {
     }
 }
 
-// TODO Move
-pub fn convert_secp256k1pub_key_to_address(pubkey: &Secp256k1Pubkey) -> [u8; 20] {
-    let mut address = [0u8; 20];
-    address.copy_from_slice(&keccak::hash(pubkey.to_bytes().as_ref()).to_bytes()[12..]);
-    address
-}
-
 #[derive(
     Debug, AnchorSerialize, AnchorDeserialize, Copy, Clone, FromPrimitive, ToPrimitive, PartialEq,
 )]
@@ -230,15 +295,18 @@ pub enum VerificationMethodType {
 }
 
 impl VerificationMethodType {
-    pub fn is_authority_type(vm_type: u8) -> bool {
-        let vm_type = VerificationMethodType::from_u8(vm_type).unwrap();
-        matches!(
-            vm_type,
-            VerificationMethodType::Ed25519VerificationKey2018
-                | VerificationMethodType::EcdsaSecp256k1RecoveryMethod2020
-                | VerificationMethodType::EcdsaSecp256k1VerificationKey2019
-        )
+    pub fn authority_types() -> [VerificationMethodType; 3] {
+        [
+            VerificationMethodType::Ed25519VerificationKey2018,
+            VerificationMethodType::EcdsaSecp256k1VerificationKey2019,
+            VerificationMethodType::EcdsaSecp256k1RecoveryMethod2020,
+        ]
     }
+
+    // pub fn is_authority_type(vm_type: u8) -> bool {
+    //     let vm_type = VerificationMethodType::from_u8(vm_type).unwrap();
+    //     VerificationMethodType::authority_types().contains(&vm_type)
+    // }
 }
 
 impl Default for VerificationMethodType {
@@ -284,30 +352,6 @@ impl VerificationMethod {
         + 4 + 32 // ed25519 pubkey
     }
 }
-
-// impl From<VerificationMethodArg> for VerificationMethod {
-//     fn from(item: VerificationMethodArg) -> Self {
-//         VerificationMethod {
-//             alias: item.alias,
-//             flags: item.flags,
-//             method_type: VerificationMethodType::from_u8(item.method_type).unwrap(),
-//             key_data: item.key_data,
-//         }
-//     }
-// }
-
-// #[derive(Debug, AnchorSerialize, AnchorDeserialize, Clone)]
-// pub struct VerificationMethodArg {
-//     /// alias
-//     pub alias: String,
-//     /// The permissions this key has
-//     /// TODO: DID-Powo via separate account. E.g. Requirement reverse key lookup.
-//     pub flags: u16,
-//     /// The actual verification method
-//     pub method_type: u8, // Type: VerificationMethodType- Anchor does not yet provide mappings for enums
-//     /// Dynamically sized key matching the given VerificationType
-//     pub key_data: Vec<u8>,
-// }
 
 /// A Service Definition [`DidAccount`]
 #[derive(Debug, AnchorSerialize, AnchorDeserialize, Default, Clone)]

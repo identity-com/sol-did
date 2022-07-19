@@ -12,3 +12,4 @@ wallet = "./tests/fixtures/A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3.json"
 
 [scripts]
 createTestFixtureAccount = "ts-node ./scripts/createTestFixtureAccount"
+clientDemo = "./node_modules/.bin/ts-node ./scripts/clientDemo"
