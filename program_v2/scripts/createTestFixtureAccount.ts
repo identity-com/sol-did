@@ -1,12 +1,24 @@
 import { Program } from "@project-serum/anchor";
 import * as anchor from "@project-serum/anchor";
+import {
+  findProgramAddress,
+  DidSolService,
+  DidSolIdentifier,
+  VerificationMethodFlags,
+  VerificationMethodType,
+  LegacyClient,
+} from "../dist/src/index";
 import { SolDid } from "../dist/target/types/sol_did";
-import { findProgramAddress, INITIAL_MIN_ACCOUNT_SIZE } from "../src/lib/utils";
-import { Transaction } from "@solana/web3.js";
+
 import { airdrop, getTestService } from "../tests/utils/utils";
-import { utils, Wallet } from "ethers";
-import { DidSolService, VerificationMethodFlags, VerificationMethodType } from "../dist/src";
 import { getDerivationPath, MNEMONIC } from "../tests/fixtures/config";
+import { TEST_CLUSTER } from "../tests/utils/const";
+
+
+import { utils, Wallet } from "ethers";
+import { ExtendedCluster } from "@identity.com/sol-did-client-legacy/dist/lib/constants";
+import { Keypair } from "@solana/web3.js";
+import { promises as fsPromises } from "fs";
 
 const { exec } = require("child_process");
 
@@ -19,75 +31,129 @@ const { exec } = require("child_process");
 
   await airdrop(programProvider.connection, authority.publicKey, 100 * anchor.web3.LAMPORTS_PER_SOL);
 
+  const cluster: ExtendedCluster = "localnet";
+
   const service = new DidSolService(
     program,
     authority.publicKey,
     didData,
-    programProvider
+    cluster,
+    authority
   );
+
+  const keyFileBuffer = await fsPromises.readFile("./tests/fixtures/LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a.json");
+  const privateKey = Uint8Array.from(JSON.parse(keyFileBuffer.toString()));
+  const otherSolKey = Keypair.fromSecretKey(privateKey);
+  await airdrop(programProvider.connection, otherSolKey.publicKey, 100 * anchor.web3.LAMPORTS_PER_SOL);
+
+
+  const ethKey = Wallet.fromMnemonic(MNEMONIC, getDerivationPath());
 
   console.log("DidIdentifier: " + authority.publicKey.toBase58());
   console.log("DidDataAccount: " + didData.toBase58());
 
+  console.log(`OtherSolKey: ${otherSolKey.publicKey.toBase58()}`);
+  console.log(`EthKey: ${ethKey.address}`);
+
   // Init account
 
-  let instruction = await service.initialize(INITIAL_MIN_ACCOUNT_SIZE);
-  let tx = new Transaction().add(instruction);
-  await programProvider.sendAndConfirm(tx)
+  await service.initialize().rpc();
 
   // write account
   exec(`solana account ${didData.toBase58()} -ul -o tests/fixtures/did-account-min.json --output json`);
-
-  const DEFAULT_ACCOUNT_SIZE = 10_000;
-
-  instruction = await service.resize(DEFAULT_ACCOUNT_SIZE, authority.publicKey);
-  tx = new Transaction().add(instruction);
-  await programProvider.sendAndConfirm(tx)
-
-  // write account
-  exec(`solana account ${didData.toBase58()} -ul -o tests/fixtures/did-account.json --output json`);
 
   // Multiple Verification Methods to fixture
   const ethAuthority0 = Wallet.fromMnemonic(MNEMONIC, getDerivationPath());
   const ethAuthority0AddressAsBytes = utils.arrayify(ethAuthority0.address)
 
-  instruction = await service.addVerificationMethod(
+  await service.addVerificationMethod(
     {
       alias: "eth-address",
       keyData: Buffer.from(ethAuthority0AddressAsBytes),
-      type: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
+      methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
       flags: VerificationMethodFlags.CapabilityInvocation,
-    });
-  tx = new Transaction().add(instruction);
-  await programProvider.sendAndConfirm(tx)
+    })
+    .withAutomaticAlloc(authority.publicKey)
+    .rpc();
 
 
   const ethAuthority1 = Wallet.fromMnemonic(MNEMONIC, getDerivationPath(1));
-  instruction = await service.addVerificationMethod(
+  await service.addVerificationMethod(
     {
       alias: "eth-key",
       keyData: Buffer.from(utils.arrayify(ethAuthority1.publicKey).slice(1)),
-      type: VerificationMethodType.EcdsaSecp256k1VerificationKey2019,
+      methodType: VerificationMethodType.EcdsaSecp256k1VerificationKey2019,
       flags: VerificationMethodFlags.CapabilityInvocation,
-    });
-  tx = new Transaction().add(instruction);
-  await programProvider.sendAndConfirm(tx)
+    })
+    .withAutomaticAlloc(authority.publicKey)
+    .rpc();
 
   const tService = getTestService(871438247)
-  instruction = await service.addService(tService);
-  tx = new Transaction().add(instruction);
-  await programProvider.sendAndConfirm(tx)
+  await service.addService(tService)
+    .withAutomaticAlloc(authority.publicKey)
+    .rpc();
+
+  const ethrDid = `did:ethr:${ethKey.address}`;
+  const solDid = DidSolIdentifier.create(otherSolKey.publicKey, TEST_CLUSTER).toString();
+
+  await service.setControllers(
+    [
+      ethrDid,
+      solDid,
+    ])
+    .withAutomaticAlloc(authority.publicKey)
+    .rpc()
 
   // write account
   exec(`solana account ${didData.toBase58()} -ul -o tests/fixtures/did-account-complete.json --output json`);
 
 
-  // const [_, derivedPass] = await service.derivePass([constituentPass], {
-  //   expireOnUse: true,
-  //   expireDuration: 365 * 24 * 60 * 60, // expires in 1 year - an expireOnUse token must have some expiry time already set
-  //   refreshDisabled: true,
-  // });
-  //
-  // console.log("Authority: " + provider.wallet.publicKey.toBase58());
-  // console.log("DidDoc: " + JSON.stringify(didDoc, null, 2));
+  // Legacy DID Fixture
+  // -----------------
+  const legacyDid = await LegacyClient.register({
+    payer: otherSolKey.secretKey,
+    cluster: LegacyClient.ClusterType.development(),
+    connection: programProvider.connection,
+  })
+
+  console.log(`Legacy DID: ${legacyDid}`)
+
+  const tService2 = getTestService(784378)
+
+  // add service
+  await LegacyClient.addService({
+    did: legacyDid,
+    payer: otherSolKey.secretKey,
+    service: {
+      id: `${legacyDid}#${tService2.id}`,
+      type: tService2.serviceType,
+      serviceEndpoint: tService2.serviceEndpoint,
+      description: `${tService2.id} description`,
+    }
+  })
+
+  // add key
+  await LegacyClient.addKey({
+    payer: otherSolKey.secretKey,
+    did: legacyDid,
+    fragment: 'ledger',
+    key: authority.publicKey.toBase58(),
+  })
+
+  // add controller
+  await LegacyClient.addController({
+    payer: otherSolKey.secretKey,
+    did: legacyDid,
+    controller: DidSolIdentifier.create(authority.publicKey, cluster).toString(),
+  });
+
+  // get account
+  const legacyAccount = await LegacyClient.DecentralizedIdentifier.parse(legacyDid).pdaSolanaPubkey()
+  // write account
+  exec(`solana account ${legacyAccount.toBase58()} -ul -o tests/fixtures/legacy-did-account-complete.json --output json`);
+
+  // resolve:
+  // const doc = await LegacyClient.resolve(legacyDid)
+  // console.log(JSON.stringify(doc, null, 2))
+
 })().catch(console.error);

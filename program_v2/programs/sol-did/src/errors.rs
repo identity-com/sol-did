@@ -16,4 +16,8 @@ pub enum DidSolError {
     ServiceNotFound,
     #[msg("Invalid other controllers. Invalid DID format or did:sol:<did>")]
     InvalidOtherControllers,
+    #[msg("Invalid native controllers. Cannot set itself as a controller")]
+    InvalidNativeControllers,
+    #[msg("Initial Account size is insufficient for serialization")]
+    InsufficientInitialSize,
 }

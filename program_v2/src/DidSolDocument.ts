@@ -3,7 +3,12 @@ import { getSolContextPrefix, W3ID_CONTEXT, SOLANA_MAINNET } from "./lib/const";
 import { DidDataAccount } from "./lib/types";
 import { PublicKey } from "@solana/web3.js";
 import { DidSolIdentifier } from "./DidSolIdentifier";
-import { defaultVerificationMethod, mapServices, mapVerificationMethodsToDidComponents } from "./lib/utils";
+import {
+  defaultVerificationMethod,
+  mapControllers,
+  mapServices,
+  mapVerificationMethodsToDidComponents
+} from "./lib/utils";
 import { ExtendedCluster } from "./lib/connection";
 
 export class DidSolDocument implements DIDDocument {
@@ -47,6 +52,8 @@ export class DidSolDocument implements DIDDocument {
     Object.assign(doc, mapVerificationMethodsToDidComponents(allVerificationMethods, identifier));
     // Services
     doc.service = mapServices(account.services);
+    // Controllers
+    doc.controller = mapControllers(account.nativeControllers, account.otherControllers, clusterType);
     return doc;
   }
 }

@@ -19,6 +19,13 @@ pub fn set_controllers(
     data.native_controllers.sort_unstable();
     data.native_controllers.dedup(); // requires sorted vector
 
+    let own_authority = Pubkey::new(&data.initial_verification_method.key_data);
+
+    require!(
+        !data.native_controllers.contains(&own_authority),
+        DidSolError::InvalidNativeControllers,
+    );
+
     require!(
         check_other_controllers(&set_controllers_arg.other_controllers),
         DidSolError::InvalidOtherControllers

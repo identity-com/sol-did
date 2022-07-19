@@ -26,7 +26,7 @@ pub struct Resize<'info> {
         realloc = TryInto::<usize>::try_into(size).unwrap(),
         realloc::payer = payer,
         realloc::zero = false,
-        constraint = did_data.find_authority(&authority.key(), &[(size as u8)], eth_signature.as_ref(), None).is_some(), // TODO: Size conversion wrong?
+        constraint = did_data.find_authority(&authority.key(), &size.to_le_bytes(), eth_signature.as_ref(), None).is_some(),
     )]
     pub did_data: Account<'info, DidAccount>,
     #[account(mut)]

@@ -4,7 +4,7 @@ import { AnchorProvider, BN, Idl, parseIdlErrors, Program, translateError } from
 import {
   ethSignPayload,
   fetchProgram,
-  findProgramAddress,
+  findProgramAddress, getBinarySize, validateAndSplitControllers,
 } from "./lib/utils";
 import {
   Commitment,
@@ -17,7 +17,7 @@ import {
 } from "@solana/web3.js";
 import { DIDDocument } from "did-resolver";
 import { DidDataAccount, EthSigner, Service, VerificationMethod, VerificationMethodFlags, Wallet } from "./lib/types";
-import { INITIAL_MIN_ACCOUNT_SIZE, SOLANA_COMMITMENT } from "./lib/const";
+import { INITIAL_MIN_ACCOUNT_SIZE } from "./lib/const";
 import { DidSolDocument } from "./DidSolDocument";
 import { ExtendedCluster, getConnectionByCluster } from "./lib/connection";
 import { DidSolIdentifier } from "./DidSolIdentifier";
@@ -27,7 +27,7 @@ import {
   SolPublicKey,
 } from '@identity.com/sol-did-client-legacy';
 import { SolTransaction } from "@identity.com/sol-did-client-legacy";
-
+import { DidAccountSizeHelper } from "./DidAccountSizeHelper";
 
 
 /**
@@ -37,16 +37,18 @@ import { SolTransaction } from "@identity.com/sol-did-client-legacy";
  * Please use DidSolServiceBuilder instead
  */
 export class DidSolService {
+  private _identifier: DidSolIdentifier;
 
   static async build(
     didIdentifier: PublicKey,
     cluster: ExtendedCluster,
-    preflightCommitment: Commitment = SOLANA_COMMITMENT,
+    wallet: Wallet = new DummyWallet(),
+    opts: ConfirmOptions = AnchorProvider.defaultOptions()
   ): Promise<DidSolService> {
 
-    const connection = getConnectionByCluster(cluster, preflightCommitment);
+    const connection = getConnectionByCluster(cluster, opts.preflightCommitment);
     // Note, DidSolService never signs, so provider does not need a valid Wallet or confirmOptions.
-    const provider = new AnchorProvider(connection, new DummyWallet(), AnchorProvider.defaultOptions());
+    const provider = new AnchorProvider(connection, wallet, opts);
 
     const program = await fetchProgram(provider);
     const [didDataAccount, _] = await findProgramAddress(didIdentifier);
@@ -61,63 +63,92 @@ export class DidSolService {
   }
 
   constructor(
-    private program: Program<SolDid>,
-    private didIdentifier: PublicKey,
-    private didDataAccount: PublicKey,
-    private cluster: ExtendedCluster = 'mainnet-beta',
-    private wallet: Wallet = new DummyWallet(),
-    private opts: ConfirmOptions = AnchorProvider.defaultOptions(),
+    private _program: Program<SolDid>,
+    private _didAuthority: PublicKey,
+    private _didDataAccount: PublicKey,
+    private _cluster: ExtendedCluster = 'mainnet-beta',
+    private _wallet: Wallet = new DummyWallet(),
+    private _opts: ConfirmOptions = AnchorProvider.defaultOptions(),
   ) {
-    // make sure it's a provider-less wallet.
+    this._identifier = DidSolIdentifier.create(_didAuthority, _cluster);
+  }
+
+  get connection(): Connection {
+    return this._program.provider.connection;
   }
 
   async getDidAccount(): Promise<DidDataAccount|null> {
-    return await this.program.account.didAccount.fetchNullable(this.didDataAccount) as DidDataAccount
+    return await this._program.account.didAccount.fetchNullable(this._didDataAccount) as DidDataAccount
+  }
+
+  async getDidAccountWithSize(commitment?: Commitment): Promise<[DidDataAccount|null, number]> {
+    const accountInfo = await this._program.account.didAccount.getAccountInfo(this._didDataAccount, commitment);
+    if (accountInfo === null) {
+      return [null, 0];
+    }
+
+    const size = accountInfo.data.length;
+
+    // console.log(`name: ${this.program.account.didAccount._idlAccount.name}`);
+    const didAccount = this._program.account.didAccount.coder.accounts.decode<DidDataAccount>(
+      "DidAccount", // TODO: How to get this from IDL?
+      accountInfo.data,
+    );
+
+    return [didAccount, size];
+  }
+
+  get did(): string {
+    return this._identifier.toString();
   }
 
   getIdl(): Idl {
-    return this.program.idl;
+    return this._program.idl;
   }
 
   async getNonce(): Promise<BN> {
-    const account = await this.program.account.didAccount.fetchNullable(this.didDataAccount)
+    const account = await this._program.account.didAccount.fetchNullable(this._didDataAccount)
     return account ? account.nonce : new BN(0);
   }
 
   getWallet(): Wallet {
-    return this.wallet;
+    return this._wallet;
   }
 
   getConnection(): Connection {
-    return this.program.provider.connection;
+    return this._program.provider.connection;
   }
 
   getConfrirmOptions(): ConfirmOptions {
-    return this.opts;
+    return this._opts;
   }
 
   /**
    * Initializes the did:sol account.
    * Does **not** support ethSignInstruction
-   * @param size
+   * @param size The initial size of the account
+   * @param payer The account to pay the rent-exempt fee with.
    */
-  initialize(size: number | null = INITIAL_MIN_ACCOUNT_SIZE): DidSolServiceBuilder {
-    if (size && size < INITIAL_MIN_ACCOUNT_SIZE) {
+  initialize(size: number = INITIAL_MIN_ACCOUNT_SIZE, payer: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    if (size < INITIAL_MIN_ACCOUNT_SIZE) {
       throw new Error(`Account size must be at least ${INITIAL_MIN_ACCOUNT_SIZE}`);
     }
 
-    const instructionPromise = this.program.methods
+    const instructionPromise = this._program.methods
       .initialize(size)
       .accounts({
-        didData: this.didDataAccount,
-        authority: this.didIdentifier
+        didData: this._didDataAccount,
+        authority: this._didAuthority,
+        payer,
       })
       .instruction();
 
     return new DidSolServiceBuilder(this, {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.NotSupported,
-      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE
+      didAccountSizeDeltaCallback: () => size,
+      allowsDynamicAlloc: false,
+      authority: this._didAuthority,
     });
   }
 
@@ -128,11 +159,11 @@ export class DidSolService {
    * @param payer The account to pay the rent-exempt fee with.
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  resize(size: number, payer: PublicKey, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
-    const instructionPromise = this.program.methods
+  resize(size: number, payer: PublicKey = this._didAuthority, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods
       .resize(size, null)
       .accounts({
-        didData: this.didDataAccount,
+        didData: this._didDataAccount,
         payer,
         authority,
       })
@@ -141,7 +172,15 @@ export class DidSolService {
     return new DidSolServiceBuilder(this, {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
-      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE
+      didAccountSizeDeltaCallback: (didAccountBefore ) => {
+        if (!didAccountBefore) {
+          throw new Error("Cannot close account on uninitialized account");
+        }
+
+        return size - DidAccountSizeHelper.fromAccount(didAccountBefore).getTotalNativeAccountSize();
+      },
+      allowsDynamicAlloc: false,
+      authority,
     });
   }
 
@@ -151,11 +190,11 @@ export class DidSolService {
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    * @param destination The destination account to move the lamports to.
    */
-  close(destination: PublicKey, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
-    const instructionPromise = this.program.methods
+  close(destination: PublicKey, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods
       .close(null)
       .accounts({
-        didData: this.didDataAccount,
+        didData: this._didDataAccount,
         authority,
         destination,
       })
@@ -164,7 +203,15 @@ export class DidSolService {
     return new DidSolServiceBuilder(this, {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
-      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE
+      didAccountSizeDeltaCallback: (didAccountBefore ) => {
+        if (!didAccountBefore) {
+          throw new Error("Cannot close account on uninitialized account");
+        }
+
+        return -DidAccountSizeHelper.fromAccount(didAccountBefore).getTotalNativeAccountSize();
+      },
+      allowsDynamicAlloc: false,
+      authority,
     });
   }
 
@@ -174,21 +221,23 @@ export class DidSolService {
    * @param method The new VerificationMethod to add
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  addVerificationMethod(method: VerificationMethod, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
-    const instructionPromise = this.program.methods.addVerificationMethod({
+  addVerificationMethod(method: VerificationMethod, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods.addVerificationMethod({
       alias: method.alias,
       keyData: method.keyData,
       methodType: method.methodType,
       flags: method.flags,
     }, null).accounts({
-      didData: this.didDataAccount,
+      didData: this._didDataAccount,
       authority
     }).instruction();
 
     return new DidSolServiceBuilder(this, {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
-      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE // TODO
+      didAccountSizeDeltaCallback: () => DidAccountSizeHelper.getVerificationMethodSize(method),
+      allowsDynamicAlloc: true,
+      authority,
     });
   }
 
@@ -197,16 +246,23 @@ export class DidSolService {
    * @param alias The alias of the VerificationMethod to remove
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  removeVerificationMethod(alias: string, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
-    const instructionPromise = this.program.methods.removeVerificationMethod(alias, null).accounts({
-      didData: this.didDataAccount,
+  removeVerificationMethod(alias: string, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods.removeVerificationMethod(alias, null).accounts({
+      didData: this._didDataAccount,
       authority
     }).instruction();
 
     return new DidSolServiceBuilder(this, {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
-      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE // TODO
+      didAccountSizeDeltaCallback: (didAccountBefore) => {
+        if (!didAccountBefore) {
+          throw new Error("Cannot remove VerificationMethod on uninitialized account");
+        }
+        return -DidAccountSizeHelper.getVerificationMethodSize(didAccountBefore.verificationMethods.find(m => m.alias === alias))
+      },
+      allowsDynamicAlloc: true,
+      authority,
     });
   }
 
@@ -216,16 +272,18 @@ export class DidSolService {
    * @param service The service to add
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  addService(service: Service, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
-    const instructionPromise = this.program.methods.addService(service, null).accounts({
-      didData: this.didDataAccount,
+  addService(service: Service, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods.addService(service, null).accounts({
+      didData: this._didDataAccount,
       authority
     }).instruction()
 
     return new DidSolServiceBuilder(this, {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
-      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE
+      didAccountSizeDeltaCallback: () => DidAccountSizeHelper.getServiceSize(service),
+      allowsDynamicAlloc: true,
+      authority,
     });
   }
 
@@ -235,34 +293,41 @@ export class DidSolService {
    * @param id The id of the service to remove
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
-  removeService(id: string, authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
-    const instructionPromise = this.program.methods.removeService(id, null).accounts({
-      didData: this.didDataAccount,
+  removeService(id: string, authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods.removeService(id, null).accounts({
+      didData: this._didDataAccount,
       authority
     }).instruction()
 
     return new DidSolServiceBuilder(this, {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
-      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE
+      didAccountSizeDeltaCallback: (didAccountBefore) => {
+        if (!didAccountBefore) {
+          throw new Error("Cannot remove Service on uninitialized account");
+        }
+
+        return -DidAccountSizeHelper.getServiceSize(didAccountBefore.services.find(s => s.id === id))
+      },
+      allowsDynamicAlloc: true,
+      authority,
     });
   }
 
   /**
    * Update the Flags of a VerificationMethod.
    * @param alias The alias of the VerificationMethod to update
-   * @param flags The flags to set. If flags contain VerificationMethodFlags.OwnershipProof, the transaction must be signed
+   * @param flags The flags to set. If flags contain VerificationMethodFlags.OwnershipProof, the transaction must be signed by the exact same VM.
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
-   * by the exact same VM.
    */
   setVerificationMethodFlags(alias: string,
                              flags: VerificationMethodFlags,
-                             authority: PublicKey = this.didIdentifier): DidSolServiceBuilder {
-    const instructionPromise = this.program.methods.setVmFlags({
+                             authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const instructionPromise = this._program.methods.setVmFlags({
       alias,
       flags
     }, null).accounts({
-      didData: this.didDataAccount,
+      didData: this._didDataAccount,
       authority
     }).instruction()
 
@@ -270,7 +335,44 @@ export class DidSolService {
     return new DidSolServiceBuilder(this, {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
-      didAccountSizeDelta: INITIAL_MIN_ACCOUNT_SIZE // TODO: Update sizes for all transactions
+      didAccountSizeDeltaCallback: () => 0, // No size change
+      allowsDynamicAlloc: false,
+      authority,
+    });
+  }
+
+  /**
+   * Update the controllers of a Service.
+   * @param controllerDIDs A list of DIDs to be set as controllers
+   * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
+   */
+  setControllers(controllerDIDs: string[],
+                 authority: PublicKey = this._didAuthority): DidSolServiceBuilder {
+
+    const updateControllers = validateAndSplitControllers(controllerDIDs);
+
+    const instructionPromise = this._program.methods.setControllers(updateControllers, null).accounts({
+      didData: this._didDataAccount,
+      authority
+    }).instruction()
+
+
+    return new DidSolServiceBuilder(this, {
+      instructionPromise,
+      ethSignStatus: DidSolEthSignStatusType.Unsigned,
+      didAccountSizeDeltaCallback: (didAccountBefore) => {
+        const add = updateControllers.nativeControllers.length * 32
+          + updateControllers.otherControllers.reduce((acc, c) => acc + 4 + getBinarySize(c), 0);
+        let remove = 0;
+        if (didAccountBefore) {
+          remove = didAccountBefore.nativeControllers.length * 32
+            + didAccountBefore.otherControllers.reduce((acc, c) => acc + 4 + getBinarySize(c), 0);
+        }
+
+        return add - remove;
+      },
+      allowsDynamicAlloc: true,
+      authority,
     });
   }
 
@@ -280,7 +382,7 @@ export class DidSolService {
   async resolve(checkLegacy = true): Promise<DIDDocument> {
     const didDataAccount = await this.getDidAccount();
     if (didDataAccount) {
-      return DidSolDocument.from(didDataAccount as DidDataAccount, this.cluster);
+      return DidSolDocument.from(didDataAccount as DidDataAccount, this._cluster);
     }
 
     // backwards compatibility
@@ -292,7 +394,7 @@ export class DidSolService {
     }
 
     // generative case
-    return DidSolDocument.sparse(DidSolIdentifier.create(this.didIdentifier, this.cluster))
+    return DidSolDocument.sparse(DidSolIdentifier.create(this._didAuthority, this._cluster))
   }
 
   /**
@@ -301,10 +403,10 @@ export class DidSolService {
    */
   private async resolveLegacy(): Promise<DIDDocument|null> {
     const id = new DecentralizedIdentifier({
-      clusterType: ClusterType.parse(this.cluster),
-      authorityPubkey: SolPublicKey.fromPublicKey(this.didIdentifier),
+      clusterType: ClusterType.parse(this._cluster),
+      authorityPubkey: SolPublicKey.fromPublicKey(this._didAuthority),
     });
-    const connection = this.program.provider.connection
+    const connection = this._program.provider.connection
     const solData = await SolTransaction.getSol(
       connection,
       id.clusterType,
@@ -324,7 +426,11 @@ export class DidSolService {
     const legacyDocument = await this.resolveLegacy();
     if (!legacyDocument) { return; } // no legacy document
 
+    // Update the new did:sol with legacyDocument
+    // Franks functionallity;
     // TODO: finish implementation
+
+    // close legacy account and recover rent.
   }
 }
 
@@ -337,7 +443,9 @@ enum DidSolEthSignStatusType {
 export type BuilderInstruction = {
   instructionPromise: Promise<TransactionInstruction>;
   ethSignStatus: DidSolEthSignStatusType;
-  didAccountSizeDelta: number;
+  didAccountSizeDeltaCallback: (didAccountBefore: DidDataAccount|null) => number;
+  allowsDynamicAlloc: boolean;
+  authority: PublicKey;
 }
 
 class DummyWallet implements Wallet {
@@ -359,7 +467,7 @@ class DummyWallet implements Wallet {
 
 export type DidSolServiceBuilderInitOptions = {
   ethSigner?: EthSigner;
-  resizePayer?: PublicKey;
+  payer?: PublicKey;
   partialSigners?: Signer[];
 }
 
@@ -369,20 +477,20 @@ export class DidSolServiceBuilder {
   private confirmOptions: ConfirmOptions;
 
   private ethSigner: EthSigner | undefined;
-  private resizePayer: PublicKey | undefined;
+  private payer: PublicKey | undefined;
   private partialSigners: Signer[] = [];
   private readonly idlErrors: Map<number, string>;
 
 
   constructor(private service: DidSolService,
-              private instruction: BuilderInstruction,
+              private _instruction: BuilderInstruction,
               initOptions: DidSolServiceBuilderInitOptions = {}) {
     this.solWallet = this.service.getWallet();
     this.connection = this.service.getConnection();
     this.confirmOptions = this.service.getConfrirmOptions();
 
     this.ethSigner = initOptions.ethSigner;
-    this.resizePayer = initOptions.resizePayer;
+    this.payer = initOptions.payer;
     this.partialSigners = initOptions.partialSigners || [];
 
     this.idlErrors = parseIdlErrors(service.getIdl());
@@ -391,6 +499,10 @@ export class DidSolServiceBuilder {
   withEthSigner(ethSigner: EthSigner): DidSolServiceBuilder {
     this.ethSigner = ethSigner;
     return this;
+  }
+
+  get instruction(): BuilderInstruction {
+    return this._instruction;
   }
 
   withConnection(connection: Connection): DidSolServiceBuilder {
@@ -404,13 +516,12 @@ export class DidSolServiceBuilder {
   }
 
   withSolWallet(solWallet: Wallet): DidSolServiceBuilder {
-    // rebuild provider
     this.solWallet = solWallet;
     return this;
   }
 
-  withAutomaticResize(resizePayer: PublicKey): DidSolServiceBuilder {
-    this.resizePayer = resizePayer;
+  withAutomaticAlloc(payer: PublicKey): DidSolServiceBuilder {
+    this.payer = payer;
     return this;
   }
 
@@ -422,26 +533,54 @@ export class DidSolServiceBuilder {
   /**
    * Signs a supported DidSol Instruction with an Ethereum Signer.
    */
-  private async ethSignInstructions(): Promise<void> {
-    const all = [this.instruction];
+  private async ethSignInstructions(instructionsToSign: BuilderInstruction[]): Promise<TransactionInstruction[]> {
     let lastNonce = await this.service.getNonce();
 
-    const promises = all.map(async (instruction) => {
-      if (!this.ethSigner || instruction.ethSignStatus !== DidSolEthSignStatusType.Unsigned) { return; }
+    const promises = instructionsToSign.map(async (instruction) => {
+      if (!this.ethSigner || instruction.ethSignStatus !== DidSolEthSignStatusType.Unsigned) {
+        return instruction.instructionPromise;
+      }
 
-      instruction.instructionPromise = ethSignPayload(await instruction.instructionPromise, lastNonce, this.ethSigner);
-      instruction.ethSignStatus = DidSolEthSignStatusType.Signed;
+      const signingNonce = lastNonce;
       lastNonce = lastNonce.addn(1);
+
+      return ethSignPayload(await instruction.instructionPromise, signingNonce, this.ethSigner);
     });
 
-    await Promise.all(promises);
+    return Promise.all(promises);
+  }
+
+  private async getAllocInstruction(): Promise<BuilderInstruction[]> {
+    if (!this.payer || !this.instruction.allowsDynamicAlloc) { return []; }
+
+
+    let allocInstruction;
+    const [didAccount, didAccountSize] = await this.service.getDidAccountWithSize();
+    if (didAccount === null) {
+      // Initial allocation
+      const requiredSize = INITIAL_MIN_ACCOUNT_SIZE + this.instruction.didAccountSizeDeltaCallback(null);
+      allocInstruction = this.service.initialize(requiredSize, this.payer).instruction;
+    } else {
+      // Reallocation
+      const requiredSize = DidAccountSizeHelper.fromAccount(didAccount).getTotalNativeAccountSize()
+        + this.instruction.didAccountSizeDeltaCallback(didAccount);
+      if (didAccountSize >= requiredSize) {
+        // ALLOC does NOT shrink an account.
+        return [];
+      }
+      allocInstruction = this.service.resize(requiredSize, this.payer, this.instruction.authority).instruction;
+    }
+
+    return [ allocInstruction ];
   }
 
   // Terminal Instructions
   async instructions(): Promise<TransactionInstruction[]> {
+    // check if additional alloc instructions are needed.
+    const allocInstruction = await this.getAllocInstruction();
+
     // ethSign
-    await this.ethSignInstructions();
-    return [await this.instruction.instructionPromise];
+    return this.ethSignInstructions([...allocInstruction, this.instruction]);
   }
 
   async transaction(): Promise<Transaction> {
