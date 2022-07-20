@@ -38,7 +38,7 @@ export type DidSolUpdateArgs = {
   services: Service[];
   nativeControllers: web3.PublicKey[];
   otherControllers: string[];
-}
+};
 
 export enum VerificationMethodFlags {
   None = 0,

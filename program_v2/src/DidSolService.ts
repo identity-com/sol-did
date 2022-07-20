@@ -26,7 +26,8 @@ import {
 } from '@solana/web3.js';
 import { DIDDocument } from 'did-resolver';
 import {
-  DidDataAccount, DidSolUpdateArgs,
+  DidDataAccount,
+  DidSolUpdateArgs,
   EthSigner,
   Service,
   VerificationMethod,
@@ -40,10 +41,15 @@ import { DidSolIdentifier } from './DidSolIdentifier';
 import {
   ClusterType,
   DecentralizedIdentifier,
+  SolData,
   SolPublicKey,
 } from '@identity.com/sol-did-client-legacy';
-import { SolTransaction } from '@identity.com/sol-did-client-legacy';
+import {
+  SolTransaction,
+  closeAccount,
+} from '@identity.com/sol-did-client-legacy';
 import { DidAccountSizeHelper } from './DidAccountSizeHelper';
+import { mapLegacyToUpdateArg } from './lib/legacy';
 
 /**
  * The DidSolService class is a wrapper around the Solana DID program.
@@ -501,7 +507,7 @@ export class DidSolService {
       allowsDynamicAlloc: false,
       authority,
     });
-  };
+  }
 
   /**
    * Resolves the DID Document for the did:sol account.
@@ -529,42 +535,71 @@ export class DidSolService {
     );
   }
 
+  private async getLegacyData(): Promise<SolData | null> {
+    const id = new DecentralizedIdentifier({
+      clusterType: ClusterType.parse(this._cluster),
+      authorityPubkey: SolPublicKey.fromPublicKey(this._didAuthority),
+    });
+    return SolTransaction.getSol(
+      this.connection,
+      id.clusterType,
+      await id.pdaSolanaPubkey()
+    );
+  }
+
   /**
    * Resolves a legacy did:sol account (program: idDa...).
    * Returns null if the account does not exist.
    */
   private async resolveLegacy(): Promise<DIDDocument | null> {
-    const id = new DecentralizedIdentifier({
-      clusterType: ClusterType.parse(this._cluster),
-      authorityPubkey: SolPublicKey.fromPublicKey(this._didAuthority),
-    });
-    const connection = this._program.provider.connection;
-    const solData = await SolTransaction.getSol(
-      connection,
-      id.clusterType,
-      await id.pdaSolanaPubkey()
-    );
+    const solData = await this.getLegacyData();
     if (solData !== null) {
       return solData.toDIDDocument();
     }
-
     return null;
   }
 
   /**
-   * migrates a legacy
+   * Migrates a legacy did:sol account to a current did:sol:account.
+   * @param payer, Payer for the creation of the new account.
+   * @param oldAuthority
+   * @param forceOverwrite
    */
-  async migrateFromLegacy(): Promise<void> {
-    const legacyDocument = await this.resolveLegacy();
-    if (!legacyDocument) {
-      return;
+  // TODO: finish implementation
+  async migrateFromLegacy(
+    payer: PublicKey,
+    oldAuthority: PublicKey = this._didAuthority,
+    forceOverwrite = false
+  ): Promise<DidSolServiceBuilder> {
+    const currentData = await this.getDidAccount();
+    if (currentData && !forceOverwrite) {
+      throw new Error(
+        'Cannot migrate from legacy on an already initialized account'
+      );
+    }
+
+    const solData = await this.getLegacyData();
+    if (!solData) {
+      throw new Error('No legacy data found');
     } // no legacy document
+
+    const updateArgs = mapLegacyToUpdateArg(solData);
+
+    // close existing account
+    const closeOldAccountInstruction = closeAccount(
+      solData.account.toPublicKey(),
+      oldAuthority,
+      payer
+    );
+
+    // Init and initial update always happen with the initial authority
+    const updateBuilder = this.update(updateArgs).withAutomaticAlloc(payer);
 
     // Update the new did:sol with legacyDocument
     // Franks functionallity;
-    // TODO: finish implementation
 
     // close legacy account and recover rent.
+    return updateBuilder;
   }
 }
 

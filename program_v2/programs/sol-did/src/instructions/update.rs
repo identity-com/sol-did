@@ -9,15 +9,15 @@ pub fn update(
 ) -> Result<()> {
     // Move the business logic DidAccount struct.
     let data = &mut ctx.accounts.did_data;
-    data.set_services(update_arg.services).unwrap();
-    data.set_verification_methods(update_arg.verification_methods)
-        .unwrap();
-    data.native_controllers = update_arg.native_controllers;
-    data.other_controllers = update_arg.other_controllers;
-
     if eth_signature.is_some() {
         data.nonce += 1;
     }
+
+    data.set_services(update_arg.services)?;
+    data.set_verification_methods(update_arg.verification_methods)?;
+    data.set_native_controllers(update_arg.native_controllers)?;
+    data.set_other_controllers(update_arg.other_controllers)?;
+
     Ok(())
 }
 

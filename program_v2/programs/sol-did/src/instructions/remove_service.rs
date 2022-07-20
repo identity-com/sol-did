@@ -13,14 +13,13 @@ pub fn remove_service(
         data.nonce += 1;
     }
 
-    let length_before = data.services.len();
-    data.services.retain(|x| x.fragment != fragment);
-    let length_after = data.services.len();
-    if length_after != length_before {
-        Ok(())
-    } else {
-        Err(error!(DidSolError::ServiceFragmentNotFound))
-    }
+    data.services
+        .iter()
+        .position(|vm| vm.fragment == *fragment)
+        .map(|index| {
+            data.services.remove(index);
+        })
+        .ok_or_else(|| error!(DidSolError::ServiceFragmentNotFound))
 }
 
 #[derive(Accounts)]

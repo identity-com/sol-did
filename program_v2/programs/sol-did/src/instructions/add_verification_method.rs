@@ -1,5 +1,9 @@
 use crate::constants::DID_ACCOUNT_SEED;
-use crate::state::{DidAccount, Secp256k1RawSignature, VerificationMethod};
+use crate::errors::DidSolError;
+
+use crate::state::{
+    DidAccount, Secp256k1RawSignature, VerificationMethod, VerificationMethodFlags,
+};
 use anchor_lang::prelude::*;
 
 pub fn add_verification_method(
@@ -11,7 +15,23 @@ pub fn add_verification_method(
     if eth_signature.is_some() {
         data.nonce += 1;
     }
-    data.add_verification_method(verification_method)
+
+    require!(
+        !VerificationMethodFlags::from_bits(verification_method.flags)
+            .ok_or(DidSolError::ConversionError)?
+            .contains(VerificationMethodFlags::OWNERSHIP_PROOF),
+        DidSolError::VmOwnershipOnAdd
+    );
+
+    let methods = [
+        data.verification_methods.as_slice(),
+        &[
+            data.initial_verification_method.clone(),
+            verification_method,
+        ],
+    ]
+    .concat();
+    data.set_verification_methods(methods)
 }
 
 #[derive(Accounts)]

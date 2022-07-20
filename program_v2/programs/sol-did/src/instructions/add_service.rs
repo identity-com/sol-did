@@ -12,8 +12,7 @@ pub fn add_service(
         data.nonce += 1;
     }
 
-    let mut joint_services = data.services.clone();
-    joint_services.push(service);
+    let joint_services = [data.services.as_slice(), &[service]].concat();
     data.set_services(joint_services)
 }
 

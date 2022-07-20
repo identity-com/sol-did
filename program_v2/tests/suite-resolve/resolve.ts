@@ -106,12 +106,13 @@ describe('sol-did resolve operations', () => {
     // existing.verificationMethods...
 
     // call update with manipulated values
-    const updated = await service.update({
-      nativeControllers: [],
-      otherControllers: [],
-      services: [],
-      verificationMethods: [],
-    })
+    const updated = await service
+      .update({
+        nativeControllers: [],
+        otherControllers: [],
+        services: [],
+        verificationMethods: [],
+      })
       .withSolWallet(authority)
       .rpc();
   });

@@ -131,11 +131,26 @@ describe('sol-did auth operations', () => {
     );
   });
 
-  it('can not add a key if the fragment already exists', async () => {
+  it('can not add a new key with an invalid flag', async () => {
     return expect(
       service
         .addVerificationMethod({
-          fragment: 'default',
+          fragment: 'invalid-flag-key',
+          keyData: newSolKey.publicKey.toBytes(),
+          methodType: VerificationMethodType.Ed25519VerificationKey2018,
+          flags: 1 << 15,
+        })
+        .rpc()
+    ).to.be.rejectedWith(
+      'Error Code: ConversionError. Error Number: 6009. Error Message: Could not convert between data types.'
+    );
+  });
+
+  it('can not add a key with the default fragment name', async () => {
+    return expect(
+      service
+        .addVerificationMethod({
+          fragment: DEFAULT_KEY_ID,
           keyData: newSolKey.publicKey.toBytes(),
           methodType: VerificationMethodType.Ed25519VerificationKey2018,
           flags: VerificationMethodFlags.CapabilityInvocation,

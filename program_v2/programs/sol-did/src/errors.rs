@@ -20,4 +20,6 @@ pub enum DidSolError {
     InvalidNativeControllers,
     #[msg("Initial Account size is insufficient for serialization")]
     InsufficientInitialSize,
+    #[msg("Could not convert between data types")]
+    ConversionError,
 }

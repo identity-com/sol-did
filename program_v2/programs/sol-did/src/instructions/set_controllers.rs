@@ -1,7 +1,5 @@
 use crate::constants::DID_ACCOUNT_SEED;
-use crate::errors::DidSolError;
 use crate::state::{DidAccount, Secp256k1RawSignature};
-use crate::utils::check_other_controllers;
 use anchor_lang::prelude::*;
 
 pub fn set_controllers(
@@ -14,27 +12,8 @@ pub fn set_controllers(
         data.nonce += 1;
     }
 
-    data.native_controllers = set_controllers_arg.native_controllers;
-    // Make sure that vector does not contain duplicates.
-    data.native_controllers.sort_unstable();
-    data.native_controllers.dedup(); // requires sorted vector
-
-    let own_authority = Pubkey::new(&data.initial_verification_method.key_data);
-
-    require!(
-        !data.native_controllers.contains(&own_authority),
-        DidSolError::InvalidNativeControllers,
-    );
-
-    require!(
-        check_other_controllers(&set_controllers_arg.other_controllers),
-        DidSolError::InvalidOtherControllers
-    );
-
-    data.other_controllers = set_controllers_arg.other_controllers;
-    // Make sure that vector does not contain duplicates.
-    data.other_controllers.sort_unstable();
-    data.other_controllers.dedup(); // requires sorted vector
+    data.set_native_controllers(set_controllers_arg.native_controllers)?;
+    data.set_other_controllers(set_controllers_arg.other_controllers)?;
 
     Ok(())
 }
