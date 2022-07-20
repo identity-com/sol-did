@@ -1115,6 +1115,7 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "bitflags",
+ "borsh",
  "itertools",
  "num-derive",
  "num-traits",

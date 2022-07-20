@@ -1,6 +1,7 @@
 mod constants;
 mod errors;
 mod instructions;
+mod legacy;
 mod state;
 mod utils;
 
@@ -86,7 +87,8 @@ pub mod sol_did {
     ) -> Result<()> {
         instructions::update(ctx, update_arg, eth_signature)
     }
-}
 
-#[derive(Accounts)]
-pub struct DummyInstruction {}
+    pub fn migrate(ctx: Context<Migrate>) -> Result<()> {
+        instructions::migrate(ctx)
+    }
+}

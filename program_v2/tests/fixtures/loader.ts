@@ -1,21 +1,11 @@
-import { DIDDocument } from 'did-resolver';
 import { Keypair } from '@solana/web3.js';
 import { promises as fsPromises } from 'fs';
 
 const fixturePath = './tests/fixtures/';
 
-export const loadDidDocComplete = async (): Promise<DIDDocument> => {
-  const fileBuffer = await fsPromises.readFile(
-    `${fixturePath}did-document-complete.json`
-  );
-  return JSON.parse(fileBuffer.toString()) as DIDDocument;
-};
-
-export const loadLegacyDidDocComplete = async (): Promise<DIDDocument> => {
-  const fileBuffer = await fsPromises.readFile(
-    `${fixturePath}legacy-did-document-complete.json`
-  );
-  return JSON.parse(fileBuffer.toString()) as DIDDocument;
+export const loadJSON = async (filename: string): Promise<any> => {
+  const fileBuffer = await fsPromises.readFile(`${fixturePath}${filename}`);
+  return JSON.parse(fileBuffer.toString());
 };
 
 export const loadKeypair = async (name: string): Promise<Keypair> => {
@@ -28,7 +18,7 @@ export const getGeneratedDidDocument = (
   didIdentifier: string,
   didMethodPrefix
 ) => ({
-  '@context': ['https://w3id.org/did/v1.0', 'https://w3id.org/sol/v0'],
+  '@context': ['https://w3id.org/did/v1.0', 'https://w3id.org/sol/v2.0'],
   controller: [],
   verificationMethod: [
     {

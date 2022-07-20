@@ -28,7 +28,7 @@ describe('sol-did auth operations', () => {
   let didData, didDataPDABump;
   let service: DidSolService;
 
-  const solAuthority = programProvider.wallet;
+  const authority = programProvider.wallet;
 
   const nonAuthoritySigner = anchor.web3.Keypair.generate();
 
@@ -40,16 +40,12 @@ describe('sol-did auth operations', () => {
   const newEthKeyAlias2 = 'new-eth-key2';
 
   before(async () => {
-    [didData, didDataPDABump] = await findProgramAddress(
-      solAuthority.publicKey
-    );
-    service = new DidSolService(
+    [didData, didDataPDABump] = await findProgramAddress(authority.publicKey);
+    service = await DidSolService.buildFromAnchor(
       program,
-      solAuthority.publicKey,
-      didData,
+      authority.publicKey,
       TEST_CLUSTER,
-      solAuthority,
-      programProvider.opts
+      programProvider
     );
 
     // size up

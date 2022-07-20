@@ -1,6 +1,6 @@
 use crate::constants::DID_ACCOUNT_SEED;
 use crate::errors::DidSolError;
-use crate::state::{DidAccount, VerificationMethod, VerificationMethodFlags};
+use crate::state::{DidAccount, VerificationMethodFlags};
 use anchor_lang::prelude::*;
 
 pub fn initialize(ctx: Context<Initialize>, size: u32) -> Result<()> {
@@ -9,14 +9,12 @@ pub fn initialize(ctx: Context<Initialize>, size: u32) -> Result<()> {
         DidSolError::InsufficientInitialSize
     );
 
-    let did_data = &mut ctx.accounts.did_data;
-    did_data.version = 0;
-    did_data.bump = *ctx.bumps.get("did_data").unwrap();
-    did_data.nonce = 0;
-
-    did_data.initial_verification_method = VerificationMethod::default(
+    let data = &mut ctx.accounts.did_data;
+    let bump = *ctx.bumps.get("did_data").unwrap();
+    data.init(
+        bump,
+        &ctx.accounts.authority.key(),
         VerificationMethodFlags::CAPABILITY_INVOCATION | VerificationMethodFlags::OWNERSHIP_PROOF,
-        ctx.accounts.authority.key().to_bytes().to_vec(),
     );
 
     Ok(())

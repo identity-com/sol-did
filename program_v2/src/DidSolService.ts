@@ -11,6 +11,7 @@ import {
 import {
   ethSignPayload,
   fetchProgram,
+  findLegacyProgramAddress,
   findProgramAddress,
   getBinarySize,
   validateAndSplitControllers,
@@ -34,7 +35,9 @@ import {
   VerificationMethodFlags,
   Wallet,
 } from './lib/types';
-import { INITIAL_MIN_ACCOUNT_SIZE } from './lib/const';
+import {
+  INITIAL_MIN_ACCOUNT_SIZE,
+} from './lib/const';
 import { DidSolDocument } from './DidSolDocument';
 import { ExtendedCluster, getConnectionByCluster } from './lib/connection';
 import { DidSolIdentifier } from './DidSolIdentifier';
@@ -43,13 +46,9 @@ import {
   DecentralizedIdentifier,
   SolData,
   SolPublicKey,
-} from '@identity.com/sol-did-client-legacy';
-import {
   SolTransaction,
-  closeAccount,
 } from '@identity.com/sol-did-client-legacy';
 import { DidAccountSizeHelper } from './DidAccountSizeHelper';
-import { mapLegacyToUpdateArg } from './lib/legacy';
 
 /**
  * The DidSolService class is a wrapper around the Solana DID program.
@@ -74,22 +73,50 @@ export class DidSolService {
     const provider = new AnchorProvider(connection, wallet, opts);
 
     const program = await fetchProgram(provider);
-    const [didDataAccount, _] = await findProgramAddress(didIdentifier);
+    const [didDataAccount] = await findProgramAddress(didIdentifier);
+    const [legacyDidDataAccount] = await findLegacyProgramAddress(
+      didIdentifier
+    );
 
     return new DidSolService(
       program,
       didIdentifier,
       didDataAccount,
+      legacyDidDataAccount,
       cluster,
       provider.wallet,
       provider.opts
     );
   }
 
-  constructor(
+  static async buildFromAnchor(
+    program: Program<SolDid>,
+    didIdentifier: PublicKey,
+    cluster: ExtendedCluster,
+    provider: AnchorProvider,
+    wallet?: Wallet
+  ): Promise<DidSolService> {
+    const [didDataAccount] = await findProgramAddress(didIdentifier);
+    const [legacyDidDataAccount] = await findLegacyProgramAddress(
+      didIdentifier
+    );
+
+    return new DidSolService(
+      program,
+      didIdentifier,
+      didDataAccount,
+      legacyDidDataAccount,
+      cluster,
+      wallet ? wallet : provider.wallet,
+      provider.opts
+    );
+  }
+
+  private constructor(
     private _program: Program<SolDid>,
     private _didAuthority: PublicKey,
     private _didDataAccount: PublicKey,
+    private _legacyDidDataAccount: PublicKey,
     private _cluster: ExtendedCluster = 'mainnet-beta',
     private _wallet: Wallet = new DummyWallet(),
     private _opts: ConfirmOptions = AnchorProvider.defaultOptions()
@@ -510,6 +537,32 @@ export class DidSolService {
   }
 
   /**
+   * Updates several properties of a service.
+   * @param payer Payer for the creation of the new Account
+   */
+  migrate(payer: PublicKey = this._didAuthority): DidSolServiceBuilder {
+    const authority = this._didAuthority;
+
+    const instructionPromise = this._program.methods
+      .migrate()
+      .accounts({
+        didData: this._didDataAccount,
+        authority,
+        legacyDidData: this._legacyDidDataAccount,
+        payer,
+      })
+      .instruction();
+
+    return new DidSolServiceBuilder(this, {
+      instructionPromise,
+      ethSignStatus: DidSolEthSignStatusType.NotSupported,
+      didAccountSizeDeltaCallback: () => 0, // TODO: Martin calculate size change
+      allowsDynamicAlloc: false,
+      authority,
+    });
+  }
+
+  /**
    * Resolves the DID Document for the did:sol account.
    */
   async resolve(checkLegacy = true): Promise<DIDDocument> {
@@ -557,49 +610,6 @@ export class DidSolService {
       return solData.toDIDDocument();
     }
     return null;
-  }
-
-  /**
-   * Migrates a legacy did:sol account to a current did:sol:account.
-   * @param payer, Payer for the creation of the new account.
-   * @param oldAuthority
-   * @param forceOverwrite
-   */
-  // TODO: finish implementation
-  async migrateFromLegacy(
-    payer: PublicKey,
-    oldAuthority: PublicKey = this._didAuthority,
-    forceOverwrite = false
-  ): Promise<DidSolServiceBuilder> {
-    const currentData = await this.getDidAccount();
-    if (currentData && !forceOverwrite) {
-      throw new Error(
-        'Cannot migrate from legacy on an already initialized account'
-      );
-    }
-
-    const solData = await this.getLegacyData();
-    if (!solData) {
-      throw new Error('No legacy data found');
-    } // no legacy document
-
-    const updateArgs = mapLegacyToUpdateArg(solData);
-
-    // close existing account
-    const closeOldAccountInstruction = closeAccount(
-      solData.account.toPublicKey(),
-      oldAuthority,
-      payer
-    );
-
-    // Init and initial update always happen with the initial authority
-    const updateBuilder = this.update(updateArgs).withAutomaticAlloc(payer);
-
-    // Update the new did:sol with legacyDocument
-    // Franks functionallity;
-
-    // close legacy account and recover rent.
-    return updateBuilder;
   }
 }
 
