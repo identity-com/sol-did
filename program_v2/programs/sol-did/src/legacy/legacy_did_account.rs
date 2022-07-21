@@ -107,7 +107,8 @@ impl LegacyDidAccount {
     }
 
     fn migrate_verification_methods(&self) -> Vec<VerificationMethod> {
-        // TODO: Filter "default" types here because there could be multiple in the legacy data model
+        // Note, this migration with fail on duplicates ids OR another "default"
+        // in self.verification_method
         self.verification_method
             .iter()
             .map(|vm| VerificationMethod {
@@ -123,7 +124,7 @@ impl LegacyDidAccount {
 
     fn get_flags(&self, vm_fragment: &String) -> VerificationMethodFlags {
         let mut flags = VerificationMethodFlags::NONE;
-        msg!("Migrating flags for {}", vm_fragment);
+
         if self.authentication.contains(vm_fragment) {
             flags |= VerificationMethodFlags::AUTHENTICATION;
         }
@@ -139,8 +140,6 @@ impl LegacyDidAccount {
         if self.key_agreement.contains(vm_fragment) {
             flags |= VerificationMethodFlags::KEY_AGREEMENT;
         }
-
-        msg!("Migrating flags for {:#b}", flags.bits());
 
         flags
     }

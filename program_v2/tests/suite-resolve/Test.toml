@@ -8,6 +8,10 @@ filename = "../fixtures/accounts/did-account-complete.json"
 address = "ESrDYHGCv9rLtnAhDjJ5oHtYYgiR1aJd1kYAGqqTMMqj"
 filename = "../fixtures/accounts/legacy-did-account-complete.json"
 
+[[test.validator.account]]
+address = "9KytGeMAKKTc9zBiorMzFHFfoS2xM9ZpJqeRvAJpopme"
+filename = "../fixtures/accounts/legacy-did-account-wrong-owner.json"
+
 [test.validator]
 url = "https://api.mainnet-beta.solana.com"
 

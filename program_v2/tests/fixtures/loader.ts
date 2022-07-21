@@ -20,7 +20,7 @@ export const loadKeypair = async (name: string): Promise<Keypair> => {
 
 export const getGeneratedDidDocument = (
   didIdentifier: string,
-  didMethodPrefix
+  didMethodPrefix: string
 ) => ({
   '@context': ['https://w3id.org/did/v1.0', 'https://w3id.org/sol/v2.0'],
   controller: [],

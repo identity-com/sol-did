@@ -32,6 +32,8 @@ describe('sol-did resolve and migrate operations', () => {
   let legacyAuthority: Keypair;
   let legacyDidService: DidSolService;
 
+  let wrongOwnerLegacyAuthority: Keypair;
+
   let didDocComplete: DIDDocument;
   let legacyDidDocComplete: DIDDocument;
   let migratedLegacyDidDocComplete: DIDDocument;
@@ -50,6 +52,11 @@ describe('sol-did resolve and migrate operations', () => {
     legacyAuthority = await loadKeypair(
       'LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a.json'
     );
+
+    wrongOwnerLegacyAuthority = await loadKeypair(
+      'AEG4pGqjnBhGVty9W2u2WSCuzNhAjDwAShHp6rcs1KXh.json'
+    );
+
     await airdrop(
       programProvider.connection,
       legacyAuthority.publicKey,
@@ -153,13 +160,23 @@ describe('sol-did resolve and migrate operations', () => {
     expect(legacyData).to.be.null;
   });
 
-  it.skip('cannot migrate if the account is not owned by the legacy did:sol program', async () => {
-    // TODO
-    // return expect(
-    //   service.migrate().rpc()
-    // ).to.be.rejectedWith(
-    //   'Error processing Instruction 0: custom program error: 0x0'
-    // );
+  it('cannot migrate if the account is not owned by the legacy did:sol program', async () => {
+    const wrongOwnerService = await DidSolService.buildFromAnchor(
+      program,
+      wrongOwnerLegacyAuthority.publicKey,
+      TEST_CLUSTER,
+      programProvider,
+      new Wallet(wrongOwnerLegacyAuthority)
+    );
+
+    return expect(
+      wrongOwnerService
+        .migrate(nonAuthoritySigner.publicKey)
+        .withSolWallet(nonAuthorityWallet)
+        .rpc()
+    ).to.be.rejectedWith(
+      'Error Code: AccountOwnedByWrongProgram. Error Number: 3007. Error Message: The given account is owned by a different program than expected.'
+    );
   });
 
   it('can successfully update the state of a DID', async () => {
