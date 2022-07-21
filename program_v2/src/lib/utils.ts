@@ -16,6 +16,7 @@ import {
   DEFAULT_SEED_STRING,
   DID_SOL_PREFIX,
   DID_SOL_PROGRAM,
+  LEGACY_DID_SOL_PROGRAM,
   VALID_DID_REGEX,
 } from './const';
 import {
@@ -39,6 +40,12 @@ export const findProgramAddress = async (authority: PublicKey) =>
   PublicKey.findProgramAddress(
     [anchor.utils.bytes.utf8.encode(DEFAULT_SEED_STRING), authority.toBuffer()],
     DID_SOL_PROGRAM
+  );
+
+export const findLegacyProgramAddress = async (authority: PublicKey) =>
+  PublicKey.findProgramAddress(
+    [authority.toBuffer(), anchor.utils.bytes.utf8.encode('sol')],
+    LEGACY_DID_SOL_PROGRAM
   );
 
 export const ethSignPayload = async (

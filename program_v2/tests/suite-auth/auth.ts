@@ -28,7 +28,7 @@ describe('sol-did auth operations', () => {
   let didData, didDataPDABump;
   let service: DidSolService;
 
-  const solAuthority = programProvider.wallet;
+  const authority = programProvider.wallet;
 
   const nonAuthoritySigner = anchor.web3.Keypair.generate();
 
@@ -40,16 +40,12 @@ describe('sol-did auth operations', () => {
   const newEthKeyAlias2 = 'new-eth-key2';
 
   before(async () => {
-    [didData, didDataPDABump] = await findProgramAddress(
-      solAuthority.publicKey
-    );
-    service = new DidSolService(
+    [didData, didDataPDABump] = await findProgramAddress(authority.publicKey);
+    service = await DidSolService.buildFromAnchor(
       program,
-      solAuthority.publicKey,
-      didData,
+      authority.publicKey,
       TEST_CLUSTER,
-      solAuthority,
-      programProvider.opts
+      programProvider
     );
 
     // size up
@@ -131,11 +127,26 @@ describe('sol-did auth operations', () => {
     );
   });
 
-  it('can not add a key if the fragment already exists', async () => {
+  it('can not add a new key with an invalid flag', async () => {
     return expect(
       service
         .addVerificationMethod({
-          fragment: 'default',
+          fragment: 'invalid-flag-key',
+          keyData: newSolKey.publicKey.toBytes(),
+          methodType: VerificationMethodType.Ed25519VerificationKey2018,
+          flags: 1 << 15,
+        })
+        .rpc()
+    ).to.be.rejectedWith(
+      'Error Code: ConversionError. Error Number: 6009. Error Message: Could not convert between data types.'
+    );
+  });
+
+  it('can not add a key with the default fragment name', async () => {
+    return expect(
+      service
+        .addVerificationMethod({
+          fragment: DEFAULT_KEY_ID,
           keyData: newSolKey.publicKey.toBytes(),
           methodType: VerificationMethodType.Ed25519VerificationKey2018,
           flags: VerificationMethodFlags.CapabilityInvocation,

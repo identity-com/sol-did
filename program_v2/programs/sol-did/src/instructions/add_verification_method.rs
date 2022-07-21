@@ -1,5 +1,6 @@
 use crate::constants::DID_ACCOUNT_SEED;
 use crate::errors::DidSolError;
+
 use crate::state::{
     DidAccount, Secp256k1RawSignature, VerificationMethod, VerificationMethodFlags,
 };
@@ -15,21 +16,22 @@ pub fn add_verification_method(
         data.nonce += 1;
     }
 
-    // TODO: Should we move those to an anchor constraint?
     require!(
         !VerificationMethodFlags::from_bits(verification_method.flags)
-            .unwrap()
+            .ok_or(DidSolError::ConversionError)?
             .contains(VerificationMethodFlags::OWNERSHIP_PROOF),
         DidSolError::VmOwnershipOnAdd
     );
 
-    require!(
-        data.find_verification_method(&verification_method.fragment)
-            .is_none(),
-        DidSolError::VmFragmentAlreadyInUse
-    );
-
-    data.add_verification_method(verification_method)
+    let methods = [
+        data.verification_methods.as_slice(),
+        &[
+            data.initial_verification_method.clone(),
+            verification_method,
+        ],
+    ]
+    .concat();
+    data.set_verification_methods(methods)
 }
 
 #[derive(Accounts)]

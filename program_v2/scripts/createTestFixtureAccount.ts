@@ -7,6 +7,7 @@ import {
   VerificationMethodFlags,
   VerificationMethodType,
   LegacyClient,
+  LEGACY_DID_SOL_PROGRAM,
 } from '../dist/src/index';
 import { SolDid } from '../dist/target/types/sol_did';
 
@@ -17,9 +18,12 @@ import { TEST_CLUSTER } from '../tests/utils/const';
 import { utils, Wallet } from 'ethers';
 import { ExtendedCluster } from '@identity.com/sol-did-client-legacy/dist/lib/constants';
 import { Keypair } from '@solana/web3.js';
-import { promises as fsPromises } from 'fs';
+
+import { loadKeypair } from '../tests/fixtures/loader';
 
 const { exec } = require('child_process');
+
+const fixturePath = './tests/fixtures/accounts/';
 
 (async () => {
   const program = anchor.workspace.SolDid as Program<SolDid>;
@@ -36,22 +40,29 @@ const { exec } = require('child_process');
 
   const cluster: ExtendedCluster = 'localnet';
 
-  const service = new DidSolService(
+  const service = await DidSolService.buildFromAnchor(
     program,
     authority.publicKey,
-    didData,
     cluster,
-    authority
+    programProvider
   );
 
-  const keyFileBuffer = await fsPromises.readFile(
-    './tests/fixtures/LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a.json'
+  const legacyDidKey = await loadKeypair(
+    'LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a.json'
   );
-  const privateKey = Uint8Array.from(JSON.parse(keyFileBuffer.toString()));
-  const otherSolKey = Keypair.fromSecretKey(privateKey);
+  const wrongOwnerDidKey = await loadKeypair(
+    'AEG4pGqjnBhGVty9W2u2WSCuzNhAjDwAShHp6rcs1KXh.json'
+  );
+
   await airdrop(
     programProvider.connection,
-    otherSolKey.publicKey,
+    legacyDidKey.publicKey,
+    100 * anchor.web3.LAMPORTS_PER_SOL
+  );
+
+  await airdrop(
+    programProvider.connection,
+    wrongOwnerDidKey.publicKey,
     100 * anchor.web3.LAMPORTS_PER_SOL
   );
 
@@ -60,8 +71,9 @@ const { exec } = require('child_process');
   console.log('DidIdentifier: ' + authority.publicKey.toBase58());
   console.log('DidDataAccount: ' + didData.toBase58());
 
-  console.log(`OtherSolKey: ${otherSolKey.publicKey.toBase58()}`);
+  console.log(`LegacyDidKey: ${legacyDidKey.publicKey.toBase58()}`);
   console.log(`EthKey: ${ethKey.address}`);
+  console.log(`WrongOwnerDidKey: ${wrongOwnerDidKey.publicKey.toBase58()}`);
 
   // Init account
 
@@ -69,7 +81,7 @@ const { exec } = require('child_process');
 
   // write account
   exec(
-    `solana account ${didData.toBase58()} -ul -o tests/fixtures/did-account-min.json --output json`
+    `solana account ${didData.toBase58()} -ul -o ${fixturePath}did-account-min.json --output json`
   );
 
   // Multiple Verification Methods to fixture
@@ -105,7 +117,7 @@ const { exec } = require('child_process');
 
   const ethrDid = `did:ethr:${ethKey.address}`;
   const solDid = DidSolIdentifier.create(
-    otherSolKey.publicKey,
+    legacyDidKey.publicKey,
     TEST_CLUSTER
   ).toString();
 
@@ -116,13 +128,13 @@ const { exec } = require('child_process');
 
   // write account
   exec(
-    `solana account ${didData.toBase58()} -ul -o tests/fixtures/did-account-complete.json --output json`
+    `solana account ${didData.toBase58()} -ul -o ${fixturePath}did-account-complete.json --output json`
   );
 
   // Legacy DID Fixture
   // -----------------
   const legacyDid = await LegacyClient.register({
-    payer: otherSolKey.secretKey,
+    payer: legacyDidKey.secretKey,
     cluster: LegacyClient.ClusterType.development(),
     connection: programProvider.connection,
   });
@@ -134,7 +146,7 @@ const { exec } = require('child_process');
   // add service
   await LegacyClient.addService({
     did: legacyDid,
-    payer: otherSolKey.secretKey,
+    payer: legacyDidKey.secretKey,
     service: {
       id: `${legacyDid}#${tService2.fragment}`,
       type: tService2.serviceType,
@@ -145,7 +157,7 @@ const { exec } = require('child_process');
 
   // add key
   await LegacyClient.addKey({
-    payer: otherSolKey.secretKey,
+    payer: legacyDidKey.secretKey,
     did: legacyDid,
     fragment: 'ledger',
     key: authority.publicKey.toBase58(),
@@ -153,7 +165,7 @@ const { exec } = require('child_process');
 
   // add controller
   await LegacyClient.addController({
-    payer: otherSolKey.secretKey,
+    payer: legacyDidKey.secretKey,
     did: legacyDid,
     controller: DidSolIdentifier.create(
       authority.publicKey,
@@ -167,7 +179,29 @@ const { exec } = require('child_process');
   ).pdaSolanaPubkey();
   // write account
   exec(
-    `solana account ${legacyAccount.toBase58()} -ul -o tests/fixtures/legacy-did-account-complete.json --output json`
+    `solana account ${legacyAccount.toBase58()} -ul -o ${fixturePath}legacy-did-account-complete.json --output json`
+  );
+
+  // Legacy DID Fixture
+  // -----------------
+  const unsupportedDid = await LegacyClient.register({
+    payer: wrongOwnerDidKey.secretKey,
+    cluster: LegacyClient.ClusterType.development(),
+    connection: programProvider.connection,
+  });
+
+  // get account
+  const unsupportedAccount = await LegacyClient.DecentralizedIdentifier.parse(
+    unsupportedDid
+  ).pdaSolanaPubkey();
+  // write account
+  exec(
+    `solana account ${unsupportedAccount.toBase58()} -ul -o ${fixturePath}legacy-did-account-wrong-owner.json --output json`
+  );
+
+  // Change Owner to random wrong one. (May only work with POSIX sed)
+  exec(
+    `sed -i '' "s/${LEGACY_DID_SOL_PROGRAM.toBase58()}/${Keypair.generate().publicKey.toBase58()}/g" ${fixturePath}legacy-did-account-wrong-owner.json`
   );
 
   // resolve:

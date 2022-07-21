@@ -1,6 +1,7 @@
 mod constants;
 mod errors;
 mod instructions;
+mod legacy;
 mod state;
 mod utils;
 
@@ -12,6 +13,7 @@ declare_id!("didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc");
 
 #[program]
 pub mod sol_did {
+
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>, size: u32) -> Result<()> {
@@ -77,7 +79,16 @@ pub mod sol_did {
     ) -> Result<()> {
         instructions::set_controllers(ctx, set_controllers_arg, eth_signature)
     }
-}
 
-#[derive(Accounts)]
-pub struct DummyInstruction {}
+    pub fn update(
+        ctx: Context<Update>,
+        update_arg: UpdateArg,
+        eth_signature: Option<Secp256k1RawSignature>,
+    ) -> Result<()> {
+        instructions::update(ctx, update_arg, eth_signature)
+    }
+
+    pub fn migrate(ctx: Context<Migrate>) -> Result<()> {
+        instructions::migrate(ctx)
+    }
+}

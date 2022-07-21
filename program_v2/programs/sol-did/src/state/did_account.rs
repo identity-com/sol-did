@@ -1,10 +1,12 @@
 use crate::errors::DidSolError;
 use anchor_lang::prelude::*;
 use bitflags::bitflags;
+use itertools::Itertools;
 use num_derive::*;
 use num_traits::*;
 
-use crate::utils::convert_secp256k1pub_key_to_address;
+use crate::constants::VM_DEFAULT_FRAGMENT_NAME;
+use crate::utils::{check_other_controllers, convert_secp256k1pub_key_to_address};
 use solana_program::{keccak, secp256k1_recover::secp256k1_recover};
 
 #[account]
@@ -28,6 +30,14 @@ pub struct DidAccount {
 }
 
 impl DidAccount {
+    pub fn init(&mut self, bump: u8, authority_key: &Pubkey, flags: VerificationMethodFlags) {
+        self.version = 0;
+        self.bump = bump;
+        self.nonce = 0;
+
+        self.initial_verification_method =
+            VerificationMethod::default(flags, authority_key.to_bytes().to_vec());
+    }
     /// Accessor for all verification methods (including the initial one)
     /// Enables to pass several filters that are ANDed together.
     fn verification_methods(
@@ -97,14 +107,6 @@ impl DidAccount {
             .collect()
     }
 
-    pub fn add_verification_method(
-        &mut self,
-        verification_method: VerificationMethod,
-    ) -> Result<()> {
-        self.verification_methods.push(verification_method);
-        Ok(())
-    }
-
     pub fn remove_verification_method(&mut self, fragment: &String) -> Result<()> {
         // default case
         if fragment == &self.initial_verification_method.fragment {
@@ -113,16 +115,13 @@ impl DidAccount {
         }
 
         // general case
-        let vm_length_before = self.verification_methods.len();
         self.verification_methods
-            .retain(|x| x.fragment != *fragment);
-        let vm_length_after = self.verification_methods.len();
-
-        if vm_length_after != vm_length_before {
-            Ok(())
-        } else {
-            Err(error!(DidSolError::VmFragmentNotFound))
-        }
+            .iter()
+            .position(|vm| vm.fragment == *fragment)
+            .map(|index| {
+                self.verification_methods.remove(index);
+            })
+            .ok_or_else(|| error!(DidSolError::VmFragmentNotFound))
     }
 
     pub fn find_verification_method(
@@ -261,6 +260,75 @@ impl DidAccount {
         None
     }
 
+    pub fn set_services(&mut self, services: Vec<Service>) -> Result<()> {
+        let original_size = services.len();
+        // make sure there are not duplicate services
+        let unique_services = services
+            .into_iter()
+            .unique_by(|x| x.fragment.clone())
+            .collect_vec();
+
+        require!(
+            unique_services.len() == original_size,
+            DidSolError::ServiceFragmentAlreadyInUse
+        );
+
+        self.services = unique_services;
+        Ok(())
+    }
+
+    pub fn set_verification_methods(&mut self, methods: Vec<VerificationMethod>) -> Result<()> {
+        // TODO: This function needs to check that no Ownership flags are set.
+
+        let original_size = methods.len();
+        let mut unique_methods = methods
+            .into_iter()
+            .unique_by(|x| x.fragment.clone())
+            .collect_vec();
+        require!(
+            unique_methods.len() == original_size,
+            DidSolError::VmFragmentAlreadyInUse
+        );
+
+        // handle initial type if it exists
+        // 1. remove from unique_methods
+        // 2. set self.initial_verification_method.flags
+        if let Some(index) = unique_methods
+            .iter()
+            .position(|vm| vm.fragment == self.initial_verification_method.fragment)
+        {
+            self.initial_verification_method.flags = unique_methods.swap_remove(index).flags;
+        }
+
+        self.verification_methods = unique_methods;
+
+        Ok(())
+    }
+
+    pub fn set_native_controllers(&mut self, native_controllers: Vec<Pubkey>) -> Result<()> {
+        self.native_controllers = native_controllers.into_iter().unique().collect_vec();
+
+        let own_authority = Pubkey::new(&self.initial_verification_method.key_data);
+
+        require!(
+            !self.native_controllers.contains(&own_authority),
+            DidSolError::InvalidNativeControllers,
+        );
+
+        Ok(())
+    }
+
+    pub fn set_other_controllers(&mut self, other_controllers: Vec<String>) -> Result<()> {
+        self.other_controllers = other_controllers.into_iter().unique().collect_vec();
+
+        require!(
+            check_other_controllers(&self.other_controllers),
+            DidSolError::InvalidOtherControllers
+        );
+
+        Ok(())
+    }
+
     pub fn size(&self) -> usize {
         1 // version
         + 1 // bump
@@ -342,7 +410,7 @@ impl VerificationMethod {
 
     pub fn default(flags: VerificationMethodFlags, key_data: Vec<u8>) -> VerificationMethod {
         VerificationMethod {
-            fragment: String::from("default"),
+            fragment: String::from(VM_DEFAULT_FRAGMENT_NAME),
             flags: flags.bits(),
             method_type: VerificationMethodType::default().to_u8().unwrap(),
             key_data,
@@ -379,6 +447,7 @@ pub struct Secp256k1RawSignature {
 
 bitflags! {
     pub struct VerificationMethodFlags: u16 {
+        const NONE = 0;
         /// The VM is able to authenticate the subject
         const AUTHENTICATION = 1 << 0;
         /// The VM is able to proof assertions on the subject

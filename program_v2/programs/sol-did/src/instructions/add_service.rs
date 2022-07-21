@@ -1,5 +1,4 @@
 use crate::constants::DID_ACCOUNT_SEED;
-use crate::errors::DidSolError;
 use crate::state::{DidAccount, Secp256k1RawSignature, Service};
 use anchor_lang::prelude::*;
 
@@ -13,12 +12,8 @@ pub fn add_service(
         data.nonce += 1;
     }
 
-    if data.services.iter().all(|x| x.fragment != service.fragment) {
-        data.services.push(service);
-        Ok(())
-    } else {
-        Err(error!(DidSolError::ServiceFragmentAlreadyInUse))
-    }
+    let joint_services = [data.services.as_slice(), &[service]].concat();
+    data.set_services(joint_services)
 }
 
 #[derive(Accounts)]
