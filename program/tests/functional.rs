@@ -4,7 +4,7 @@
 use std::iter;
 use {
     borsh::BorshSerialize,
-    sol_did::{
+    sol_did_legacy::{
         borsh as program_borsh,
         error::SolError,
         id, instruction,
@@ -32,7 +32,7 @@ use {
 };
 
 fn program_test() -> ProgramTest {
-    ProgramTest::new("sol_did", id(), processor!(process_instruction))
+    ProgramTest::new("sol_did_legacy", id(), processor!(process_instruction))
 }
 
 async fn initialize_did_account(
