@@ -30,7 +30,7 @@ Given an arbitrary account `acc`, owned by a DID,
 Check if a signer is a valid owner of A using:
 
 ```rust
-use sol_did::validate_owner;
+use sol_did_legacy::validate_owner;
 
 fn check_authority(authority_info: &AccountInfo, did: &AccountInfo, acc: &MyAccount) -> ProgramResult {
   if !(acc.owner.eq(did.key)) {
