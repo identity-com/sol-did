@@ -4,12 +4,16 @@ import { promises as fsPromises } from 'fs';
 const fixturePath = './tests/fixtures/';
 
 export const loadJSON = async (filename: string): Promise<any> => {
-  const fileBuffer = await fsPromises.readFile(`${fixturePath}${filename}`);
+  const fileBuffer = await fsPromises.readFile(
+    `${fixturePath}documents/${filename}`
+  );
   return JSON.parse(fileBuffer.toString());
 };
 
 export const loadKeypair = async (name: string): Promise<Keypair> => {
-  const keyFileBuffer = await fsPromises.readFile(`${fixturePath}${name}`);
+  const keyFileBuffer = await fsPromises.readFile(
+    `${fixturePath}keypairs/${name}`
+  );
   const privateKey = Uint8Array.from(JSON.parse(keyFileBuffer.toString()));
   return Keypair.fromSecretKey(privateKey);
 };

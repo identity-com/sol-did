@@ -18,7 +18,7 @@ pub struct Migrate<'info> {
     #[account(
         init,
         payer = payer,
-        space = 1_000, // TODO
+        space = legacy_did_data.post_migration_size(),
         seeds = [DID_ACCOUNT_SEED.as_bytes(), authority.key().as_ref()],
         bump,
     )]

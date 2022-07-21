@@ -128,6 +128,31 @@ describe('sol-did resolve and migrate operations', () => {
     );
   });
 
+  it('can successfully migrate a legacy DID and close the legacy account', async () => {
+    // close migrated account from previous test
+    await legacyDidService.close(authority.publicKey).rpc();
+    const didAccount = await legacyDidService.getDidAccount();
+    const legacyAccount = await legacyDidService.getLegacyData();
+    expect(didAccount).to.be.null;
+    expect(legacyAccount.authority.toPublicKey()).to.deep.equal(
+      legacyAuthority.publicKey
+    );
+
+    // migrate
+    await legacyDidService
+      .migrate(nonAuthoritySigner.publicKey, legacyAuthority.publicKey)
+      .withPartialSigners(nonAuthoritySigner)
+      .rpc();
+
+    // check migration
+    const didDoc = await legacyDidService.resolve();
+    expect(didDoc).to.deep.equal(migratedLegacyDidDocComplete);
+
+    // check legacy is closed
+    const legacyData = await service.getLegacyData();
+    expect(legacyData).to.be.null;
+  });
+
   it.skip('cannot migrate if the account is not owned by the legacy did:sol program', async () => {
     // TODO
     // return expect(
@@ -154,17 +179,5 @@ describe('sol-did resolve and migrate operations', () => {
       })
       .withSolWallet(authority)
       .rpc();
-  });
-
-  it.skip('prioritises the new resolver over the legacy resolver', async () => {
-    await legacyDidService.initialize().rpc();
-
-    const didDoc = await legacyDidService.resolve();
-    expect(didDoc).to.deep.equal(
-      getGeneratedDidDocument(
-        legacyAuthority.publicKey.toBase58(),
-        'did:sol:localnet:'
-      )
-    );
   });
 });

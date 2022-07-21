@@ -35,13 +35,12 @@ import {
   VerificationMethodFlags,
   Wallet,
 } from './lib/types';
-import {
-  INITIAL_MIN_ACCOUNT_SIZE,
-} from './lib/const';
+import { INITIAL_MIN_ACCOUNT_SIZE } from './lib/const';
 import { DidSolDocument } from './DidSolDocument';
 import { ExtendedCluster, getConnectionByCluster } from './lib/connection';
 import { DidSolIdentifier } from './DidSolIdentifier';
 import {
+  closeAccount,
   ClusterType,
   DecentralizedIdentifier,
   SolData,
@@ -128,6 +127,14 @@ export class DidSolService {
     return this._program.provider.connection;
   }
 
+  get didDataAccount(): PublicKey {
+    return this._didDataAccount;
+  }
+
+  get legacyDidDataAccount(): PublicKey {
+    return this._legacyDidDataAccount;
+  }
+
   async getDidAccount(): Promise<DidDataAccount | null> {
     return (await this._program.account.didAccount.fetchNullable(
       this._didDataAccount
@@ -211,7 +218,9 @@ export class DidSolService {
     return new DidSolServiceBuilder(this, {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.NotSupported,
-      didAccountSizeDeltaCallback: () => size,
+      didAccountSizeDeltaCallback: () => {
+        throw new Error('Dynamic Alloc not supported');
+      },
       allowsDynamicAlloc: false,
       authority: this._didAuthority,
     });
@@ -241,17 +250,8 @@ export class DidSolService {
     return new DidSolServiceBuilder(this, {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
-      didAccountSizeDeltaCallback: (didAccountBefore) => {
-        if (!didAccountBefore) {
-          throw new Error('Cannot close account on uninitialized account');
-        }
-
-        return (
-          size -
-          DidAccountSizeHelper.fromAccount(
-            didAccountBefore
-          ).getTotalNativeAccountSize()
-        );
+      didAccountSizeDeltaCallback: () => {
+        throw new Error('Dynamic Alloc not supported');
       },
       allowsDynamicAlloc: false,
       authority,
@@ -280,14 +280,8 @@ export class DidSolService {
     return new DidSolServiceBuilder(this, {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
-      didAccountSizeDeltaCallback: (didAccountBefore) => {
-        if (!didAccountBefore) {
-          throw new Error('Cannot close account on uninitialized account');
-        }
-
-        return -DidAccountSizeHelper.fromAccount(
-          didAccountBefore
-        ).getTotalNativeAccountSize();
+      didAccountSizeDeltaCallback: () => {
+        throw new Error('Dynamic Alloc not supported');
       },
       allowsDynamicAlloc: false,
       authority,
@@ -458,7 +452,9 @@ export class DidSolService {
     return new DidSolServiceBuilder(this, {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
-      didAccountSizeDeltaCallback: () => 0, // No size change
+      didAccountSizeDeltaCallback: () => {
+        throw new Error('Dynamic Alloc not supported');
+      },
       allowsDynamicAlloc: false,
       authority,
     });
@@ -539,8 +535,12 @@ export class DidSolService {
   /**
    * Updates several properties of a service.
    * @param payer Payer for the creation of the new Account
+   * @param legacyAuthority if passed, close the legacy account after migration. Refund will go to payer.
    */
-  migrate(payer: PublicKey = this._didAuthority): DidSolServiceBuilder {
+  migrate(
+    payer: PublicKey = this._didAuthority,
+    legacyAuthority?: PublicKey
+  ): DidSolServiceBuilder {
     const authority = this._didAuthority;
 
     const instructionPromise = this._program.methods
@@ -553,13 +553,29 @@ export class DidSolService {
       })
       .instruction();
 
-    return new DidSolServiceBuilder(this, {
-      instructionPromise,
-      ethSignStatus: DidSolEthSignStatusType.NotSupported,
-      didAccountSizeDeltaCallback: () => 0, // TODO: Martin calculate size change
-      allowsDynamicAlloc: false,
-      authority,
-    });
+    // close legacy accounts
+    let postInstructions: Promise<TransactionInstruction>[] = [];
+    if (legacyAuthority) {
+      postInstructions = [
+        Promise.resolve(
+          closeAccount(this._legacyDidDataAccount, legacyAuthority, payer)
+        ),
+      ];
+    }
+
+    return new DidSolServiceBuilder(
+      this,
+      {
+        instructionPromise,
+        ethSignStatus: DidSolEthSignStatusType.NotSupported,
+        didAccountSizeDeltaCallback: () => {
+          throw new Error('Dynamic Alloc not supported');
+        },
+        allowsDynamicAlloc: false,
+        authority,
+      },
+      postInstructions
+    );
   }
 
   /**
@@ -588,7 +604,7 @@ export class DidSolService {
     );
   }
 
-  private async getLegacyData(): Promise<SolData | null> {
+  public async getLegacyData(): Promise<SolData | null> {
     const id = new DecentralizedIdentifier({
       clusterType: ClusterType.parse(this._cluster),
       authorityPubkey: SolPublicKey.fromPublicKey(this._didAuthority),
@@ -664,6 +680,7 @@ export class DidSolServiceBuilder {
   constructor(
     private service: DidSolService,
     private _instruction: BuilderInstruction,
+    private _postInstructions: Promise<TransactionInstruction>[] = [],
     initOptions: DidSolServiceBuilderInitOptions = {}
   ) {
     this.solWallet = this.service.getWallet();
@@ -737,7 +754,8 @@ export class DidSolServiceBuilder {
       );
     });
 
-    return Promise.all(promises);
+    // Mix in _postInstructions to array. Consider moving to cleaner position
+    return Promise.all([...promises, ...this._postInstructions]);
   }
 
   private async getAllocInstruction(): Promise<BuilderInstruction[]> {

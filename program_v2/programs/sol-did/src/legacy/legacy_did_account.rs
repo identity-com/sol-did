@@ -21,6 +21,12 @@ pub struct LegacyServiceEndpoint {
     pub description: String,
 }
 
+impl LegacyServiceEndpoint {
+    pub fn post_migration_size(&self) -> usize {
+        4 + self.id.len() + 4 + self.endpoint_type.len() + 4 + self.endpoint.len()
+    }
+}
+
 #[derive(Clone, BorshDeserialize)]
 pub struct LegacyVerificationMethod {
     /// Unique id for the verification method, and how to find it
@@ -31,6 +37,15 @@ pub struct LegacyVerificationMethod {
     pub verification_type: String,
     /// The associated pubkey itself
     pub pubkey: Pubkey,
+}
+
+impl LegacyVerificationMethod {
+    pub fn post_migration_size(&self) -> usize {
+        4 + self.id.len() // fragment string
+            + 2 // flags
+            + 1 // method
+            + 4 + 32 // ed25519 pubkey
+    }
 }
 
 #[derive(Clone, BorshDeserialize)]
@@ -60,6 +75,21 @@ pub struct LegacyDidAccount {
 }
 
 impl LegacyDidAccount {
+    pub fn post_migration_size(&self) -> usize {
+        let mut size = DidAccount::initial_size();
+        size += self
+            .verification_method
+            .iter()
+            .fold(0, |accum, item| accum + item.post_migration_size()); // verification_methods
+        size += self
+            .service
+            .iter()
+            .fold(0, |accum, item| accum + item.post_migration_size()); // services
+        size += self.controller.len() * 32; // native_controllers
+        size += 8; // anchor discriminator
+        size
+    }
+
     pub fn migrate(&self, into: &mut DidAccount, bump: u8) -> Result<()> {
         let default_flags = self.get_flags(&VM_DEFAULT_FRAGMENT_NAME.to_string());
         into.init(bump, &self.authority, default_flags);
@@ -77,6 +107,7 @@ impl LegacyDidAccount {
     }
 
     fn migrate_verification_methods(&self) -> Vec<VerificationMethod> {
+        // TODO: Filter "default" types here because there could be multiple in the legacy data model
         self.verification_method
             .iter()
             .map(|vm| VerificationMethod {

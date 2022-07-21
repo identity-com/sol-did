@@ -21,6 +21,8 @@ import { promises as fsPromises } from 'fs';
 
 const { exec } = require('child_process');
 
+const fixturePath = './tests/fixtures/accounts/';
+
 (async () => {
   const program = anchor.workspace.SolDid as Program<SolDid>;
   const programProvider = program.provider as anchor.AnchorProvider;
@@ -45,7 +47,7 @@ const { exec } = require('child_process');
   );
 
   const keyFileBuffer = await fsPromises.readFile(
-    './tests/fixtures/LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a.json'
+    './tests/fixtures/keypairs/LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a.json'
   );
   const privateKey = Uint8Array.from(JSON.parse(keyFileBuffer.toString()));
   const otherSolKey = Keypair.fromSecretKey(privateKey);
@@ -69,7 +71,7 @@ const { exec } = require('child_process');
 
   // write account
   exec(
-    `solana account ${didData.toBase58()} -ul -o tests/fixtures/did-account-min.json --output json`
+    `solana account ${didData.toBase58()} -ul -o ${fixturePath}did-account-min.json --output json`
   );
 
   // Multiple Verification Methods to fixture
@@ -116,7 +118,7 @@ const { exec } = require('child_process');
 
   // write account
   exec(
-    `solana account ${didData.toBase58()} -ul -o tests/fixtures/did-account-complete.json --output json`
+    `solana account ${didData.toBase58()} -ul -o ${fixturePath}did-account-complete.json --output json`
   );
 
   // Legacy DID Fixture
@@ -167,7 +169,7 @@ const { exec } = require('child_process');
   ).pdaSolanaPubkey();
   // write account
   exec(
-    `solana account ${legacyAccount.toBase58()} -ul -o tests/fixtures/legacy-did-account-complete.json --output json`
+    `solana account ${legacyAccount.toBase58()} -ul -o ${fixturePath}legacy-did-account-complete.json --output json`
   );
 
   // resolve:

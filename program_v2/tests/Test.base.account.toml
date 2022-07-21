@@ -2,4 +2,4 @@ extends = ["./Test.base.toml"]
 
 [[test.validator.account]]
 address = "F4z36iiKA1Ymp7suNTiTGpN9JH3C5sceSGBSzyPsfFJz"
-filename = "./fixtures/did-account-min.json"
+filename = "./fixtures/accounts/did-account-min.json"
