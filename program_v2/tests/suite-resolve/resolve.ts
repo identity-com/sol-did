@@ -278,9 +278,6 @@ describe('sol-did resolve operations', () => {
     let services = [getTestService(5), getTestService(9)];
     const ethKey = wallet2.createRandom();
     const ethrDid = `did:ethr:${ethKey.address}`;
-    // take values and manipulate
-    // existing.verificationMethods...
-    // call update with manipulated values
     const updated = await service
       .update({
         controllerDIDs: [ethrDid],
@@ -290,9 +287,79 @@ describe('sol-did resolve operations', () => {
       .withSolWallet(authority)
       .rpc();
       let updated_account = await service.getDidAccount();
-      expect(updated_account?.services.length == 2);
-      expect (updated_account?.verificationMethods.length == 2);
+      expect(updated_account?.services.length).to.equal(2);
+      expect(updated_account?.verificationMethods.length).to.equal(2);
+      expect(updated_account?.nativeControllers.length).to.equal(0);
+      expect(updated_account?.otherControllers.length).to.equal(1);
   });
+
+  it('check set_service works before set_verification_methods' , async () => {
+    const existing = await service.getDidAccount();
+    expect(existing).to.not.be.equal(null);
+    let vms = [{
+      fragment: newSolKeyAlias,
+      keyData: newSolKey.publicKey.toBytes(),
+      methodType: VerificationMethodType.Ed25519VerificationKey2018,
+      flags: VerificationMethodFlags.CapabilityInvocation,
+    }, {
+      fragment: newSolKeyAlias,
+      keyData: newSolKey.publicKey.toBytes(),
+      methodType: VerificationMethodType.Ed25519VerificationKey2018,
+      flags: VerificationMethodFlags.CapabilityInvocation,
+    }, {
+      fragment: newSolKeyAlias,
+      keyData: newSolKey.publicKey.toBytes(),
+      methodType: VerificationMethodType.Ed25519VerificationKey2018,
+      flags: VerificationMethodFlags.CapabilityInvocation,
+    },
+    ]
+    let services = [getTestService(5), getTestService(5)];
+    return expect(
+      service
+      .update({
+        controllerDIDs: [],
+        services: services,
+        verificationMethods: vms,
+      })
+      .withSolWallet(authority)
+      .rpc())
+      .to.be.rejectedWith("Error Code: ServiceFragmentAlreadyInUse. Error Number: 6004. Error Message: Service already exists in current service list.");
+  })
+
+  it("check set_verification_methods works before set_controllers", async () => {
+    const existing = await service.getDidAccount();
+    expect(existing).to.not.be.equal(null);
+    let vms = [{
+      fragment: newSolKeyAlias,
+      keyData: newSolKey.publicKey.toBytes(),
+      methodType: VerificationMethodType.Ed25519VerificationKey2018,
+      flags: VerificationMethodFlags.CapabilityInvocation,
+    }, {
+      fragment: newSolKeyAlias,
+      keyData: newSolKey.publicKey.toBytes(),
+      methodType: VerificationMethodType.Ed25519VerificationKey2018,
+      flags: VerificationMethodFlags.CapabilityInvocation,
+    }, {
+      fragment: newSolKeyAlias,
+      keyData: newSolKey.publicKey.toBytes(),
+      methodType: VerificationMethodType.Ed25519VerificationKey2018,
+      flags: VerificationMethodFlags.CapabilityInvocation,
+    },
+    ]
+    const ethrDid = `did:ethr:${ethKey.address}`;
+    const selfSolDid = service.did;
+    return expect(
+      service
+      .update({
+        controllerDIDs: [ethrDid, selfSolDid],
+        services: [],
+        verificationMethods: vms,
+      })
+      .withSolWallet(authority)
+      .rpc())
+      .to.be
+      .rejectedWith("Error Code: VmFragmentAlreadyInUse. Error Number: 6001. Error Message: Given VM fragment is already in use.");
+  })
 
   it('prioritises the new resolver over the legacy resolver', async () => {
     await legacyDidService.initialize().rpc();
