@@ -267,7 +267,7 @@ impl DidAccount {
         self.services = unique_services;
         Ok(())
     }
-
+    // TODO: This function needs to check that no Ownership flags are set.
     pub fn set_verification_methods(&mut self, methods: Vec<VerificationMethod>) -> Result<()> {
         let original_size = methods.len();
         let mut unique_methods = methods

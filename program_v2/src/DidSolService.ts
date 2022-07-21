@@ -492,8 +492,14 @@ export class DidSolService {
     updateArgs: DidSolUpdateArgs,
     authority: PublicKey = this._didAuthority
   ): DidSolServiceBuilder {
+    const updateControllers = validateAndSplitControllers(updateArgs.controllerDIDs);
     const instructionPromise = this._program.methods
-      .update(updateArgs, null)
+      .update({
+        verificationMethods: updateArgs.verificationMethods,
+        services: updateArgs.services,
+        nativeControllers: updateControllers.nativeControllers,
+        otherControllers: updateControllers.otherControllers,
+      }, null)
       .accounts({
         didData: this._didDataAccount,
         authority,
