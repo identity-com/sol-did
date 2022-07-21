@@ -46,8 +46,8 @@
         "compile": "tsc -p tsconfig.json",
         "build": "yarn clean && anchor build && yarn compile",
         "prepare": "yarn build",
-        "start-validator": "solana-test-validator --bpf-program didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc ./target/deploy/sol_did_legacy.so --reset",
-        "start-validator-legacy": "solana-test-validator --bpf-program didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc ./target/deploy/sol_did.so --bpf-program idDa4XeCjVwKcprVAo812coUQbovSZ4kDGJf2sPaBnM ../program/target/deploy/sol_did_legacy.so --reset",
+        "start-validator": "solana-test-validator --bpf-program didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc ./target/deploy/sol_did.so --reset",
+        "start-validator-legacy": "solana-test-validator --bpf-program didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc ./target/deploy/sol_did_legacy.so --bpf-program idDa4XeCjVwKcprVAo812coUQbovSZ4kDGJf2sPaBnM ../program/target/deploy/sol_did_legacy.so --reset",
         "create-fixtures": "anchor run createTestFixtureAccount"
     },
     "dependencies": {
