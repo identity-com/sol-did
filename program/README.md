@@ -18,7 +18,7 @@ for developing Rust programs.
 
 ### Deploying:
 
-    solana program deploy <REPO_HOME>/sol-did/program/target/deploy/sol_did.so
+    solana program deploy <REPO_HOME>/sol-did/program/target/deploy/sol_did_legacy.so
 
 The program is deployed on Mainnet at address:
 
