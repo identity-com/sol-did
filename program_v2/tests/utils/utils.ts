@@ -1,6 +1,7 @@
 import * as anchor from '@project-serum/anchor';
 import { web3 } from '@project-serum/anchor';
-import { Service } from '../../src';
+import { expect } from 'chai';
+import { DidSolService, Service } from '../../src';
 
 export const checkConnectionLogs = (connection: web3.Connection) => {
   if (process.env.ENABLE_LOGS)
@@ -27,3 +28,9 @@ export const getTestService = (n: number): Service => ({
   serviceType: `testType${n}`,
   serviceEndpoint: `testEndpoint${n}`,
 });
+
+export const existingAccount = async (service: DidSolService) => {
+  const existing = await service.getDidAccount();
+  expect(existing).to.not.be.equal(null);
+  return existing;
+};
