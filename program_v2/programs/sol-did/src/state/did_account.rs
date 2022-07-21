@@ -5,6 +5,7 @@ use itertools::Itertools;
 use num_derive::*;
 use num_traits::*;
 
+use crate::constants::VM_DEFAULT_FRAGMENT_NAME;
 use crate::utils::{check_other_controllers, convert_secp256k1pub_key_to_address};
 use solana_program::{keccak, secp256k1_recover::secp256k1_recover};
 
@@ -29,6 +30,14 @@ pub struct DidAccount {
 }
 
 impl DidAccount {
+    pub fn init(&mut self, bump: u8, authority_key: &Pubkey, flags: VerificationMethodFlags) {
+        self.version = 0;
+        self.bump = bump;
+        self.nonce = 0;
+
+        self.initial_verification_method =
+            VerificationMethod::default(flags, authority_key.to_bytes().to_vec());
+    }
     /// Accessor for all verification methods (including the initial one)
     /// Enables to pass several filters that are ANDed together.
     fn verification_methods(
@@ -269,6 +278,8 @@ impl DidAccount {
     }
     // TODO: This function needs to check that no Ownership flags are set.
     pub fn set_verification_methods(&mut self, methods: Vec<VerificationMethod>) -> Result<()> {
+        // TODO: This function needs to check that no Ownership flags are set.
+
         let original_size = methods.len();
         let mut unique_methods = methods
             .into_iter()
@@ -399,7 +410,7 @@ impl VerificationMethod {
 
     pub fn default(flags: VerificationMethodFlags, key_data: Vec<u8>) -> VerificationMethod {
         VerificationMethod {
-            fragment: String::from("default"),
+            fragment: String::from(VM_DEFAULT_FRAGMENT_NAME),
             flags: flags.bits(),
             method_type: VerificationMethodType::default().to_u8().unwrap(),
             key_data,
@@ -436,6 +447,7 @@ pub struct Secp256k1RawSignature {
 
 bitflags! {
     pub struct VerificationMethodFlags: u16 {
+        const NONE = 0;
         /// The VM is able to authenticate the subject
         const AUTHENTICATION = 1 << 0;
         /// The VM is able to proof assertions on the subject

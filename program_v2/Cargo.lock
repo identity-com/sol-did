@@ -1111,10 +1111,11 @@ checksum = "f2dd574626839106c320a323308629dcb1acfc96e32a8cba364ddc61ac23ee83"
 
 [[package]]
 name = "sol-did"
-version = "0.1.0"
+version = "3.0.0"
 dependencies = [
  "anchor-lang",
  "bitflags",
+ "borsh",
  "itertools",
  "num-derive",
  "num-traits",

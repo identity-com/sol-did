@@ -36,13 +36,11 @@ describe('sol-did service operations', () => {
 
   before(async () => {
     [didData, didDataPDABump] = await findProgramAddress(authority.publicKey);
-    service = new DidSolService(
+    service = await DidSolService.buildFromAnchor(
       program,
       authority.publicKey,
-      didData,
       TEST_CLUSTER,
-      authority,
-      programProvider.opts
+      programProvider
     );
 
     // size up

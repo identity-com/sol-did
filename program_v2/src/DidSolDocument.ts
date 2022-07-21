@@ -40,7 +40,7 @@ export class DidSolDocument implements DIDDocument {
     );
   }
 
-  static defaultContext(version: number = 0): string[] {
+  static defaultContext(version: string = '2.0'): string[] {
     return [W3ID_CONTEXT, getSolContextPrefix(version)];
   }
 

@@ -18,7 +18,6 @@ pub fn resize(
 #[derive(Accounts)]
 #[instruction(size: u32, eth_signature: Option<Secp256k1RawSignature>)]
 pub struct Resize<'info> {
-    // TODO: prevent from resizing to less data
     #[account(
         mut,
         seeds = [DID_ACCOUNT_SEED.as_bytes(), did_data.initial_verification_method.key_data.as_ref()],
