@@ -21,14 +21,15 @@ resolved... (./src/commands/resolve/index.ts)
   async run(): Promise<void> {
     const { args } = await this.parse(Resolve);
 
-    const didSol = new DidSolIdentifier(args.didsol);
-    didSol.clusterType = 'localnet';
-    const service = await DidSolService.build(didSol);
+    // const didSol = new DidSolIdentifier(args.didsol);
+    // didSol.clusterType = 'localnet';
+    // const service = await DidSolService.build(didSol);
 
-    const DID = await service.resolve(args.didsol);
+    // const DID = await service.resolve(args.didsol);
 
-    // service.resolve(args.didsol);
-    this.log(`resolved... ${DID.id}`);
+    // // service.resolve(args.didsol);
+    // this.log(`resolved... ${DID.id}`);
+    this.log('unresolved... pending error handling');
   }
 }
 
