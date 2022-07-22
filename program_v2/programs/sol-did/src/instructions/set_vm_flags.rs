@@ -41,7 +41,7 @@ pub struct SetVmFlagsMethod<'info> {
 }
 
 /// Argument
-#[derive(Debug, AnchorSerialize, AnchorDeserialize, Default, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Default, Clone)]
 pub struct UpdateFlagsVerificationMethod {
     pub fragment: String,
     pub flags: u16,
