@@ -1,5 +1,5 @@
 import * as anchor from '@project-serum/anchor';
-import { Program, web3, Wallet } from '@project-serum/anchor';
+import { Program, Wallet, web3 } from '@project-serum/anchor';
 import { SolDid } from '../../target/types/sol_did';
 
 import chai, { expect } from 'chai';
@@ -7,12 +7,11 @@ import chaiAsPromised from 'chai-as-promised';
 
 import { before } from 'mocha';
 import {
+  DidSolIdentifier,
   DidSolService,
-  findProgramAddress,
+  VerificationMethod,
   VerificationMethodFlags,
   VerificationMethodType,
-  DEFAULT_KEY_ID,
-  DidSolIdentifier,
 } from '../../src';
 
 import {
@@ -24,7 +23,13 @@ import { TEST_CLUSTER } from '../utils/const';
 import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { DIDDocument } from 'did-resolver';
 import { Wallet as EtherWallet } from 'ethers';
-import { airdrop, getTestService, existingAccount } from '../utils/utils';
+import {
+  airdrop,
+  existingAccount,
+  getTestService,
+  getTestVerificationMethod,
+} from '../utils/utils';
+import { DEFAULT_KEY_ID } from '@identity.com/sol-did-client-legacy';
 
 chai.use(chaiAsPromised);
 
@@ -48,9 +53,6 @@ describe('sol-did resolve and migrate operations', () => {
 
   const nonAuthoritySigner = anchor.web3.Keypair.generate();
   const nonAuthorityWallet = new Wallet(nonAuthoritySigner);
-
-  const newSolKey = anchor.web3.Keypair.generate();
-  const newSolKeyAlias = 'new-sol-key';
 
   const solKey = anchor.web3.Keypair.generate();
   const ethKey = EtherWallet.createRandom();
@@ -195,21 +197,31 @@ describe('sol-did resolve and migrate operations', () => {
 
   it('can update the verificationMethods of a Did', async () => {
     await existingAccount(service);
-    let vms = [
-      {
-        fragment: newSolKeyAlias,
-        keyData: newSolKey.publicKey.toBytes(),
-        methodType: VerificationMethodType.Ed25519VerificationKey2018,
-        flags: VerificationMethodFlags.CapabilityInvocation,
-      },
-      {
-        fragment: 'new-key',
-        keyData: newSolKey.publicKey.toBytes(),
-        methodType: VerificationMethodType.Ed25519VerificationKey2018,
-        flags: VerificationMethodFlags.CapabilityDelegation,
-      },
+    let vms: VerificationMethod[] = [
+      getTestVerificationMethod(
+        'key1',
+        Keypair.generate().publicKey,
+        VerificationMethodFlags.KeyAgreement |
+          VerificationMethodFlags.CapabilityInvocation
+      ),
+      getTestVerificationMethod('key2'),
+      getTestVerificationMethod(
+        'key3',
+        Keypair.generate().publicKey,
+        VerificationMethodFlags.KeyAgreement |
+          VerificationMethodFlags.CapabilityInvocation |
+          VerificationMethodFlags.CapabilityDelegation
+      ),
+      getTestVerificationMethod(
+        DEFAULT_KEY_ID,
+        Keypair.generate().publicKey,
+        VerificationMethodFlags.KeyAgreement |
+          VerificationMethodFlags.CapabilityInvocation |
+          VerificationMethodFlags.Authentication,
+        VerificationMethodType.EcdsaSecp256k1VerificationKey2019
+      ), // Intentionally wrong
     ];
-    const updated = await service
+    await service
       .update({
         controllerDIDs: [],
         services: [],
@@ -219,7 +231,24 @@ describe('sol-did resolve and migrate operations', () => {
       .rpc();
     let updated_account = await service.getDidAccount();
     expect(updated_account?.services).to.be.deep.equal([]);
-    expect(updated_account?.verificationMethods).to.be.deep.equal(vms);
+
+    // Default Element will not be updated on verificationMethods
+    const lastElement = vms.pop();
+    // Default (Initial) Verification Method will ONLY update the flags
+    expect(updated_account?.initialVerificationMethod.fragment).to.be.equal(
+      DEFAULT_KEY_ID
+    );
+    expect(updated_account?.initialVerificationMethod.flags).to.be.equal(
+      lastElement.flags
+    );
+    expect(updated_account?.initialVerificationMethod.keyData).to.be.deep.equal(
+      authority.publicKey.toBytes()
+    );
+    expect(updated_account?.initialVerificationMethod.methodType).to.be.equal(
+      VerificationMethodType.Ed25519VerificationKey2018
+    );
+
+    expect(updated_account?.verificationMethods).to.be.deep.equal(vms); // default key will not be updated
     expect(updated_account?.nativeControllers).to.be.deep.equal([]);
     expect(updated_account?.otherControllers).to.be.deep.equal([]);
   });
@@ -227,24 +256,10 @@ describe('sol-did resolve and migrate operations', () => {
   it('cannot update the verificationMethods of a Did if there are replications', async () => {
     await existingAccount(service);
     let vms = [
-      {
-        fragment: newSolKeyAlias,
-        keyData: newSolKey.publicKey.toBytes(),
-        methodType: VerificationMethodType.Ed25519VerificationKey2018,
-        flags: VerificationMethodFlags.CapabilityInvocation,
-      },
-      {
-        fragment: newSolKeyAlias,
-        keyData: newSolKey.publicKey.toBytes(),
-        methodType: VerificationMethodType.Ed25519VerificationKey2018,
-        flags: VerificationMethodFlags.CapabilityInvocation,
-      },
-      {
-        fragment: newSolKeyAlias,
-        keyData: newSolKey.publicKey.toBytes(),
-        methodType: VerificationMethodType.Ed25519VerificationKey2018,
-        flags: VerificationMethodFlags.CapabilityInvocation,
-      },
+      getTestVerificationMethod('key1'),
+      getTestVerificationMethod('key2'),
+      getTestVerificationMethod('key3'),
+      getTestVerificationMethod('key1'),
     ];
     return expect(
       service
@@ -263,7 +278,7 @@ describe('sol-did resolve and migrate operations', () => {
   it('can update the services of a Did', async () => {
     await existingAccount(service);
     let services = [getTestService(5), getTestService(9)];
-    const updated = await service
+    await service
       .update({
         controllerDIDs: [],
         services: services,
@@ -302,7 +317,8 @@ describe('sol-did resolve and migrate operations', () => {
       solKey.publicKey,
       TEST_CLUSTER
     ).toString();
-    const updated = await service
+
+    await service
       .update({
         controllerDIDs: [solDid, ethrDid],
         services: [],
@@ -354,23 +370,13 @@ describe('sol-did resolve and migrate operations', () => {
   it('can successfully update the state of a DID', async () => {
     await existingAccount(service);
     let vms = [
-      {
-        fragment: newSolKeyAlias,
-        keyData: newSolKey.publicKey.toBytes(),
-        methodType: VerificationMethodType.Ed25519VerificationKey2018,
-        flags: VerificationMethodFlags.CapabilityInvocation,
-      },
-      {
-        fragment: 'new-key',
-        keyData: newSolKey.publicKey.toBytes(),
-        methodType: VerificationMethodType.Ed25519VerificationKey2018,
-        flags: VerificationMethodFlags.CapabilityDelegation,
-      },
+      getTestVerificationMethod('key1'),
+      getTestVerificationMethod('key2'),
     ];
     let services = [getTestService(5), getTestService(9)];
     const ethKey = EtherWallet.createRandom();
     const ethrDid = `did:ethr:${ethKey.address}`;
-    const updated = await service
+    await service
       .update({
         controllerDIDs: [ethrDid],
         services: services,
@@ -385,78 +391,30 @@ describe('sol-did resolve and migrate operations', () => {
     expect(updated_account?.otherControllers).to.be.deep.equal([ethrDid]);
   });
 
-  it('check set_service works before set_verification_methods', async () => {
+  it('fails to update when any verification methods try to set the Ownership flag.', async () => {
     await existingAccount(service);
     let vms = [
-      {
-        fragment: newSolKeyAlias,
-        keyData: newSolKey.publicKey.toBytes(),
-        methodType: VerificationMethodType.Ed25519VerificationKey2018,
-        flags: VerificationMethodFlags.CapabilityInvocation,
-      },
-      {
-        fragment: newSolKeyAlias,
-        keyData: newSolKey.publicKey.toBytes(),
-        methodType: VerificationMethodType.Ed25519VerificationKey2018,
-        flags: VerificationMethodFlags.CapabilityInvocation,
-      },
-      {
-        fragment: newSolKeyAlias,
-        keyData: newSolKey.publicKey.toBytes(),
-        methodType: VerificationMethodType.Ed25519VerificationKey2018,
-        flags: VerificationMethodFlags.CapabilityInvocation,
-      },
+      getTestVerificationMethod('key1'),
+      getTestVerificationMethod(
+        'key2',
+        Keypair.generate().publicKey,
+        VerificationMethodFlags.CapabilityInvocation |
+          VerificationMethodFlags.OwnershipProof
+      ),
+      getTestVerificationMethod('key3'),
     ];
-    let services = [getTestService(5), getTestService(5)];
+
     return expect(
       service
         .update({
           controllerDIDs: [],
-          services: services,
-          verificationMethods: vms,
-        })
-        .withSolWallet(authority)
-        .rpc()
-    ).to.be.rejectedWith(
-      'Error Code: ServiceFragmentAlreadyInUse. Error Number: 6004. Error Message: Service already exists in current service list.'
-    );
-  });
-
-  it('check set_verification_methods works before set_controllers', async () => {
-    await existingAccount(service);
-    let vms = [
-      {
-        fragment: newSolKeyAlias,
-        keyData: newSolKey.publicKey.toBytes(),
-        methodType: VerificationMethodType.Ed25519VerificationKey2018,
-        flags: VerificationMethodFlags.CapabilityInvocation,
-      },
-      {
-        fragment: newSolKeyAlias,
-        keyData: newSolKey.publicKey.toBytes(),
-        methodType: VerificationMethodType.Ed25519VerificationKey2018,
-        flags: VerificationMethodFlags.CapabilityInvocation,
-      },
-      {
-        fragment: newSolKeyAlias,
-        keyData: newSolKey.publicKey.toBytes(),
-        methodType: VerificationMethodType.Ed25519VerificationKey2018,
-        flags: VerificationMethodFlags.CapabilityInvocation,
-      },
-    ];
-    const ethrDid = `did:ethr:${ethKey.address}`;
-    const selfSolDid = service.did;
-    return expect(
-      service
-        .update({
-          controllerDIDs: [ethrDid, selfSolDid],
           services: [],
           verificationMethods: vms,
         })
         .withSolWallet(authority)
         .rpc()
     ).to.be.rejectedWith(
-      'Error Code: VmFragmentAlreadyInUse. Error Number: 6001. Error Message: Given VM fragment is already in use.'
+      'Error Code: VmOwnershipOnAdd. Error Number: 6002. Error Message: Cannot add a verification method with OwnershipProof flag.'
     );
   });
 });
