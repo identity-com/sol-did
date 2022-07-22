@@ -1,4 +1,4 @@
-import { resolve } from '@identity.com/sol-did-client-legacy';
+import { resolve } from '@identity.com/sol-did-client';
 import { Command } from '@oclif/core';
 
 export default class Resolve extends Command {
