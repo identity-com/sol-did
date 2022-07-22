@@ -10,4 +10,4 @@ export * from './lib/const';
 export * from './lib/connection';
 export * from './lib/types';
 
-export { run } from '@oclif/core'
+export { run } from '@oclif/core';
