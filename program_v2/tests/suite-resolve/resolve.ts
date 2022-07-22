@@ -137,6 +137,10 @@ describe('sol-did resolve and migrate operations', () => {
     // check migration
     const didDoc = await legacyDidService.resolve();
     expect(didDoc).to.deep.equal(migratedLegacyDidDocComplete);
+
+    // check that auth
+    const didAccount = await legacyDidService.getDidAccount();
+    expect(didAccount.initialVerificationMethod.flags).to.equal(VerificationMethodFlags.OwnershipProof | VerificationMethodFlags.CapabilityInvocation);
   });
 
   it('cannot migrate if a new account already exists', async () => {
