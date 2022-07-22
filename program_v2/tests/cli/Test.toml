@@ -1,4 +1,8 @@
 extends = ["../Test.base.account.toml"]
 
+[[test.validator.account]]
+address = "F4z36iiKA1Ymp7suNTiTGpN9JH3C5sceSGBSzyPsfFJz"
+filename = "../fixtures/accounts/did-account-complete.json"
+
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/cli/**/*.ts"
