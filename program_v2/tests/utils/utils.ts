@@ -1,6 +1,14 @@
 import * as anchor from '@project-serum/anchor';
 import { web3 } from '@project-serum/anchor';
-import { Service } from '../../src';
+import { expect } from 'chai';
+import {
+  DidSolService,
+  Service,
+  VerificationMethod,
+  VerificationMethodFlags,
+  VerificationMethodType,
+} from '../../src';
+import { Keypair, PublicKey } from '@solana/web3.js';
 
 export const checkConnectionLogs = (connection: web3.Connection) => {
   if (process.env.ENABLE_LOGS)
@@ -26,4 +34,22 @@ export const getTestService = (n: number): Service => ({
   fragment: `test${n}`,
   serviceType: `testType${n}`,
   serviceEndpoint: `testEndpoint${n}`,
+});
+
+export const existingAccount = async (service: DidSolService) => {
+  const existing = await service.getDidAccount();
+  expect(existing).to.not.be.equal(null);
+  return existing;
+};
+
+export const getTestVerificationMethod = (
+  fragment: string,
+  key: PublicKey = Keypair.generate().publicKey,
+  flags: VerificationMethodFlags = VerificationMethodFlags.CapabilityInvocation,
+  methodType: VerificationMethodType = VerificationMethodType.Ed25519VerificationKey2018
+): VerificationMethod => ({
+  fragment,
+  keyData: key.toBytes(),
+  methodType,
+  flags,
 });
