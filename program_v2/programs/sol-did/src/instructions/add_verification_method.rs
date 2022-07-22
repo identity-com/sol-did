@@ -1,9 +1,6 @@
 use crate::constants::DID_ACCOUNT_SEED;
-use crate::errors::DidSolError;
 
-use crate::state::{
-    DidAccount, Secp256k1RawSignature, VerificationMethod, VerificationMethodFlags,
-};
+use crate::state::{DidAccount, Secp256k1RawSignature, VerificationMethod};
 use anchor_lang::prelude::*;
 
 pub fn add_verification_method(
@@ -16,22 +13,13 @@ pub fn add_verification_method(
         data.nonce += 1;
     }
 
-    require!(
-        !VerificationMethodFlags::from_bits(verification_method.flags)
-            .ok_or(DidSolError::ConversionError)?
-            .contains(VerificationMethodFlags::OWNERSHIP_PROOF),
-        DidSolError::VmOwnershipOnAdd
-    );
-
-    let methods = [
+    let existing = [
         data.verification_methods.as_slice(),
-        &[
-            data.initial_verification_method.clone(),
-            verification_method,
-        ],
+        &[data.initial_verification_method.clone()],
     ]
     .concat();
-    data.set_verification_methods(methods)
+
+    data.set_verification_methods(existing, vec![verification_method])
 }
 
 #[derive(Accounts)]

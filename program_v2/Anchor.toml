@@ -10,6 +10,10 @@ url = "https://anchor.projectserum.com"
 cluster = "localnet"
 wallet = "./tests/fixtures/keypairs/A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3.json"
 
+#[provider]
+#cluster = "devnet"
+#wallet = "SET UPGRADE AUTHORITY WALLET PATH"
+
 [scripts]
-createTestFixtureAccount = "ts-node ./scripts/createTestFixtureAccount"
+createTestFixtureAccount = "./node_modules/.bin/ts-node ./scripts/createTestFixtureAccount"
 clientDemo = "./node_modules/.bin/ts-node ./scripts/clientDemo"

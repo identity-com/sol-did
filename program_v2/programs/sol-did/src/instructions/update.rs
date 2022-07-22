@@ -1,5 +1,4 @@
-use crate::errors::DidSolError;
-use crate::state::{DidAccount, Secp256k1RawSignature, VerificationMethodFlags};
+use crate::state::{DidAccount, Secp256k1RawSignature};
 use crate::{Service, VerificationMethod};
 use anchor_lang::prelude::*;
 
@@ -14,15 +13,8 @@ pub fn update(
         data.nonce += 1;
     }
 
-    let any_vm_with_ownership_proof = update_arg.verification_methods.iter().any(|vm| {
-        VerificationMethodFlags::from_bits(vm.flags)
-            .unwrap()
-            .contains(VerificationMethodFlags::OWNERSHIP_PROOF)
-    });
-    require!(!any_vm_with_ownership_proof, DidSolError::VmOwnershipOnAdd);
-
     data.set_services(update_arg.services)?;
-    data.set_verification_methods(update_arg.verification_methods)?;
+    data.set_verification_methods(Vec::new(), update_arg.verification_methods)?;
     data.set_native_controllers(update_arg.native_controllers)?;
     data.set_other_controllers(update_arg.other_controllers)?;
 
@@ -43,7 +35,7 @@ pub struct Update<'info> {
 }
 
 /// Argument
-#[derive(Debug, AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct UpdateArg {
     /// All verification methods
     pub verification_methods: Vec<VerificationMethod>,
