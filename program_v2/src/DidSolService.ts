@@ -62,14 +62,13 @@ export class DidSolService {
     didIdentifier: PublicKey,
     cluster: ExtendedCluster,
     wallet: Wallet = new DummyWallet(),
-    opts: ConfirmOptions = AnchorProvider.defaultOptions()
+    opts: ConfirmOptions = AnchorProvider.defaultOptions(),
+    connection?: Connection
   ): Promise<DidSolService> {
-    const connection = getConnectionByCluster(
-      cluster,
-      opts.preflightCommitment
-    );
+    const _connection =
+      connection || getConnectionByCluster(cluster, opts.preflightCommitment);
     // Note, DidSolService never signs, so provider does not need a valid Wallet or confirmOptions.
-    const provider = new AnchorProvider(connection, wallet, opts);
+    const provider = new AnchorProvider(_connection, wallet, opts);
 
     const program = await fetchProgram(provider);
     const [didDataAccount] = await findProgramAddress(didIdentifier);
@@ -133,6 +132,28 @@ export class DidSolService {
 
   get legacyDidDataAccount(): PublicKey {
     return this._legacyDidDataAccount;
+  }
+
+  async build(
+    didIdentifier: PublicKey,
+    wallet?: Wallet,
+    opts?: ConfirmOptions
+  ): Promise<DidSolService> {
+    const [didDataAccount] = await findProgramAddress(didIdentifier);
+    const [legacyDidDataAccount] = await findLegacyProgramAddress(
+      didIdentifier
+    );
+
+    // reuse existing program
+    return new DidSolService(
+      this._program,
+      didIdentifier,
+      didDataAccount,
+      legacyDidDataAccount,
+      this._cluster,
+      wallet ? wallet : this._wallet,
+      opts ? opts : this._opts
+    );
   }
 
   async getDidAccount(): Promise<DidDataAccount | null> {
