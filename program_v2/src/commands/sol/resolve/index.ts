@@ -1,12 +1,12 @@
 import { Command } from '@oclif/core';
-import { DidSolIdentifier } from '../../DidSolIdentifier';
-import { DidSolService } from '../../DidSolService';
+import { DidSolIdentifier } from '../../../DidSolIdentifier';
+import { DidSolService } from '../../../DidSolService';
 
 export default class Resolve extends Command {
   static description = 'Resolves a DID';
 
   static examples = [
-    `$ sol [did]
+    `$ sol resolve [did]
 resolved... (./src/commands/resolve/index.ts)
 `,
   ];
