@@ -1,4 +1,3 @@
-// import { resolve } from '@identity.com/sol-did-client';
 import { Command } from '@oclif/core';
 import { DidSolIdentifier } from '../../DidSolIdentifier';
 import { DidSolService } from '../../DidSolService';
@@ -7,7 +6,7 @@ export default class Resolve extends Command {
   static description = 'Resolves a DID';
 
   static examples = [
-    `$ oex resolve [did]
+    `$ sol [did]
 resolved... (./src/commands/resolve/index.ts)
 `,
   ];
@@ -21,16 +20,14 @@ resolved... (./src/commands/resolve/index.ts)
   async run(): Promise<void> {
     const { args } = await this.parse(Resolve);
 
-    // const didSol = new DidSolIdentifier(args.didsol);
-    // didSol.clusterType = 'localnet';
-    // const service = await DidSolService.build(didSol);
+    const didSol = DidSolIdentifier.parse(args.didsol);
 
-    // const DID = await service.resolve(args.didsol);
+    const service = await DidSolService.build(didSol);
 
-    // // service.resolve(args.didsol);
-    // this.log(`resolved... ${DID.id}`);
-    this.log('unresolved... pending error handling');
+    const doc = await service.resolve(args.didsol);
+    this.log(JSON.stringify(doc, null, 2));
   }
 }
 
+// Example.
 // did:sol:localnet:3LqWFGc8KTCigN12n8utPT8ZuRAtDgvtG3v8SFmRuMP6
