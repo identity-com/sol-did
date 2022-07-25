@@ -7,9 +7,8 @@ describe('resolve', () => {
     .stdout({ print: true })
     .command(['sol resolve', `did:sol:localnet:${randomPublicKey}`])
     .it('runs resolver cmd', (ctx) => {
-      console.debug(ctx.stdout);
       expect(ctx.stdout).to.deep.equal(
-        getGeneratedDidDocument(randomPublicKey, 'localnet')
+        getGeneratedDidDocument(randomPublicKey, 'did:sol:localnet:')
       );
     });
   // test.stdout().command(['resolve', '']).it('')
