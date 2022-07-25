@@ -1,24 +1,32 @@
 import { Command } from '@oclif/core';
 import { DidSolIdentifier } from '../../DidSolIdentifier';
 import { DidSolService } from '../../DidSolService';
+('../../../fixtures/loader');
 
 export default class Sol extends Command {
   static description = 'Resolves a DID';
 
   static examples = [
-    `$ sol 
-resolved... (./src/commands/resolve/index.ts)
+    `$ sol [did]
+  [did]
 `,
   ];
 
   static flags = {};
 
-  static args = [];
+  static args = [
+    { name: 'didsol', description: 'DID to be resolved', required: true },
+  ];
 
   async run(): Promise<void> {
-    this.log(
-      "welcome to the sol-did service... to resolve a did use the following command:'sol resolve [did]'"
-    );
+    const { args } = await this.parse(Sol);
+
+    const didSol = DidSolIdentifier.parse(args.didsol);
+
+    const service = await DidSolService.build(didSol);
+
+    const doc = await service.resolve(args.didsol);
+    this.log(JSON.stringify(doc, null, 2));
   }
 }
 

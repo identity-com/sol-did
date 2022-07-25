@@ -2,12 +2,15 @@ import { expect, test } from '@oclif/test';
 import { Keypair } from '@solana/web3.js';
 import { getGeneratedDidDocument } from '../fixtures/loader';
 describe('resolve', () => {
-  const randomPublicKey = Keypair.generate().publicKey;
+  const randomPublicKey = Keypair.generate().publicKey.toBase58();
   test
-    .stdout()
-    .command(['resolve', `did:sol:localnet:${randomPublicKey.toBase58()}`])
+    .stdout({ print: true })
+    .command(['sol resolve', `did:sol:localnet:${randomPublicKey}`])
     .it('runs resolver cmd', (ctx) => {
-      expect(ctx.stdout).to.contain('resolved...');
+      console.debug(ctx.stdout);
+      expect(ctx.stdout).to.deep.equal(
+        getGeneratedDidDocument(randomPublicKey, 'localnet')
+      );
     });
   // test.stdout().command(['resolve', '']).it('')
 });

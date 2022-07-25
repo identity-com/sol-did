@@ -1,6 +1,8 @@
 import { Command } from '@oclif/core';
 import { DidSolIdentifier } from '../../../DidSolIdentifier';
 import { DidSolService } from '../../../DidSolService';
+import { getGeneratedDidDocument } from '../../../../tests/fixtures/loader';
+('../../../fixtures/loader');
 
 export default class Resolve extends Command {
   static description = 'Resolves a DID';
