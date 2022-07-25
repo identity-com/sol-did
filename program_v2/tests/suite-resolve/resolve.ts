@@ -128,6 +128,8 @@ describe('sol-did resolve and migrate operations', () => {
     const existing = await legacyDidService.getDidAccount();
     expect(existing).to.be.null;
 
+    expect(await legacyDidService.isMigratable()).to.be.true;
+
     // migrate
     await legacyDidService
       .migrate(nonAuthoritySigner.publicKey)
@@ -137,16 +139,41 @@ describe('sol-did resolve and migrate operations', () => {
     // check migration
     const didDoc = await legacyDidService.resolve();
     expect(didDoc).to.deep.equal(migratedLegacyDidDocComplete);
+
+    // check that auth
+    const didAccount = await legacyDidService.getDidAccount();
+    expect(didAccount.initialVerificationMethod.flags).to.equal(
+      VerificationMethodFlags.OwnershipProof |
+        VerificationMethodFlags.CapabilityInvocation
+    );
   });
 
   it('cannot migrate if a new account already exists', async () => {
+    expect(await legacyDidService.isMigratable()).to.be.false;
     return expect(legacyDidService.migrate().rpc()).to.be.rejectedWith(
       'Error processing Instruction 0: custom program error: 0x0'
     );
   });
 
   it('cannot migrate if a legacy account does not exist', async () => {
+    expect(await service.isMigratable()).to.be.false;
     return expect(service.migrate().rpc()).to.be.rejectedWith(
+      'legacy_did_data. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized'
+    );
+  });
+
+  it('calling migrate on a generative DID fails with error', async () => {
+    expect(await service.isMigratable()).to.be.false;
+
+    const solKey = web3.Keypair.generate();
+    const genDidService = await service.build(solKey.publicKey);
+
+    return expect(
+      genDidService
+        .migrate(nonAuthoritySigner.publicKey)
+        .withSolWallet(nonAuthorityWallet)
+        .rpc()
+    ).to.be.rejectedWith(
       'legacy_did_data. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized'
     );
   });
@@ -160,6 +187,8 @@ describe('sol-did resolve and migrate operations', () => {
     expect(legacyAccount.authority.toPublicKey()).to.deep.equal(
       legacyAuthority.publicKey
     );
+
+    expect(await legacyDidService.isMigratable()).to.be.true;
 
     // migrate
     await legacyDidService
@@ -184,6 +213,8 @@ describe('sol-did resolve and migrate operations', () => {
       programProvider,
       new Wallet(wrongOwnerLegacyAuthority)
     );
+
+    expect(await wrongOwnerService.isMigratable()).to.be.true;
 
     return expect(
       wrongOwnerService

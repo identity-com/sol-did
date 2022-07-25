@@ -184,6 +184,15 @@ export class DidSolService {
     return [didAccount, size];
   }
 
+  /**
+   * Return true if the DID can be migrated to the new program.
+   */
+  async isMigratable(): Promise<boolean> {
+    const current = await this.getDidAccount();
+    const legacy = await this.getLegacyData();
+    return !current && !!legacy;
+  }
+
   get did(): string {
     return this._identifier.toString();
   }
