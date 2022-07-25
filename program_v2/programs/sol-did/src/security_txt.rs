@@ -64,7 +64,6 @@ pub mod security {
     -----END PGP PUBLIC KEY BLOCK-----
     ",
         preferred_languages: "en",
-        source_code: "https://github.com/identity-com/sol-did.git",
-        auditors: "Frank Wang, Martin Riedel"
+        source_code: "https://github.com/identity-com/sol-did.git"
     }
 }
