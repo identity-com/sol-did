@@ -33,7 +33,7 @@ pub struct SetControllers<'info> {
 }
 
 /// Argument
-#[derive(Debug, AnchorSerialize, AnchorDeserialize, Default, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Default, Clone)]
 pub struct SetControllersArg {
     pub native_controllers: Vec<Pubkey>,
     pub other_controllers: Vec<String>,

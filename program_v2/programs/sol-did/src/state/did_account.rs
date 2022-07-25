@@ -169,10 +169,10 @@ impl DidAccount {
         authority: &Pubkey,
         filter_fragment: Option<&String>,
     ) -> Option<&VerificationMethod> {
-        msg!(
-            "Checking if {} is an Ed25519VerificationKey2018 authority",
-            authority.to_string()
-        );
+        // msg!(
+        //     "Checking if {} is an Ed25519VerificationKey2018 authority",
+        //     authority.to_string()
+        // );
         self.verification_methods(
             Some(&[VerificationMethodType::Ed25519VerificationKey2018]), // TODO: is this the best way to pass this?
             Some(VerificationMethodFlags::CAPABILITY_INVOCATION),
@@ -277,9 +277,23 @@ impl DidAccount {
         Ok(())
     }
 
-    pub fn set_verification_methods(&mut self, methods: Vec<VerificationMethod>) -> Result<()> {
-        // TODO: This function needs to check that no Ownership flags are set.
+    pub fn set_verification_methods(
+        &mut self,
+        existing: Vec<VerificationMethod>,
+        incoming: Vec<VerificationMethod>,
+    ) -> Result<()> {
+        // check that incoming VMs do NOT set any Ownership flags.
+        incoming.iter().try_for_each(|vm| {
+            match VerificationMethodFlags::from_bits(vm.flags)
+                .ok_or(DidSolError::ConversionError)?
+                .contains(VerificationMethodFlags::OWNERSHIP_PROOF)
+            {
+                true => Err(DidSolError::VmOwnershipOnAdd),
+                false => Ok(()),
+            }
+        })?;
 
+        let methods = [existing, incoming].concat();
         let original_size = methods.len();
         let mut unique_methods = methods
             .into_iter()
@@ -354,7 +368,7 @@ impl DidAccount {
 }
 
 #[derive(
-    Debug, AnchorSerialize, AnchorDeserialize, Copy, Clone, FromPrimitive, ToPrimitive, PartialEq,
+    AnchorSerialize, AnchorDeserialize, Copy, Clone, FromPrimitive, ToPrimitive, PartialEq,
 )]
 pub enum VerificationMethodType {
     /// The main Ed25519Verification Method.
@@ -388,7 +402,7 @@ impl Default for VerificationMethodType {
 }
 
 /// The native authority key for a [`DidAccount`]
-#[derive(Debug, AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct VerificationMethod {
     /// fragment
     pub fragment: String,
@@ -426,7 +440,7 @@ impl VerificationMethod {
 }
 
 /// A Service Definition [`DidAccount`]
-#[derive(Debug, AnchorSerialize, AnchorDeserialize, Default, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Default, Clone)]
 pub struct Service {
     pub fragment: String,
     pub service_type: String,
@@ -439,7 +453,7 @@ impl Service {
     }
 }
 
-#[derive(Debug, AnchorSerialize, AnchorDeserialize)]
+#[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct Secp256k1RawSignature {
     signature: [u8; 64],
     recovery_id: u8,

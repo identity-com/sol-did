@@ -66,14 +66,13 @@ export class DidSolService {
     // cluster: ExtendedCluster,
     identifier: DidSolIdentifier,
     wallet: Wallet = new DummyWallet(),
-    opts: ConfirmOptions = AnchorProvider.defaultOptions()
+    opts: ConfirmOptions = AnchorProvider.defaultOptions(),
+    connection?: Connection
   ): Promise<DidSolService> {
-    const connection = getConnectionByCluster(
-      identifier.clusterType,
-      opts.preflightCommitment
-    );
+    const _connection =
+      connection || getConnectionByCluster(identifier.clusterType, opts.preflightCommitment);
     // Note, DidSolService never signs, so provider does not need a valid Wallet or confirmOptions.
-    const provider = new AnchorProvider(connection, wallet, opts);
+    const provider = new AnchorProvider(_connection, wallet, opts);
 
     const program = await fetchProgram(provider);
     const [didDataAccount] = await findProgramAddress(identifier.authority);
@@ -139,6 +138,28 @@ export class DidSolService {
     return this._legacyDidDataAccount;
   }
 
+  async build(
+    didIdentifier: PublicKey,
+    wallet?: Wallet,
+    opts?: ConfirmOptions
+  ): Promise<DidSolService> {
+    const [didDataAccount] = await findProgramAddress(didIdentifier);
+    const [legacyDidDataAccount] = await findLegacyProgramAddress(
+      didIdentifier
+    );
+
+    // reuse existing program
+    return new DidSolService(
+      this._program,
+      didIdentifier,
+      didDataAccount,
+      legacyDidDataAccount,
+      this._cluster,
+      wallet ? wallet : this._wallet,
+      opts ? opts : this._opts
+    );
+  }
+
   async getDidAccount(): Promise<DidDataAccount | null> {
     return (await this._program.account.didAccount.fetchNullable(
       this._didDataAccount
@@ -165,6 +186,15 @@ export class DidSolService {
       );
 
     return [didAccount, size];
+  }
+
+  /**
+   * Return true if the DID can be migrated to the new program.
+   */
+  async isMigratable(): Promise<boolean> {
+    const current = await this.getDidAccount();
+    const legacy = await this.getLegacyData();
+    return !current && !!legacy;
   }
 
   get did(): string {
@@ -519,8 +549,19 @@ export class DidSolService {
     updateArgs: DidSolUpdateArgs,
     authority: PublicKey = this._didAuthority
   ): DidSolServiceBuilder {
+    const updateControllers = validateAndSplitControllers(
+      updateArgs.controllerDIDs
+    );
     const instructionPromise = this._program.methods
-      .update(updateArgs, null)
+      .update(
+        {
+          verificationMethods: updateArgs.verificationMethods,
+          services: updateArgs.services,
+          nativeControllers: updateControllers.nativeControllers,
+          otherControllers: updateControllers.otherControllers,
+        },
+        null
+      )
       .accounts({
         didData: this._didDataAccount,
         authority,

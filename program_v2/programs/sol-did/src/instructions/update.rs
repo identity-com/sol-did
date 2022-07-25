@@ -14,7 +14,7 @@ pub fn update(
     }
 
     data.set_services(update_arg.services)?;
-    data.set_verification_methods(update_arg.verification_methods)?;
+    data.set_verification_methods(Vec::new(), update_arg.verification_methods)?;
     data.set_native_controllers(update_arg.native_controllers)?;
     data.set_other_controllers(update_arg.other_controllers)?;
 
@@ -35,7 +35,7 @@ pub struct Update<'info> {
 }
 
 /// Argument
-#[derive(Debug, AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct UpdateArg {
     /// All verification methods
     pub verification_methods: Vec<VerificationMethod>,
