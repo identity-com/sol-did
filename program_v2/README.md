@@ -11,13 +11,15 @@ to the new program. The `did:sol` resolver will resolve DIDs with the following 
 
 1. Persisted DID on `didso1...`
 2. Persisted DID on `idDa4...`
-3. Non persisted DID (results generative DID).
+3. Non persisted DID (results in a generative DID).
 
 The version `<3.0.0` of the `sol-did-client` will remain available [@identity.com/sol-did-client-legacy
 ](https://www.npmjs.com/package/@identity.com/sol-did-client-legacy), but technically a
 resolution with the legacy program does no longer return an authoritive result. (Since it
 ignores the state of the new program). Therefore, for DID resolution a library update is
-strongly encouraged.
+strongly encouraged. The `legacy` did sol client is also exported in the new libary as `LegacyClient`.
+
+Please see below on how to migrate your DIDs to the new program.
 
 ## Features
 The `sol-did-client` library provides the following features:
@@ -339,6 +341,42 @@ This transactions closes a DID account. With that it implicitly reverts to its g
 
 The rent for the DID data account will be return to `rentDestination`.
 
+### Migrate a persisted legacy DID to the new Program
+Legacy DIDs are resolved fine with the current `did:sol` resolver, however, if you want to migrate a legacy DID
+(e.g. because you want to make use of all the new features), you can do so in the following way:
+
+In order to migrate a DID the following requirements need to be met:
+- Persisted DID data account in legacy program
+- **No** persisted DID data account in new program (e.g. DID was not migrated already)
+
+If no persisted state exists on either program it is a `generative` DID that does not need migration.
+The prerequisites can be checked with `await service.isMigratable()`
+
+Actual migration is done the following way:
+```ts
+// check if DID in service can be migrated.
+const canMigrate = await service.isMigratable()
+
+if (canMigrate) {
+  // migrate DID
+  await service
+    .migrate(nonAuthoritySigner.publicKey, legacyAuthority.publicKey)
+    .withPartialSigners(nonAuthoritySigner)
+    .withSolWallet(legacyAuthorityWallet)
+    .rpc();
+}
+```
+Note, that the migrate function works with a `nonAuthoritySigner`, e.g. that means ANYONE
+can migrate any DID to the new program. But don't worry, since the migration keeps the state,
+you can be happy if someone else does it for you.
+
+In this example however, `nonAuthoritySigner` is the `rent payer` for the new account.
+
+Furthermore, migrate takes an optional `legacyAuthority` argument. If specified, it closes
+the legacy DID account automatically and recovers the rent to the `rent payer` of the new 
+account (`nonAuthoritySigner` in this example). Since legacy DIDs often automatically
+allocated **a lot** of space and new migrated DIDs are optimally space efficient,
+the migration to a new DID can actually make you `SOL` back.
 
 
 ## Contributing
