@@ -26,6 +26,7 @@
     "oclif": {
         "bin": "sol",
         "dirname": "sol",
+        "default": "resolve",
         "commands": "./dist/src/commands",
         "plugins": [
             "@oclif/plugin-help",
