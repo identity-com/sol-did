@@ -21,11 +21,11 @@
         "node": ">=16"
     },
     "bin": {
-        "oex": "./bin/run"
+        "sol": "./bin/run"
     },
     "oclif": {
-        "bin": "oex",
-        "dirname": "oex",
+        "bin": "sol",
+        "dirname": "sol",
         "commands": "./dist/src/commands",
         "plugins": [
             "@oclif/plugin-help",

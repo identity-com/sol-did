@@ -1,15 +1,13 @@
 import { Command } from '@oclif/core';
-import { DidSolIdentifier } from '../../../DidSolIdentifier';
-import { DidSolService } from '../../../DidSolService';
-import { getGeneratedDidDocument } from '../../../../tests/fixtures/loader';
-('../../../fixtures/loader');
+import { DidSolIdentifier } from '../DidSolIdentifier';
+import { DidSolService } from '../DidSolService';
 
-export default class Resolve extends Command {
+export default class Sol extends Command {
   static description = 'Resolves a DID';
 
   static examples = [
-    `$ sol resolve [did]
-resolved... (./src/commands/resolve/index.ts)
+    `$ sol [did]
+  [did]
 `,
   ];
 
@@ -20,7 +18,7 @@ resolved... (./src/commands/resolve/index.ts)
   ];
 
   async run(): Promise<void> {
-    const { args } = await this.parse(Resolve);
+    const { args } = await this.parse(Sol);
 
     const didSol = DidSolIdentifier.parse(args.didsol);
 

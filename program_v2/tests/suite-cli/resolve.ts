@@ -7,7 +7,7 @@ describe('resolve', () => {
     .stdout({ print: true })
     .command(['sol resolve', `did:sol:localnet:${randomPublicKey}`])
     .it('runs resolver cmd', (ctx) => {
-      expect(ctx.stdout).to.deep.equal(
+      expect(JSON.parse(ctx.stdout)).to.deep.equal(
         getGeneratedDidDocument(randomPublicKey, 'did:sol:localnet:')
       );
     });
