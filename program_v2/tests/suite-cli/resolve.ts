@@ -2,18 +2,38 @@ import { expect, test } from '@oclif/test';
 import { Keypair } from '@solana/web3.js';
 import { getGeneratedDidDocument } from '../fixtures/loader';
 describe('resolve', () => {
-  const randomPublicKey = Keypair.generate().publicKey.toBase58();
+  const randomLocalnetKey = Keypair.generate().publicKey.toBase58();
+  const randomDevnetKey = Keypair.generate().publicKey.toBase58();
   test
-    .stdout({ print: true })
-    .command(['sol resolve', `did:sol:localnet:${randomPublicKey}`])
-    .it('runs resolver cmd', (ctx) => {
+    .stdout()
+    .command(['resolve', `did:sol:localnet:${randomLocalnetKey}`])
+    .it('resolves randomly-generated did', (ctx) => {
       expect(JSON.parse(ctx.stdout)).to.deep.equal(
-        getGeneratedDidDocument(randomPublicKey, 'did:sol:localnet:')
+        getGeneratedDidDocument(randomLocalnetKey, 'did:sol:localnet:')
       );
     });
-  // test.stdout().command(['resolve', '']).it('')
+  test
+    .stdout()
+    .command([
+      'resolve',
+      'did:sol:localnet:F4z36iiKA1Ymp7suNTiTGpN9JH3C5sceSGBSzyPsfFJz',
+    ])
+    .it('resolves legacy did', (ctx) => {
+      expect(JSON.parse(ctx.stdout)).to.deep.equal(
+        getGeneratedDidDocument(
+          'F4z36iiKA1Ymp7suNTiTGpN9JH3C5sceSGBSzyPsfFJz',
+          'did:sol:localnet:'
+        )
+      );
+    });
+  test
+    .stdout()
+    .command(['resolve', `did:sol:devnet:${randomDevnetKey}`])
+    .it('resolves did on devnet', (ctx) => {
+      expect(JSON.parse(ctx.stdout)).to.deep.equal(
+        getGeneratedDidDocument(`${randomDevnetKey}`, 'did:sol:devnet:')
+      );
+    });
 });
-
-//test to devnet in generative case
 
 //did:sol:devnet:JCU5Xzri4N88UdS3WHQZZ9fgTVpiSxTiKiSZKbfJh7Sx
