@@ -7,7 +7,7 @@ pub mod security {
         name: "Sol-DID",
         project_url: "https://github.com/identity-com/sol-did",
         contacts: "email: contact@identity.org",
-        policy: "https://github.com/identity-com/sol-did/blob/develop/README.md",
+        policy: "",
         encryption: "
     -----BEGIN PGP PUBLIC KEY BLOCK-----
     Comment: Use this to send encrypted message to Identity.com for sol-did problems
