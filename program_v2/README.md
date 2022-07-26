@@ -94,26 +94,251 @@ from an existing one:
   console.log(JSON.stringify(didDoc, null, 2));
 ```
 
+### Information about DID resolution
+`did:sol` DIDs are resolved in the following way:
+1. `Genertive` DIDs are DIDs that have no persisted DID data account. (e.g. every valid Solana Account/Wallet is in this state).
+This will return a generative DID document where only the public key of the Account is a valid Verification Method.
+2. `Persisted` DIDs are DIDs that have a persisted DID data account. Here the DID document represents the state that is found
+on-chain.
+
+
 ## Usage - `did:sol` Manipulation
 The following are all instructions that can be executed against a DID.
+When manipulating a DID one generally needs three authoritive elements:
+
+1. An `authority`, a (native) Verification Method with `Capability Invocation` flag, that is allowed to manipulate the DID.
+2. A `fee payer`, a Solana account that covers the cost of the transaction execution.
+3. A `(rent) payer`, a Solana account that covers an (eventual) initialization or resize of the DID data account
+
+Generally all these entities are required for a successful DID manipulation. (A `rent payer` only if the DID account size 
+needs to scale up, requiring additional rent). Often all these accounts are represented by the same account, but this is
+in no way a requirement. For the example, this allows for the implementation of a permissionless proxy that just satisfies
+`2.` and `3.` in order to submit an authority-signed instruction/transaction to chain.
+
+Generally a manipulative DID operation has the following from:
+
+```ts
+service.OPERATION(...params): DidSolServiceBuilder
+```
+
+where each operation return as builder that allows to configure certain aspects of how the operation is translated or
+executed.
+
+For example:
+````ts
+  await service
+    .addVerificationMethod({
+      fragment: 'eth-address',
+      keyData: Buffer.from(ethAddress),
+      methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
+      flags: VerificationMethodFlags.CapabilityInvocation | VerificationMethodFlags.Authentication,
+    },
+      nonAuthority.publicKey
+    )
+  .withAutomaticAlloc(nonAuthority.publicKey)
+  .withPartialSigners(nonAuthority)
+  .withSolWallet(feePayerWallet)
+  .withEthSigner(authorityEthKey)
+  .rpc();
+````
+adds a new Verification Method to the DID, sets the authority (`1`) as `nonAuthority` (which in this example is actually
+NOT a valid authority). It also uses `nonAuthority` as a `rent payer` (`3`) via `withAutomaticAlloc` and uses
+`solWallet` as a Wallet interface signer of the transaction that cover the transaction fee (`2`). Lastly, the 
+instruction is signed by `authorityEthKey` itself, which IS an actual authority (`1`) on the DID and permits the
+update. Finally `rpc()` creates the instruction(s), transaction and sends it to the chain. It is a terminal method
+of the builder and needs to be awaited (returning a Promise of the signature string).
+
+Here's a breakdown of all exposed Builder functions:
+
+1. `withAutomaticAlloc(payer: PublicKey): DidSolServiceBuilder`: Automatically enables a perfect resize of the DID data account.
+    If required, this will generate an additional `initialize` or `resize` instruction that is executed before the actual
+    service intruction in order to bring the account to the required size.
+2. `withEthSigner(ethSigner: EthSigner): DidSolServiceBuilder`: Allows to set an EthSigner that implements the following interface:
+```ts
+export type EthSigner = {
+  publicKey: string;
+  signMessage: (message: Bytes | string) => Promise<string>;
+};
+```
+This signs all (supported) instruction with the provided signMessage interface, which needs to adhere to [EIP-191](https://eips.ethereum.org/EIPS/eip-191)
+If the DID contains a matching Verification Method of type `EcdsaSecp256k1RecoveryMethod2020` or `EcdsaSecp256k1VerificationKey2019` (with a Capability Invocation flag),
+no Solana Authority (`1`) is required.
+3. `withConnection(connection: Connection): DidSolServiceBuilder`: Allows to override the Solana Connection used for `rpc()`.
+4. `withConfirmOptions(confirmOptions: ConfirmOptions): DidSolServiceBuilder` Allows to override the Solana ConfirmationOptions used for `rpc()`.
+5. `withSolWallet(solWallet: Wallet): DidSolServiceBuilder` Allows to override the Solana Wallet interface with the following interface:
+```ts
+export interface Wallet {
+  signTransaction(tx: Transaction): Promise<Transaction>;
+  signAllTransactions(txs: Transaction[]): Promise<Transaction[]>;
+  publicKey: PublicKey;
+}
+```
+that is used to sign the transaction within `rpc()`.
+6. `withPartialSigners(...signers: Signer[]): DidSolServiceBuilder`: Allows to set partialSigners to sign the transaction in `rpc()`.
+7. `async rpc(opts?: ConfirmOptions): Promise<string>`: Terminal method that creates the instruction(s), builds and signs the transaction
+    and sends it to the chain. Furthermore it translates the chain-specific error code into a human-readable error message.
+8. `async transaction(): Promise<Transaction>`: Terminal method that creates the instruction(s), builds the transaction.
+   (Eth signing will be applied if applicable, but no Solana Transaction handling is performed)
+9. `async instructions(): Promise<TransactionInstruction[]>`: Terminal method that creates and returns the instruction(s). (Eth signing will be applied if applicable.)
+
 
 ### Init a DID Account
+Generally all DID operations can be performed with `withAutomaticAlloc(payer: PublicKey)`, which automatically creates a
+DID data account of the required size. However, the API still supports to manually initialize a DID account of any size.
+Allocating a sufficiently sized account upfront would allow to not use any payers for subsequent operations.
+
+```ts
+  await service.initialize(10_000, payer.publicKey).rpc();
+```
+The `initialize` operation does not support  `withAutomaticAlloc` OR `withEthSigner`. Using `initialize` without
+argument with set the default DID authority as `payer` and size it to the minimal initial size required.
 
 ### Resize a DID Account
+Generally all DID operations can be performed with `withAutomaticAlloc(payer: PublicKey)`, which automatically creates
+or resizes a DID data account of the required size. However, the API still supports to manually resize a DID account of any size.
+
+```ts
+  await service.resize(15_000, payer.publicKey).rpc();
+```
+The `resize` operation does not support  `withAutomaticAlloc`. Using `initialize` without
+argument with set the default DID authority as `payer`.
 
 ### Add a Verification Method
+The operation will add a new Verification Method to the DID. The `keyData` can be a generically size `UInt8Array`, but
+logically it must match the methodType specified.
+
+```ts
+    await service.addVerificationMethod({
+      fragment: 'eth-address',
+      keyData: Buffer.from(ethAddress),
+      methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
+      flags: VerificationMethodFlags.CapabilityInvocation | VerificationMethodFlags.Authentication,
+    })
+  .withAutomaticAlloc(authority.publicKey)
+  .rpc();
+```
 
 ### Remove a Verification Method
+Removes a Verification Method with the given `fragment` from the DID. Note, at least one valid Verification Method with
+a `Capability Invocation` flag must remain to prevent lockout.
+
+```ts
+  await service
+  .removeVerificationMethod('eth-address')
+  .withAutomaticAlloc(authority.publicKey)
+  .rpc();
+```
 
 ### Set flags of a Verification Method
+This sets/updates the flag on an existing VerificationMethod. **Important** if the flag contains `VerificationMethodFlags.OwnershipProof`
+this transaction MUST use the same authority as the Verification Method. (e.g. proving that the owner can sign with 
+that specific VM). `VerificationMethodFlags.OwnershipProof` is supported for the following `VerificationMethodTypes`:
+- `Ed25519VerificationKey2018`
+- `EcdsaSecp256k1RecoveryMethod2020`
+- `EcdsaSecp256k1VerificationKey2019`
+
+```ts
+// Note in this example the 'default" VM must match authority.publicKey
+  await service
+    .setVerificationMethodFlags('default', 
+      VerificationMethodFlags.CapabilityInvocation | VerificationMethodFlags.OwnershipProof, 
+      authority.publicKey)
+    .withAutomaticAlloc(authority.publicKey)
+    .rpc();
+```
 
 ### Add a Service
+This operation allows to set a new service on a DID. `serviceType` are strings, not enums and can therefore be freely defined.
+
+```ts
+  await service
+    .addService(
+      {
+        fragment: 'service-1',
+        serviceType: 'service-type-1',
+        serviceEndpoint: 'http://localhost:3000',
+      })
+    .rpc();
+```
 
 ### Remove a Service
+This operation removes a service with the given `fragment` name from the DID.
+
+```ts
+  await service.removeService('service-1')
+    .withAutomaticAlloc(nonAuthority.publicKey)
+    .rpc();
+```
 
 ### Update the controllers of a DID
+This operation sets/updates the controllers of a DID. This overwrites any existing controllers.
+
+```ts
+  await service
+    .setControllers([
+      `did:sol:localnet:${Keypair.generate().publicKey.toBase58()}`,
+      `did:ethr:${EthWallet.createRandom().address}`,
+    ])
+    .withAutomaticAlloc(authority.publicKey)
+    .rpc();
+```
+Technically `did:sol` controllers are verified to be valid Solana Account Keys and stored accordingly, while all other
+types of controller DID as persisted as strings.
 
 ### Update all properties of a DID
+This operation allow to bulk update all changeable properties of a DID. Please note, that this is a more destructive operation
+and should be handled with care. Furthermore, by overwriting all Verification Methods it removes ANY existing `VerificationMethodFlags.OwnershipProof`,
+which are not allowed to be specified within the bulk update.
+
+```ts
+    await service
+      .update({
+        controllerDIDs: [
+          `did:sol:localnet:${Keypair.generate().publicKey.toBase58()}`,
+          `did:ethr:${EthWallet.createRandom().address}`,
+        ],
+        services: [
+          {
+            fragment: 'service-1',
+            serviceType: 'service-type-1',
+            serviceEndpoint: 'http://localhost:3000',
+          },
+          {
+            fragment: 'service-2',
+            serviceType: 'service-type-2',
+            serviceEndpoint: 'http://localhost:3001',
+          }
+        ],
+        verificationMethods: [
+          {
+            fragment: 'default',
+            keyData: authority.publicKey.toBytes(),
+            methodType: VerificationMethodType.Ed25519VerificationKey2018,
+            flags: VerificationMethodFlags.CapabilityInvocation | VerificationMethodFlags.Authentication,
+          },
+          {
+            fragment: 'eth-address',
+            keyData: Buffer.from(ethAddress),
+            methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
+            flags: VerificationMethodFlags.CapabilityInvocation | VerificationMethodFlags.Authentication,
+          }
+        ],
+      })
+    .withAutomaticAlloc(authority.publicKey)
+    .rpc();
+```
+Note, the `default` Verification Method can never be removed. Therefore not setting it within the update Method will
+cause all flags to be removed from it.
+
+### Close a DID Account
+This transactions closes a DID account. With that it implicitly reverts to its generative state.
+
+```ts
+  await service.close(rentDestination.publicKey).rpc();
+```
+
+The rent for the DID data account will be return to `rentDestination`.
+
 
 
 ## Contributing
