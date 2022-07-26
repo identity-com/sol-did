@@ -1,5 +1,5 @@
 {
-    "name": "@identity/did-sol-client",
+    "name": "@identity.com/sol-did-client",
     "version": "3.0.0-beta1",
     "description": "A powerful DID-method on Solana",
     "license": "MIT",
