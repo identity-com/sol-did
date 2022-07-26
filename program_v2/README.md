@@ -1,175 +1,120 @@
-# SOL DID Client
+# SOL DID Client 
 
-A typescript client library for registering and resolving DIDs using the SOL method
+A typescript client library for registering, manipulating and resolving DIDs
+using the `did:sol` method.
 
-## Getting Started 
+## Disclaimer
+With Version `^3.0.0`, the `@identity.com/sol-did-client` has been updated to use a new
+authoritive program on the Solana blockchain (Address: `didso1...`). DIDs that have a
+persisted state with the legacy program `idDa4...` remain valid unless they are transferred
+to the new program. The `did:sol` resolver will resolve DIDs with the following priority:
 
-### Command line tool
+1. Persisted DID on `didso1...`
+2. Persisted DID on `idDa4...`
+3. Non persisted DID (results generative DID).
 
-[//]: # TODO ()
+The version `<3.0.0` of the `sol-did-client` will remain available [@identity.com/sol-did-client-legacy
+](https://www.npmjs.com/package/@identity.com/sol-did-client-legacy), but technically a
+resolution with the legacy program does no longer return an authoritive result. (Since it
+ignores the state of the new program). Therefore, for DID resolution a library update is
+strongly encouraged.
+
+## Features
+The `sol-did-client` library provides the following features:
+
+1. A W3C [DID core spec (v1.0)](https://www.w3.org/TR/did-core/) compliant DID method and resolver operating on the Solana Blockchain
+2. TS Client and CLI for creating, manipulating, resolving `did:sol`.
+3. Generic Support for VerificationMethods of any Type and Key length.
+4. Native on-chain support for `Ed25519VerificationKey2018`, `EcdsaSecp256k1RecoveryMethod2020` and `EcdsaSecp256k1VerificationKey2019`. This means DID state changes can be performed by solely providing a valid secp256k1 signature to the program. (It still requires a permissionless proxy).
+5. On-Chain nonce protection for replay protection.
+6. Dynamic (perfect) Solana account resizing for any DID manipulation.
+7. Permissionless instruction to migrate any `did:sol` state to the new authoritive program.
+8. A web-service driver, compatible with [uniresolver.io](https://unresolver.io) and [uniregistrar.io](https://uniregistrar.io)
+9. A [did-io](https://github.com/digitalbazaar/did-io) compatible driver
+10. Based on the versatile [anchor framework](https://github.com/coral-xyz/anchor).
+11. Improved data model (`enum` for types and `bit-flags` for certain properties.)
+12. Introduced `OWNERSHIP_PROOF` to indicate that a Verification Method Key signature was verified on-chain.
+13. Introduced `DID_DOC_HIDDEN` flag that allows to hide a Verification Method from the DID resolution.
+14. Account Size can grow beyond transaction size limits (improvement from legacy program).
+
+
+## Command line tool
+The client library comes with a command line tool `sol` that allows to resolve and manipulate
+DIDs.
+
+### Installation
 ```shell
 yarn global add @identity.com/sol-did-client # or npm install -g @identity.com/sol-did-client
 ```
+### Usage
 
-### Client library
-
-```js
-import { DidSolService, ExtendedCluster, VerificationMethodFlags, VerificationMethodType, Wallet } from "../dist/src";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { airdrop } from "../tests/utils/utils";
-import { utils, Wallet as EthWallet } from "ethers";
-import { Wallet as NodeWallet } from "@project-serum/anchor";
-
-
-const authority = Keypair.generate();
-const cluster: ExtendedCluster = "localnet";
-
-// create service for a did:sol:${authority.publicKey}
-const service = await DidSolService.build(authority.publicKey, cluster, new NodeWallet(authority));
-
-// resolve generative did document
-const didDoc = await service.resolve();
-console.log(JSON.stringify(didDoc, null, 2));
-// {
-//   "@context": [
-//   "https://w3id.org/did/v1.0",
-//   "https://w3id.org/sol/v0"
-// ],
-//   "controller": [],
-//   "verificationMethod": [
-//   {
-//     "id": "did:sol:localnet:GQNzcYZtfdBpZ4KG1q6UBmHyC1B8gJhy5MergNpV5qov#default",
-//     "type": "Ed25519VerificationKey2018",
-//     "controller": "did:sol:localnet:GQNzcYZtfdBpZ4KG1q6UBmHyC1B8gJhy5MergNpV5qov",
-//     "publicKeyBase58": "GQNzcYZtfdBpZ4KG1q6UBmHyC1B8gJhy5MergNpV5qov"
-//   }
-// ],
-//   "authentication": [],
-//   "assertionMethod": [],
-//   "keyAgreement": [],
-//   "capabilityInvocation": [
-//   "#default"
-// ],
-//   "capabilityDelegation": [],
-//   "service": [],
-//   "id": "did:sol:localnet:GQNzcYZtfdBpZ4KG1q6UBmHyC1B8gJhy5MergNpV5qov"
-// }
+#### Resolve a DID
+```shell
+sol did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa # resolves a DID on mainnet-beta
+...
+sol did:sol:devnet:6fjuEFDTircJVNCQWYe4UHNfbYrU1a4sEr8FQ5w7d8Fx # resovles a DID on devnet
+````
 
 
-// airdrop some sol
-await airdrop(service.connection, authority.publicKey, 5 * LAMPORTS_PER_SOL);
-
-// Initialize account (Will be done implicitly when with "withAutomaticAlloc", see later)
-await service.initialize().rpc();
-
-// close an account
-const rentDestination = Keypair.generate();
-await service.close(rentDestination.publicKey).rpc();
-
-// add a ETh Verification Method (with automatic (re)initialization)
-const ethKey = EthWallet.createRandom();
-const ethAddress = utils.arrayify(ethKey.address)
-
-await service.addVerificationMethod(
-    {
-        alias: "eth-address",
-        keyData: Buffer.from(ethAddress),
-        methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
-        flags: VerificationMethodFlags.CapabilityInvocation,
-    })
-    .withAutomaticAlloc(authority.publicKey)
-    .rpc();
-
-// add a service and sign with the eth key
-// uses a nonAuthority for authority (fails) and rent funding (allowed)
-const nonAuthority = Keypair.generate();
-await airdrop(service.connection, nonAuthority.publicKey, 5 * LAMPORTS_PER_SOL);
-
-await service.addService({
-    id: "service-1",
-    serviceType: "service-type-1",
-    serviceEndpoint: "http://localhost:3000",
-}, nonAuthority.publicKey)
-    .withAutomaticAlloc(nonAuthority.publicKey)
-    .withPartialSigners(nonAuthority)
-    .withEthSigner(ethKey)
-    .rpc()
-
-// this would fail (nonAuthority is not in DID)
-// await service.addService({
-//   id: "service-1",
-//   serviceType: "service-type-1",
-//   serviceEndpoint: "http://localhost:3000",
-// }, nonAuthority.publicKey)
-//   .withAutomaticAlloc(nonAuthority.publicKey)
-//   .withPartialSigners(nonAuthority)
-//   .rpc()
-
-// set controllers (native or others)
-await service.setControllers([
-    `did:sol:localnet:${Keypair.generate().publicKey.toBase58()}`,
-    `did:ethr:${EthWallet.createRandom().address}`])
-    .withAutomaticAlloc(authority.publicKey)
-    .rpc();
-
-// print document
-const didDocUpdated = await service.resolve();
-console.log(JSON.stringify(didDocUpdated, null, 2));
-
-// {
-//   "@context": [
-//   "https://w3id.org/did/v1.0",
-//   "https://w3id.org/sol/v0"
-// ],
-//   "controller": [
-//   "did:sol:localnet:Epuvox1GR8yMzB6g4UWH6yEjf55JWrieS5f4qqwne8vG",
-//   "did:ethr:0xe3b81fdF0A6415021E9A6924F4eCB17D90c0F08B"
-// ],
-//   "verificationMethod": [
-//   {
-//     "id": "did:sol:localnet:AbRUNiwyjagwSuTxHuMpUTF3zxBnMD4DsGkp5hUDivGs#default",
-//     "type": "Ed25519VerificationKey2018",
-//     "controller": "did:sol:localnet:AbRUNiwyjagwSuTxHuMpUTF3zxBnMD4DsGkp5hUDivGs",
-//     "publicKeyBase58": "AbRUNiwyjagwSuTxHuMpUTF3zxBnMD4DsGkp5hUDivGs"
-//   },
-//   {
-//     "id": "did:sol:localnet:AbRUNiwyjagwSuTxHuMpUTF3zxBnMD4DsGkp5hUDivGs#default",
-//     "type": "EcdsaSecp256k1RecoveryMethod2020",
-//     "controller": "did:sol:localnet:AbRUNiwyjagwSuTxHuMpUTF3zxBnMD4DsGkp5hUDivGs",
-//     "ethereumAddress": "0xbC3e75382cF939da15baBA51480Ee64eDE5Cc79C"
-//   }
-// ],
-//   "authentication": [],
-//   "assertionMethod": [],
-//   "keyAgreement": [],
-//   "capabilityInvocation": [
-//   "#default",
-//   "#eth-address"
-// ],
-//   "capabilityDelegation": [],
-//   "service": [
-//   {
-//     "id": "service-1",
-//     "type": "service-type-1",
-//     "serviceEndpoint": "http://localhost:3000"
-//   }
-// ],
-//   "id": "did:sol:localnet:AbRUNiwyjagwSuTxHuMpUTF3zxBnMD4DsGkp5hUDivGs"
-// }
-
-
-const [, sizeBefore] = await service.getDidAccountWithSize()
-console.log(`size before: ${sizeBefore}`)
-// size before: 269
-
-// resize an account
-await service.resize(10_000).rpc();
-const [, sizeAfter] = await service.getDidAccountWithSize()
-console.log(`size after: ${sizeAfter}`)
-// size after: 10000
-
-
+## Client library
+### Installation
+In TS/JS project:
+```shell
+yarn add @identity.com/sol-did-client # or npm install @identity.com/sol-did-client
 ```
+
+### Usage - Setup and Resolution
+
+#### Create a Service
+
+[//]: # (TODO: This should be updated after Andrews branch makes it in)
+```ts
+  const authority = Keypair.generate();
+  const cluster: ExtendedCluster = 'localnet';
+
+  // create service for a did:sol:${authority.publicKey}
+  const service = await DidSolService.build(
+    authority.publicKey,
+    cluster,
+    new NodeWallet(authority)
+  );
+```
+Note, a service downloads the IDL for the anchor program dynamically from Chain. Therefore
+if the program works with other DIDs on the same cluster, a new services should be created
+from an existing one:
+
+```ts
+  const anotherAuthority = Keypair.generate();
+  const anotherService = await service.build(anotherAuthority.publicKey, new NodeWallet(anotherAuthority))
+```
+
+### Resolving a DID:
+```ts
+  const didDoc = await service.resolve();
+  console.log(JSON.stringify(didDoc, null, 2));
+```
+
+## Usage - `did:sol` Manipulation
+The following are all instructions that can be executed against a DID.
+
+### Init a DID Account
+
+### Resize a DID Account
+
+### Add a Verification Method
+
+### Remove a Verification Method
+
+### Set flags of a Verification Method
+
+### Add a Service
+
+### Remove a Service
+
+### Update the controllers of a DID
+
+### Update all properties of a DID
+
 
 ## Contributing
 
@@ -184,25 +129,12 @@ yarn
 
 ## Running the tests
 
-### Unit tests
-
-```shell
-yarn test
-```
-
 ### E2E tests
 
 Install Solana locally by following the steps described [here](https://docs.solana.com/cli/install-solana-cli-tools).
-
-In one shell, run:
-
-```shell
-yarn build-program
-yarn start-validator
-```
-
-In another shell:
+Also install Anchor by using the information found [here](https://book.anchor-lang.com/getting_started/installation.html)
 
 ```shell
-yarn test-e2e
+anchor test
 ```
+
