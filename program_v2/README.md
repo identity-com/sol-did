@@ -24,24 +24,24 @@ Please see below on how to migrate your DIDs to the new program.
 ## Features
 The `sol-did-client` library provides the following features:
 
-1. A W3C [DID core spec (v1.0)](https://www.w3.org/TR/did-core/) compliant DID method and resolver operating on the Solana Blockchain
+1. A W3C [DID core spec (v1.0)](https://www.w3.org/TR/did-core/) compliant DID method and resolver operating on the Solana Blockchain.
 2. TS Client and CLI for creating, manipulating, resolving `did:sol`.
-3. Generic Support for VerificationMethods of any Type and Key length.
-4. Native on-chain support for `Ed25519VerificationKey2018`, `EcdsaSecp256k1RecoveryMethod2020` and `EcdsaSecp256k1VerificationKey2019`. This means DID state changes can be performed by solely providing a valid secp256k1 signature to the program. (It still requires a permissionless proxy).
+3. Generic support for Verification Methods of any type and key length.
+4. Native on-chain support for `Ed25519VerificationKey2018`, `EcdsaSecp256k1RecoveryMethod2020` and `EcdsaSecp256k1VerificationKey2019`. This means DID state changes can be performed by solely providing a valid secp256k1 signature to the program, though it still requires a permissionless proxy.
 5. On-Chain nonce protection for replay protection.
 6. Dynamic (perfect) Solana account resizing for any DID manipulation.
 7. Permissionless instruction to migrate any `did:sol` state to the new authoritive program.
-8. A web-service driver, compatible with [uniresolver.io](https://unresolver.io) and [uniregistrar.io](https://uniregistrar.io)
-9. A [did-io](https://github.com/digitalbazaar/did-io) compatible driver
+8. A web-service driver, compatible with [uniresolver.io](https://unresolver.io) and [uniregistrar.io](https://uniregistrar.io).
+9. A [did-io](https://github.com/digitalbazaar/did-io) compatible driver.
 10. Based on the versatile [anchor framework](https://github.com/coral-xyz/anchor).
 11. Improved data model (`enum` for types and `bit-flags` for certain properties.)
-12. Introduced `OWNERSHIP_PROOF` to indicate that a Verification Method Key signature was verified on-chain.
-13. Introduced `DID_DOC_HIDDEN` flag that allows to hide a Verification Method from the DID resolution.
-14. Account Size can grow beyond transaction size limits (improvement from legacy program).
+12. Introduced `OWNERSHIP_PROOF` to indicate that a Verification Method key signature was verified on-chain.
+13. Introduced `DID_DOC_HIDDEN` flag that hides a Verification Method from the DID resolution.
+14. Account size can grow beyond transaction size limits, which is an improvement from the legacy program.
 
 
 ## Command line tool
-The client library comes with a command line tool `sol` that allows to resolve and manipulate
+The client library comes with a command line tool `sol` that resolves and manipulates
 DIDs.
 
 ### Installation
@@ -81,8 +81,8 @@ yarn add @identity.com/sol-did-client # or npm install @identity.com/sol-did-cli
     new NodeWallet(authority)
   );
 ```
-Note, a service downloads the IDL for the anchor program dynamically from Chain. Therefore
-if the program works with other DIDs on the same cluster, a new services should be created
+Note, a service downloads the IDL for the anchor program dynamically from chain. Therefore
+if the program works with other DIDs on the same cluster, a new service should be created
 from an existing one:
 
 ```ts
@@ -96,10 +96,10 @@ from an existing one:
   console.log(JSON.stringify(didDoc, null, 2));
 ```
 
-### Information about DID resolution
+### Information About DID Resolution
 `did:sol` DIDs are resolved in the following way:
-1. `Genertive` DIDs are DIDs that have no persisted DID data account. (e.g. every valid Solana Account/Wallet is in this state).
-This will return a generative DID document where only the public key of the Account is a valid Verification Method.
+1. `Generative` DIDs are DIDs that have no persisted DID data account. (e.g. every valid Solana account/wallet is in this state).
+This will return a generative DID document where only the public key of the account is a valid Verification Method.
 2. `Persisted` DIDs are DIDs that have a persisted DID data account. Here the DID document represents the state that is found
 on-chain.
 
@@ -110,12 +110,12 @@ When manipulating a DID one generally needs three authoritive elements:
 
 1. An `authority`, a (native) Verification Method with `Capability Invocation` flag, that is allowed to manipulate the DID.
 2. A `fee payer`, a Solana account that covers the cost of the transaction execution.
-3. A `(rent) payer`, a Solana account that covers an (eventual) initialization or resize of the DID data account
+3. A `(rent) payer`, a Solana account that covers an (eventual) initialization or resizing of the DID data account.
 
-Generally all these entities are required for a successful DID manipulation. (A `rent payer` only if the DID account size 
+Generally all these entities are required for a successful DID manipulation (NB: A `rent payer` is needed only if the DID account size 
 needs to scale up, requiring additional rent). Often all these accounts are represented by the same account, but this is
 in no way a requirement. For the example, this allows for the implementation of a permissionless proxy that just satisfies
-`2.` and `3.` in order to submit an authority-signed instruction/transaction to chain.
+`2.` and `3.` in order to submit an authority-signed instruction/transaction to the chain.
 
 Generally a manipulative DID operation has the following from:
 
@@ -123,7 +123,7 @@ Generally a manipulative DID operation has the following from:
 service.OPERATION(...params): DidSolServiceBuilder
 ```
 
-where each operation return as builder that allows to configure certain aspects of how the operation is translated or
+where each operation return as a builder that configures certain aspects of how the operation is translated or
 executed.
 
 For example:
@@ -143,31 +143,29 @@ For example:
   .withEthSigner(authorityEthKey)
   .rpc();
 ````
-adds a new Verification Method to the DID, sets the authority (`1`) as `nonAuthority` (which in this example is actually
-NOT a valid authority). It also uses `nonAuthority` as a `rent payer` (`3`) via `withAutomaticAlloc` and uses
-`solWallet` as a Wallet interface signer of the transaction that cover the transaction fee (`2`). Lastly, the 
+adds a new Verification Method to the DID, sets the authority (`1`) as `nonAuthority`, which in this example is actually
+NOT a valid authority. It also uses `nonAuthority` as a `rent payer` (`3`) via `withAutomaticAlloc` and uses
+`solWallet` as a wallet interface signer of the transaction that covers the transaction fee (`2`). Lastly, the 
 instruction is signed by `authorityEthKey` itself, which IS an actual authority (`1`) on the DID and permits the
-update. Finally `rpc()` creates the instruction(s), transaction and sends it to the chain. It is a terminal method
-of the builder and needs to be awaited (returning a Promise of the signature string).
+update. Finally `rpc()` creates the instruction(s) and transaction, and then sends it to the chain. It is a terminal method
+of the builder and needs to be awaited (returning a promise of the signature string).
 
-Here's a breakdown of all exposed Builder functions:
+Here is a breakdown of all exposed builder functions:
 
 1. `withAutomaticAlloc(payer: PublicKey): DidSolServiceBuilder`: Automatically enables a perfect resize of the DID data account.
     If required, this will generate an additional `initialize` or `resize` instruction that is executed before the actual
-    service intruction in order to bring the account to the required size.
-2. `withEthSigner(ethSigner: EthSigner): DidSolServiceBuilder`: Allows to set an EthSigner that implements the following interface:
+    service intruction bringing the account to the required size.
+2. `withEthSigner(ethSigner: EthSigner): DidSolServiceBuilder`: Sets an EthSigner that implements the following interface:
 ```ts
 export type EthSigner = {
   publicKey: string;
   signMessage: (message: Bytes | string) => Promise<string>;
 };
 ```
-This signs all (supported) instruction with the provided signMessage interface, which needs to adhere to [EIP-191](https://eips.ethereum.org/EIPS/eip-191)
-If the DID contains a matching Verification Method of type `EcdsaSecp256k1RecoveryMethod2020` or `EcdsaSecp256k1VerificationKey2019` (with a Capability Invocation flag),
-no Solana Authority (`1`) is required.
-3. `withConnection(connection: Connection): DidSolServiceBuilder`: Allows to override the Solana Connection used for `rpc()`.
-4. `withConfirmOptions(confirmOptions: ConfirmOptions): DidSolServiceBuilder` Allows to override the Solana ConfirmationOptions used for `rpc()`.
-5. `withSolWallet(solWallet: Wallet): DidSolServiceBuilder` Allows to override the Solana Wallet interface with the following interface:
+This signs all (supported) instructions with the provided signMessage interface, which needs to adhere to [EIP-191](https://eips.ethereum.org/EIPS/eip-191).If the DID contains a matching Verification Method of type `EcdsaSecp256k1RecoveryMethod2020` or `EcdsaSecp256k1VerificationKey2019`, with a capability invocation flag, no Solana Authority (`1`) is required.
+3. `withConnection(connection: Connection): DidSolServiceBuilder`: Overrides the Solana connection used for `rpc()`.
+4. `withConfirmOptions(confirmOptions: ConfirmOptions): DidSolServiceBuilder`: Overrides Solana's ConfirmationOptions used for `rpc()`.
+5. `withSolWallet(solWallet: Wallet): DidSolServiceBuilder`: Overrides the Solana wallet interface with the following interface:
 ```ts
 export interface Wallet {
   signTransaction(tx: Transaction): Promise<Transaction>;
@@ -176,37 +174,35 @@ export interface Wallet {
 }
 ```
 that is used to sign the transaction within `rpc()`.
-6. `withPartialSigners(...signers: Signer[]): DidSolServiceBuilder`: Allows to set partialSigners to sign the transaction in `rpc()`.
+6. `withPartialSigners(...signers: Signer[]): DidSolServiceBuilder`: Sets partialSigners to sign the transaction in `rpc()`.
 7. `async rpc(opts?: ConfirmOptions): Promise<string>`: Terminal method that creates the instruction(s), builds and signs the transaction
-    and sends it to the chain. Furthermore it translates the chain-specific error code into a human-readable error message.
-8. `async transaction(): Promise<Transaction>`: Terminal method that creates the instruction(s), builds the transaction.
+    and sends it to the chain. Furthermore, it translates the chain-specific error code into a human-readable error message.
+8. `async transaction(): Promise<Transaction>`: Terminal method that creates the instruction(s) and builds the transaction.
    (Eth signing will be applied if applicable, but no Solana Transaction handling is performed)
-9. `async instructions(): Promise<TransactionInstruction[]>`: Terminal method that creates and returns the instruction(s). (Eth signing will be applied if applicable.)
+9. `async instructions(): Promise<TransactionInstruction[]>`: Terminal method that creates and returns the instruction(s) (if applicable, Eth signing will be used).
 
 
 ### Init a DID Account
-Generally all DID operations can be performed with `withAutomaticAlloc(payer: PublicKey)`, which automatically creates a
-DID data account of the required size. However, the API still supports to manually initialize a DID account of any size.
-Allocating a sufficiently sized account upfront would allow to not use any payers for subsequent operations.
+Generally, all DID operations can be performed with `withAutomaticAlloc(payer: PublicKey)`, which automatically creates a
+DID data account of the required size. However, the API still manually initializes a DID account of any size.
+Allocating a sufficiently sized account upfront foregoes the use of any payers for subsequent operations.
 
 ```ts
   await service.initialize(10_000, payer.publicKey).rpc();
 ```
-The `initialize` operation does not support  `withAutomaticAlloc` OR `withEthSigner`. Using `initialize` without
-argument with set the default DID authority as `payer` and size it to the minimal initial size required.
+The `initialize` operation does not support  `withAutomaticAlloc` OR `withEthSigner`. Using `initialize` without an
+argument sets the default DID authority as `payer` and sizes it to the minimal initial size required.
 
 ### Resize a DID Account
 Generally all DID operations can be performed with `withAutomaticAlloc(payer: PublicKey)`, which automatically creates
-or resizes a DID data account of the required size. However, the API still supports to manually resize a DID account of any size.
+or resizes a DID data account meeting size requirements. However, the API still supports manual resizing a DID account to any size.
 
 ```ts
   await service.resize(15_000, payer.publicKey).rpc();
 ```
-The `resize` operation does not support  `withAutomaticAlloc`. Using `initialize` without
-argument with set the default DID authority as `payer`.
 
 ### Add a Verification Method
-The operation will add a new Verification Method to the DID. The `keyData` can be a generically size `UInt8Array`, but
+This operation will add a new Verification Method to the DID. The `keyData` can be a generically sized `UInt8Array`, but
 logically it must match the methodType specified.
 
 ```ts
@@ -231,10 +227,10 @@ a `Capability Invocation` flag must remain to prevent lockout.
   .rpc();
 ```
 
-### Set flags of a Verification Method
-This sets/updates the flag on an existing VerificationMethod. **Important** if the flag contains `VerificationMethodFlags.OwnershipProof`
-this transaction MUST use the same authority as the Verification Method. (e.g. proving that the owner can sign with 
-that specific VM). `VerificationMethodFlags.OwnershipProof` is supported for the following `VerificationMethodTypes`:
+### Set Flags of a Verification Method
+This sets or updates the flag on an existing Verification Method. 
+
+**Important** if the flag contains `VerificationMethodFlags.OwnershipProof`this transaction MUST use the same authority as the Verification Method (e.g. proving that the owner can sign with that specific Verification Method). `VerificationMethodFlags.OwnershipProof` is supported with the following `VerificationMethodTypes`:
 - `Ed25519VerificationKey2018`
 - `EcdsaSecp256k1RecoveryMethod2020`
 - `EcdsaSecp256k1VerificationKey2019`
@@ -250,7 +246,7 @@ that specific VM). `VerificationMethodFlags.OwnershipProof` is supported for the
 ```
 
 ### Add a Service
-This operation allows to set a new service on a DID. `serviceType` are strings, not enums and can therefore be freely defined.
+This operation sets a new service on a DID. `serviceType` are strings, not enums and can therefore be freely defined.
 
 ```ts
   await service
@@ -272,8 +268,8 @@ This operation removes a service with the given `fragment` name from the DID.
     .rpc();
 ```
 
-### Update the controllers of a DID
-This operation sets/updates the controllers of a DID. This overwrites any existing controllers.
+### Update the Controllers of a DID
+This operation sets or updates the controllers of a DID. This overwrites any existing controllers.
 
 ```ts
   await service
@@ -284,11 +280,11 @@ This operation sets/updates the controllers of a DID. This overwrites any existi
     .withAutomaticAlloc(authority.publicKey)
     .rpc();
 ```
-Technically `did:sol` controllers are verified to be valid Solana Account Keys and stored accordingly, while all other
-types of controller DID as persisted as strings.
+Technically `did:sol` controllers are verified to be valid Solana account keys and stored accordingly, while all other
+types of DID controllers persist as strings.
 
-### Update all properties of a DID
-This operation allow to bulk update all changeable properties of a DID. Please note, that this is a more destructive operation
+### Update All Properties of a DID
+This operation allows bulk updates to all changeable properties of a DID. Please note, that this is a more destructive operation
 and should be handled with care. Furthermore, by overwriting all Verification Methods it removes ANY existing `VerificationMethodFlags.OwnershipProof`,
 which are not allowed to be specified within the bulk update.
 
@@ -341,15 +337,13 @@ This transactions closes a DID account. With that it implicitly reverts to its g
 
 The rent for the DID data account will be return to `rentDestination`.
 
-### Migrate a persisted legacy DID to the new Program
-Legacy DIDs are resolved fine with the current `did:sol` resolver, however, if you want to migrate a legacy DID
+### Migrate a Persisted Legacy DID to the New Program
+Legacy DIDs are resolved with the current `did:sol` resolver, however, if you want to migrate a legacy DID
 (e.g. because you want to make use of all the new features), you can do so in the following way:
 
-In order to migrate a DID the following requirements need to be met:
-- Persisted DID data account in legacy program
-- **No** persisted DID data account in new program (e.g. DID was not migrated already)
+In order to migrate a DID, the DID needs a persisted DID data account in a legacy program, and cannot have a persisted DID data account in the new program (e.g. DID was not migrated already).
 
-If no persisted state exists on either program it is a `generative` DID that does not need migration.
+If no persisted state exists on either program it is a `generative` DID that does not need a migration.
 The prerequisites can be checked with `await service.isMigratable()`
 
 Actual migration is done the following way:
@@ -366,17 +360,13 @@ if (canMigrate) {
     .rpc();
 }
 ```
-Note, that the migrate function works with a `nonAuthoritySigner`, e.g. that means ANYONE
+Note, that the migrate function works with a `nonAuthoritySigner` meaning ANYONE
 can migrate any DID to the new program. But don't worry, since the migration keeps the state,
 you can be happy if someone else does it for you.
 
 In this example however, `nonAuthoritySigner` is the `rent payer` for the new account.
 
-Furthermore, migrate takes an optional `legacyAuthority` argument. If specified, it closes
-the legacy DID account automatically and recovers the rent to the `rent payer` of the new 
-account (`nonAuthoritySigner` in this example). Since legacy DIDs often automatically
-allocated **a lot** of space and new migrated DIDs are optimally space efficient,
-the migration to a new DID can actually make you `SOL` back.
+Furthermore, canMigrate takes an optional `legacyAuthority` argument. If specified, it closes the legacy DID account automatically and returns the rent to the new account `rent payer`(`nonAuthoritySigner` in this example). Since legacy DIDs are automatically allocated **a lot** of space, and newly migrated DIDs are optimally space efficient, migrating to a new DID can actually make you `SOL`back.
 
 
 ## Contributing
