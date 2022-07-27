@@ -32,7 +32,9 @@ export const fetchProgram = async (
   let idl = await Program.fetchIdl<SolDid>(DID_SOL_PROGRAM, provider);
 
   if (!idl) {
-    console.warn("Could not fetch IDL from chain. Using build-in IDL as fallback.")
+    console.warn(
+      'Could not fetch IDL from chain. Using build-in IDL as fallback.'
+    );
     idl = IDL;
   }
 
