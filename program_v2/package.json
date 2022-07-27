@@ -56,13 +56,13 @@
         "@oclif/core": "^1.12.1",
         "@oclif/plugin-help": "^5.1.12",
         "@oclif/plugin-plugins": "^2.1.0",
+        "@oclif/test": "^2.1.0",
         "@project-serum/anchor": "0.25.0",
         "@solana/web3.js": "^1.48.0",
         "did-resolver": "^3.2.2"
     },
     "devDependencies": {
         "@project-serum/anchor-cli": "https://github.com/kklas/anchor-nightly/releases/download/anchor-cli-latest/anchor-cli-0.25.0-7eb8ca8.tgz",
-        "@oclif/test": "^2.1.0",
         "@types/bn.js": "^5.1.0",
         "@types/chai": "^4.3.0",
         "@types/chai-as-promised": "^7.1.5",
