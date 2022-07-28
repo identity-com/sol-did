@@ -7,7 +7,7 @@ pub mod security {
         project_url: "https://github.com/identity-com/sol-did",
         contacts: "email: contact@identity.org",
         policy: "https://docs.identity.com/docs/sol-did/#policies",
-        encryption: "https://docs.identity.com/docs/sol-did/#encriptions",
+        encryption: "https://docs.identity.com/pgp.txt",
         preferred_languages: "en",
         source_code: "https://github.com/identity-com/sol-did.git"
     }
