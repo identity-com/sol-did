@@ -155,27 +155,13 @@ Here's a breakdown of all exposed Builder functions:
 1. `withAutomaticAlloc(payer: PublicKey): DidSolServiceBuilder`: Automatically enables a perfect resize of the DID data account.
     If required, this will generate an additional `initialize` or `resize` instruction that is executed before the actual
     service intruction in order to bring the account to the required size.
-2. `withEthSigner(ethSigner: EthSigner): DidSolServiceBuilder`: Allows to set an EthSigner that implements the following interface:
-```ts
-export type EthSigner = {
-  publicKey: string;
-  signMessage: (message: Bytes | string) => Promise<string>;
-};
-```
+2. `withEthSigner(ethSigner: EthSigner): DidSolServiceBuilder`: Allows to set an `EthSigner` e.g. as provided by [ethers](https://docs.ethers.io/v5/api/signer/#Signer-signMessage).
 This signs all (supported) instruction with the provided signMessage interface, which needs to adhere to [EIP-191](https://eips.ethereum.org/EIPS/eip-191)
 If the DID contains a matching Verification Method of type `EcdsaSecp256k1RecoveryMethod2020` or `EcdsaSecp256k1VerificationKey2019` (with a Capability Invocation flag),
 no Solana Authority (`1`) is required.
 3. `withConnection(connection: Connection): DidSolServiceBuilder`: Allows to override the Solana Connection used for `rpc()`.
 4. `withConfirmOptions(confirmOptions: ConfirmOptions): DidSolServiceBuilder` Allows to override the Solana ConfirmationOptions used for `rpc()`.
-5. `withSolWallet(solWallet: Wallet): DidSolServiceBuilder` Allows to override the Solana Wallet interface with the following interface:
-```ts
-export interface Wallet {
-  signTransaction(tx: Transaction): Promise<Transaction>;
-  signAllTransactions(txs: Transaction[]): Promise<Transaction[]>;
-  publicKey: PublicKey;
-}
-```
-that is used to sign the transaction within `rpc()`.
+5. `withSolWallet(solWallet: Wallet): DidSolServiceBuilder` Allows to override the Solana Wallet interface that is used to sign the transaction within `rpc()`.
 6. `withPartialSigners(...signers: Signer[]): DidSolServiceBuilder`: Allows to set partialSigners to sign the transaction in `rpc()`.
 7. `async rpc(opts?: ConfirmOptions): Promise<string>`: Terminal method that creates the instruction(s), builds and signs the transaction
     and sends it to the chain. Furthermore it translates the chain-specific error code into a human-readable error message.
