@@ -37,7 +37,11 @@ import {
 } from './lib/types';
 import { INITIAL_MIN_ACCOUNT_SIZE } from './lib/const';
 import { DidSolDocument } from './DidSolDocument';
-import { ExtendedCluster, getConnectionByCluster } from './lib/connection';
+import {
+  CustomClusterUrlConfig,
+  ExtendedCluster,
+  getConnectionByCluster,
+} from './lib/connection';
 import { DidSolIdentifier } from './DidSolIdentifier';
 import {
   closeAccount,
@@ -58,18 +62,17 @@ import { DidAccountSizeHelper } from './DidAccountSizeHelper';
 export class DidSolService {
   private _identifier: DidSolIdentifier;
 
-  //TODO: Refactor to take SolDid Identifier rather than didIdentifier + cluster
-  //TODO: Non-static build command as well
-
   static async build(
     identifier: DidSolIdentifier,
     wallet: Wallet = new DummyWallet(),
     opts: ConfirmOptions = AnchorProvider.defaultOptions(),
-    connection?: Connection
+    customConfig?: CustomClusterUrlConfig
   ): Promise<DidSolService> {
-    const _connection =
-      connection ||
-      getConnectionByCluster(identifier.clusterType, opts.preflightCommitment);
+    const _connection = getConnectionByCluster(
+      identifier.clusterType,
+      opts.preflightCommitment,
+      customConfig
+    );
     // Note, DidSolService never signs, so provider does not need a valid Wallet or confirmOptions.
     const provider = new AnchorProvider(_connection, wallet, opts);
 
