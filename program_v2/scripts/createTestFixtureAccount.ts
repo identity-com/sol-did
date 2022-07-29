@@ -8,6 +8,7 @@ import {
   VerificationMethodType,
   LegacyClient,
   LEGACY_DID_SOL_PROGRAM,
+  DID_SOL_PROGRAM,
 } from '../dist/src/index';
 import { SolDid } from '../dist/target/types/sol_did';
 
@@ -17,13 +18,21 @@ import { TEST_CLUSTER } from '../tests/utils/const';
 
 import { utils, Wallet } from 'ethers';
 import { ExtendedCluster } from '@identity.com/sol-did-client-legacy/dist/lib/constants';
-import { Keypair } from '@solana/web3.js';
+import { Keypair, PublicKey } from '@solana/web3.js';
 
 import { loadKeypair } from '../tests/fixtures/loader';
 
-const { exec } = require('child_process');
+import { exec as execCB } from 'child_process';
+import * as util from 'util';
+const exec = util.promisify(execCB);
 
 const fixturePath = './tests/fixtures/accounts/';
+
+//copied from anchor
+export async function idlAddress(programId: PublicKey): Promise<PublicKey> {
+  const base = (await PublicKey.findProgramAddress([], programId))[0];
+  return await PublicKey.createWithSeed(base, 'anchor:idl', programId);
+}
 
 (async () => {
   const program = anchor.workspace.SolDid as Program<SolDid>;
@@ -80,7 +89,7 @@ const fixturePath = './tests/fixtures/accounts/';
   await service.initialize().rpc();
 
   // write account
-  exec(
+  await exec(
     `solana account ${didData.toBase58()} -ul -o ${fixturePath}did-account-min.json --output json`
   );
 
@@ -127,7 +136,7 @@ const fixturePath = './tests/fixtures/accounts/';
     .rpc();
 
   // write account
-  exec(
+  await exec(
     `solana account ${didData.toBase58()} -ul -o ${fixturePath}did-account-complete.json --output json`
   );
 
@@ -178,7 +187,7 @@ const fixturePath = './tests/fixtures/accounts/';
     legacyDid
   ).pdaSolanaPubkey();
   // write account
-  exec(
+  await exec(
     `solana account ${legacyAccount.toBase58()} -ul -o ${fixturePath}legacy-did-account-complete.json --output json`
   );
 
@@ -195,13 +204,27 @@ const fixturePath = './tests/fixtures/accounts/';
     unsupportedDid
   ).pdaSolanaPubkey();
   // write account
-  exec(
+  await exec(
     `solana account ${unsupportedAccount.toBase58()} -ul -o ${fixturePath}legacy-did-account-wrong-owner.json --output json`
   );
 
   // Change Owner to random wrong one. (May only work with POSIX sed)
-  exec(
+  await exec(
     `sed -i '' "s/${LEGACY_DID_SOL_PROGRAM.toBase58()}/${Keypair.generate().publicKey.toBase58()}/g" ${fixturePath}legacy-did-account-wrong-owner.json`
+  );
+
+  console.log('Deploying IDL');
+  // Deploy IDL
+  await exec(
+    `anchor idl init --filepath ./target/idl/sol_did.json ${DID_SOL_PROGRAM}`
+  );
+
+  console.log('Done deploying IDL');
+
+  // write account
+  const idlAddr = await idlAddress(DID_SOL_PROGRAM);
+  await exec(
+    `solana account ${idlAddr.toBase58()} -ul -o ${fixturePath}idl-account.json --output json`
   );
 
   // resolve:
