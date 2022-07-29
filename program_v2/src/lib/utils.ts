@@ -2,7 +2,7 @@ import * as anchor from '@project-serum/anchor';
 import { Program, Provider } from '@project-serum/anchor';
 import { SolDid } from '../../target/types/sol_did';
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
-import { utils as ethersUtils } from 'ethers/lib/ethers';
+import { utils as ethersUtils } from 'ethers';
 import {
   DidVerificationMethodComponents,
   EthSigner,
