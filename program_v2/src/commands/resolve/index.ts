@@ -37,7 +37,7 @@ export default class Resolve extends Command {
 
   static args = [
     {
-      name: 'did:sol:...',
+      name: 'didsol',
       description: 'did:sol DID to be resolved',
       required: true,
     },
