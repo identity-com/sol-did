@@ -146,9 +146,7 @@ export class DidSolService {
     opts?: ConfirmOptions
   ): Promise<DidSolService> {
     const [didDataAccount] = await findProgramAddress(didAuthority);
-    const [legacyDidDataAccount] = await findLegacyProgramAddress(
-      didAuthority
-    );
+    const [legacyDidDataAccount] = await findLegacyProgramAddress(didAuthority);
 
     // reuse existing program
     return new DidSolService(

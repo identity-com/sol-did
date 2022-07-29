@@ -1,7 +1,12 @@
 import * as anchor from '@project-serum/anchor';
 import { Program } from '@project-serum/anchor';
 import { SolDid } from '../../target/types/sol_did';
-import { DidDataAccount, DidSolIdentifier, DidSolService, findProgramAddress } from '../../src';
+import {
+  DidDataAccount,
+  DidSolIdentifier,
+  DidSolService,
+  findProgramAddress,
+} from '../../src';
 import { before } from 'mocha';
 import { getTestService } from '../utils/utils';
 

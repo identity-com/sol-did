@@ -211,7 +211,10 @@ describe('sol-did resolve and migrate operations', () => {
   it('cannot migrate if the account is not owned by the legacy did:sol program', async () => {
     const wrongOwnerService = await DidSolService.buildFromAnchor(
       program,
-      DidSolIdentifier.create(wrongOwnerLegacyAuthority.publicKey, TEST_CLUSTER),
+      DidSolIdentifier.create(
+        wrongOwnerLegacyAuthority.publicKey,
+        TEST_CLUSTER
+      ),
       programProvider,
       new Wallet(wrongOwnerLegacyAuthority)
     );
