@@ -41,10 +41,10 @@ describe('sol-did alloc operations', () => {
 
   before(async () => {
     [didData, didDataPDABump] = await findProgramAddress(authority.publicKey);
+
     service = await DidSolService.buildFromAnchor(
       program,
-      authority.publicKey,
-      TEST_CLUSTER,
+      DidSolIdentifier.create(authority.publicKey, TEST_CLUSTER),
       programProvider
     );
 

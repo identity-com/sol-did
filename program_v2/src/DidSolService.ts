@@ -62,8 +62,6 @@ export class DidSolService {
   //TODO: Non-static build command as well
 
   static async build(
-    // didIdentifier: PublicKey,
-    // cluster: ExtendedCluster,
     identifier: DidSolIdentifier,
     wallet: Wallet = new DummyWallet(),
     opts: ConfirmOptions = AnchorProvider.defaultOptions(),
@@ -94,22 +92,19 @@ export class DidSolService {
 
   static async buildFromAnchor(
     program: Program<SolDid>,
-    didIdentifier: PublicKey,
-    cluster: ExtendedCluster,
+    identifier: DidSolIdentifier,
     provider: AnchorProvider,
     wallet?: Wallet
   ): Promise<DidSolService> {
-    const [didDataAccount] = await findProgramAddress(didIdentifier);
-    const [legacyDidDataAccount] = await findLegacyProgramAddress(
-      didIdentifier
-    );
+    const [didDataAccount] = await identifier.dataAccount();
+    const [legacyDidDataAccount] = await identifier.legacyDataAccount();
 
     return new DidSolService(
       program,
-      didIdentifier,
+      identifier.authority,
       didDataAccount,
       legacyDidDataAccount,
-      cluster,
+      identifier.clusterType,
       wallet ? wallet : provider.wallet,
       provider.opts
     );
@@ -139,20 +134,26 @@ export class DidSolService {
     return this._legacyDidDataAccount;
   }
 
+  /**
+   * Build a Service from an existing Service. Note, this will not allow to generate the service with a different cluster.
+   * @param didAuthority
+   * @param wallet
+   * @param opts
+   */
   async build(
-    didIdentifier: PublicKey,
+    didAuthority: PublicKey,
     wallet?: Wallet,
     opts?: ConfirmOptions
   ): Promise<DidSolService> {
-    const [didDataAccount] = await findProgramAddress(didIdentifier);
+    const [didDataAccount] = await findProgramAddress(didAuthority);
     const [legacyDidDataAccount] = await findLegacyProgramAddress(
-      didIdentifier
+      didAuthority
     );
 
     // reuse existing program
     return new DidSolService(
       this._program,
-      didIdentifier,
+      didAuthority,
       didDataAccount,
       legacyDidDataAccount,
       this._cluster,

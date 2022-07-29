@@ -1,6 +1,6 @@
 import { PublicKey } from '@solana/web3.js';
 import { DecentralizedIdentifierConstructor } from './lib/types';
-import { findProgramAddress } from './lib/utils';
+import { findLegacyProgramAddress, findProgramAddress } from './lib/utils';
 import { DID_SOL_PREFIX } from './lib/const';
 import { VerificationMethod } from 'did-resolver';
 import { ExtendedCluster } from './lib/connection';
@@ -38,13 +38,14 @@ export class DidSolIdentifier {
   /**
    * Get the key to the DID data
    */
-  async pdaPubkey(): Promise<PublicKey> {
-    return (await findProgramAddress(this.authority))[0];
+  async dataAccount(): Promise<[PublicKey, number]> {
+    return (await findProgramAddress(this.authority));
   }
 
-  async pdaSolanaPubkey(): Promise<PublicKey> {
-    return this.pdaPubkey();
+  async legacyDataAccount(): Promise<[PublicKey, number]> {
+    return (await findLegacyProgramAddress(this.authority));
   }
+
 
   /**
    * Clones this

@@ -60,8 +60,7 @@ describe('sol-did resolve and migrate operations', () => {
   before(async () => {
     service = await DidSolService.buildFromAnchor(
       program,
-      authority.publicKey,
-      TEST_CLUSTER,
+      DidSolIdentifier.create(authority.publicKey, TEST_CLUSTER),
       programProvider
     );
 
@@ -80,8 +79,7 @@ describe('sol-did resolve and migrate operations', () => {
     );
     legacyDidService = await DidSolService.buildFromAnchor(
       program,
-      legacyAuthority.publicKey,
-      TEST_CLUSTER,
+      DidSolIdentifier.create(legacyAuthority.publicKey, TEST_CLUSTER),
       programProvider,
       new Wallet(legacyAuthority)
     );
@@ -103,8 +101,7 @@ describe('sol-did resolve and migrate operations', () => {
     const solKey = web3.Keypair.generate();
     const localService = await DidSolService.buildFromAnchor(
       program,
-      solKey.publicKey,
-      TEST_CLUSTER,
+      DidSolIdentifier.create(solKey.publicKey, TEST_CLUSTER),
       programProvider
     );
 
@@ -184,10 +181,6 @@ describe('sol-did resolve and migrate operations', () => {
     const didAccount = await legacyDidService.getDidAccount();
     const legacyAccount = await legacyDidService.getLegacyData();
     expect(didAccount).to.be.null;
-    console.log(
-      `legacyAccount: ${legacyAccount.authority.toPublicKey().toBase58()}`
-    );
-    console.log(`legacyAuthority: ${legacyAuthority.publicKey.toBase58()}`);
 
     // why is this failing? Version update? This broke after "@solana/web3.js went to 1.50.1 in yarn.lock
     // expect(legacyAccount.authority.toPublicKey()).to.deep.equal(
@@ -218,8 +211,7 @@ describe('sol-did resolve and migrate operations', () => {
   it('cannot migrate if the account is not owned by the legacy did:sol program', async () => {
     const wrongOwnerService = await DidSolService.buildFromAnchor(
       program,
-      wrongOwnerLegacyAuthority.publicKey,
-      TEST_CLUSTER,
+      DidSolIdentifier.create(wrongOwnerLegacyAuthority.publicKey, TEST_CLUSTER),
       programProvider,
       new Wallet(wrongOwnerLegacyAuthority)
     );
