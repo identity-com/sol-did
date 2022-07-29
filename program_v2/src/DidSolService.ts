@@ -37,7 +37,11 @@ import {
 } from './lib/types';
 import { INITIAL_MIN_ACCOUNT_SIZE } from './lib/const';
 import { DidSolDocument } from './DidSolDocument';
-import { ExtendedCluster, getConnectionByCluster } from './lib/connection';
+import {
+  CustomClusterUrlConfig,
+  ExtendedCluster,
+  getConnectionByCluster,
+} from './lib/connection';
 import { DidSolIdentifier } from './DidSolIdentifier';
 import {
   closeAccount,
@@ -58,20 +62,17 @@ import { DidAccountSizeHelper } from './DidAccountSizeHelper';
 export class DidSolService {
   private _identifier: DidSolIdentifier;
 
-  //TODO: Refactor to take SolDid Identifier rather than didIdentifier + cluster
-  //TODO: Non-static build command as well
-
   static async build(
-    // didIdentifier: PublicKey,
-    // cluster: ExtendedCluster,
     identifier: DidSolIdentifier,
     wallet: Wallet = new DummyWallet(),
     opts: ConfirmOptions = AnchorProvider.defaultOptions(),
-    connection?: Connection
+    customConfig?: CustomClusterUrlConfig
   ): Promise<DidSolService> {
-    const _connection =
-      connection ||
-      getConnectionByCluster(identifier.clusterType, opts.preflightCommitment);
+    const _connection = getConnectionByCluster(
+      identifier.clusterType,
+      opts.preflightCommitment,
+      customConfig
+    );
     // Note, DidSolService never signs, so provider does not need a valid Wallet or confirmOptions.
     const provider = new AnchorProvider(_connection, wallet, opts);
 
@@ -94,22 +95,19 @@ export class DidSolService {
 
   static async buildFromAnchor(
     program: Program<SolDid>,
-    didIdentifier: PublicKey,
-    cluster: ExtendedCluster,
+    identifier: DidSolIdentifier,
     provider: AnchorProvider,
     wallet?: Wallet
   ): Promise<DidSolService> {
-    const [didDataAccount] = await findProgramAddress(didIdentifier);
-    const [legacyDidDataAccount] = await findLegacyProgramAddress(
-      didIdentifier
-    );
+    const [didDataAccount] = await identifier.dataAccount();
+    const [legacyDidDataAccount] = await identifier.legacyDataAccount();
 
     return new DidSolService(
       program,
-      didIdentifier,
+      identifier.authority,
       didDataAccount,
       legacyDidDataAccount,
-      cluster,
+      identifier.clusterType,
       wallet ? wallet : provider.wallet,
       provider.opts
     );
@@ -139,20 +137,24 @@ export class DidSolService {
     return this._legacyDidDataAccount;
   }
 
+  /**
+   * Build a Service from an existing Service. Note, this will not allow to generate the service with a different cluster.
+   * @param didAuthority
+   * @param wallet
+   * @param opts
+   */
   async build(
-    didIdentifier: PublicKey,
+    didAuthority: PublicKey,
     wallet?: Wallet,
     opts?: ConfirmOptions
   ): Promise<DidSolService> {
-    const [didDataAccount] = await findProgramAddress(didIdentifier);
-    const [legacyDidDataAccount] = await findLegacyProgramAddress(
-      didIdentifier
-    );
+    const [didDataAccount] = await findProgramAddress(didAuthority);
+    const [legacyDidDataAccount] = await findLegacyProgramAddress(didAuthority);
 
     // reuse existing program
     return new DidSolService(
       this._program,
-      didIdentifier,
+      didAuthority,
       didDataAccount,
       legacyDidDataAccount,
       this._cluster,

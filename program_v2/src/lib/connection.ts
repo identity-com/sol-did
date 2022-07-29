@@ -18,10 +18,17 @@ export type ExtendedCluster = Cluster | 'localnet' | 'civicnet';
 export const CIVICNET_CLUSTER_URL = 'https://d3ab7dlfud2b5u.cloudfront.net';
 export const LOCALNET_CLUSTER_URL = 'http://localhost:8899';
 
-export const getClusterUrl = (cluster: ExtendedCluster) => {
-  // Allow ENV Variable Overwrite
-  if (process.env.CLUSTER_URL) {
-    return process.env.CLUSTER_URL;
+export type CustomClusterUrlConfig = {
+  [cluster in ExtendedCluster]: string;
+};
+
+export const getClusterUrl = (
+  cluster: ExtendedCluster,
+  customConfig?: CustomClusterUrlConfig
+) => {
+  // return custom cluster url if it exists
+  if (customConfig && customConfig[cluster]) {
+    return customConfig[cluster];
   }
 
   switch (cluster) {
@@ -36,8 +43,10 @@ export const getClusterUrl = (cluster: ExtendedCluster) => {
 
 export const getConnectionByCluster = (
   cluster: ExtendedCluster = 'localnet',
-  preflightCommitment: Commitment = SOLANA_COMMITMENT
-): Connection => getConnection(getClusterUrl(cluster), preflightCommitment);
+  preflightCommitment: Commitment = SOLANA_COMMITMENT,
+  customConfig?: CustomClusterUrlConfig
+): Connection =>
+  getConnection(getClusterUrl(cluster, customConfig), preflightCommitment);
 
 export const getConnection = (
   clusterUrl: string,

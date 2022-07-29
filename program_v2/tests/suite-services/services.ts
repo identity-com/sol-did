@@ -1,7 +1,12 @@
 import * as anchor from '@project-serum/anchor';
 import { Program } from '@project-serum/anchor';
 import { SolDid } from '../../target/types/sol_did';
-import { DidDataAccount, DidSolService, findProgramAddress } from '../../src';
+import {
+  DidDataAccount,
+  DidSolIdentifier,
+  DidSolService,
+  findProgramAddress,
+} from '../../src';
 import { before } from 'mocha';
 import { getTestService } from '../utils/utils';
 
@@ -38,8 +43,7 @@ describe('sol-did service operations', () => {
     [didData, didDataPDABump] = await findProgramAddress(authority.publicKey);
     service = await DidSolService.buildFromAnchor(
       program,
-      authority.publicKey,
-      TEST_CLUSTER,
+      DidSolIdentifier.create(authority.publicKey, TEST_CLUSTER),
       programProvider
     );
 
