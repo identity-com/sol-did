@@ -46,11 +46,11 @@ export default class Resolve extends Command {
   async run(): Promise<void> {
     const { args } = await this.parse(Resolve);
 
-    const didSol = DidSolIdentifier.parse(args.didsol);
+    const didSolIdentifier = DidSolIdentifier.parse(args.didsol);
 
-    const service = await DidSolService.build(didSol);
+    const service = await DidSolService.build(didSolIdentifier);
 
-    const doc = await service.resolve(args.didsol);
+    const doc = await service.resolve();
     this.log(JSON.stringify(doc, null, 2));
   }
 }
