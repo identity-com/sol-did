@@ -1,6 +1,6 @@
 import * as anchor from '@project-serum/anchor';
 import { Program, Provider } from '@project-serum/anchor';
-import { SolDid } from '../../target/types/sol_did';
+import { SolDid, IDL } from '../../target/types/sol_did';
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { utils as ethersUtils } from 'ethers/lib/ethers';
 import {
@@ -29,9 +29,14 @@ import { ExtendedCluster } from './connection';
 export const fetchProgram = async (
   provider: Provider
 ): Promise<Program<SolDid>> => {
-  const idl = await Program.fetchIdl<SolDid>(DID_SOL_PROGRAM, provider);
+  let idl = await Program.fetchIdl<SolDid>(DID_SOL_PROGRAM, provider);
 
-  if (!idl) throw new Error('Notification IDL could not be found');
+  if (!idl) {
+    console.warn(
+      'Could not fetch IDL from chain. Using build-in IDL as fallback.'
+    );
+    idl = IDL;
+  }
 
   return new Program<SolDid>(idl, DID_SOL_PROGRAM, provider) as Program<SolDid>;
 };

@@ -35,7 +35,7 @@ export const getClusterUrl = (cluster: ExtendedCluster) => {
 };
 
 export const getConnectionByCluster = (
-  cluster: ExtendedCluster,
+  cluster: ExtendedCluster = 'localnet',
   preflightCommitment: Commitment = SOLANA_COMMITMENT
 ): Connection => getConnection(getClusterUrl(cluster), preflightCommitment);
 

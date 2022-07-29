@@ -58,30 +58,35 @@ import { DidAccountSizeHelper } from './DidAccountSizeHelper';
 export class DidSolService {
   private _identifier: DidSolIdentifier;
 
+  //TODO: Refactor to take SolDid Identifier rather than didIdentifier + cluster
+  //TODO: Non-static build command as well
+
   static async build(
-    didIdentifier: PublicKey,
-    cluster: ExtendedCluster,
+    // didIdentifier: PublicKey,
+    // cluster: ExtendedCluster,
+    identifier: DidSolIdentifier,
     wallet: Wallet = new DummyWallet(),
     opts: ConfirmOptions = AnchorProvider.defaultOptions(),
     connection?: Connection
   ): Promise<DidSolService> {
     const _connection =
-      connection || getConnectionByCluster(cluster, opts.preflightCommitment);
+      connection ||
+      getConnectionByCluster(identifier.clusterType, opts.preflightCommitment);
     // Note, DidSolService never signs, so provider does not need a valid Wallet or confirmOptions.
     const provider = new AnchorProvider(_connection, wallet, opts);
 
     const program = await fetchProgram(provider);
-    const [didDataAccount] = await findProgramAddress(didIdentifier);
+    const [didDataAccount] = await findProgramAddress(identifier.authority);
     const [legacyDidDataAccount] = await findLegacyProgramAddress(
-      didIdentifier
+      identifier.authority
     );
 
     return new DidSolService(
       program,
-      didIdentifier,
+      identifier.authority,
       didDataAccount,
       legacyDidDataAccount,
-      cluster,
+      identifier.clusterType,
       provider.wallet,
       provider.opts
     );

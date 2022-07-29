@@ -9,10 +9,35 @@
     "repository": "https://github.com/identity-com/sol-did",
     "homepage": "https://github.com/identity-com/sol-did",
     "files": [
-        "dist"
+        "/bin",
+        "dist",
+        "/npm-shrinkwrap.json",
+        "/oclif.manifest.json"
+    ],
+    "keywords": [
+        "oclif"
     ],
     "engines": {
         "node": ">=16"
+    },
+    "bin": {
+        "sol": "./bin/run"
+    },
+    "oclif": {
+        "bin": "sol",
+        "dirname": "sol",
+        "default": "resolve",
+        "commands": "./dist/src/commands",
+        "plugins": [
+            "@oclif/plugin-help",
+            "@oclif/plugin-plugins"
+        ],
+        "topicSeparator": " ",
+        "topics": {
+            "hello": {
+                "description": "Say hello to the world and others"
+            }
+        }
     },
     "scripts": {
         "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
@@ -28,6 +53,10 @@
     },
     "dependencies": {
         "@identity.com/sol-did-client-legacy": "^2.0.3",
+        "@oclif/core": "^1.12.1",
+        "@oclif/plugin-help": "^5.1.12",
+        "@oclif/plugin-plugins": "^2.1.0",
+        "@oclif/test": "^2.1.0",
         "@project-serum/anchor": "0.25.0",
         "@solana/web3.js": "^1.48.0",
         "did-resolver": "^3.2.2"

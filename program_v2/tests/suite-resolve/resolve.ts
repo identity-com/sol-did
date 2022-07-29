@@ -184,8 +184,18 @@ describe('sol-did resolve and migrate operations', () => {
     const didAccount = await legacyDidService.getDidAccount();
     const legacyAccount = await legacyDidService.getLegacyData();
     expect(didAccount).to.be.null;
-    expect(legacyAccount.authority.toPublicKey()).to.deep.equal(
-      legacyAuthority.publicKey
+    console.log(
+      `legacyAccount: ${legacyAccount.authority.toPublicKey().toBase58()}`
+    );
+    console.log(`legacyAuthority: ${legacyAuthority.publicKey.toBase58()}`);
+
+    // why is this failing? Version update? This broke after "@solana/web3.js went to 1.50.1 in yarn.lock
+    // expect(legacyAccount.authority.toPublicKey()).to.deep.equal(
+    //   legacyAuthority.publicKey
+    // );
+    // replacement check
+    expect(legacyAccount.authority.toPublicKey().toBase58()).to.equal(
+      legacyAuthority.publicKey.toBase58()
     );
 
     expect(await legacyDidService.isMigratable()).to.be.true;
