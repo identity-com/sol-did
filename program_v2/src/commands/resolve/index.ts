@@ -3,18 +3,44 @@ import { DidSolIdentifier } from '../../DidSolIdentifier';
 import { DidSolService } from '../../DidSolService';
 
 export default class Resolve extends Command {
-  static description = 'Resolves a DID';
+  static description = 'Resolves a did:sol DID';
 
   static examples = [
-    `$ sol resolve [did]
-resolved... (./src/commands/resolve/index.ts)
-`,
+    `$ sol resolve did:sol:devnet:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa
+{
+  "@context": [
+    "https://w3id.org/did/v1.0",
+    "https://w3id.org/sol/v2.0"
+  ],
+  "controller": [],
+  "verificationMethod": [
+    {
+      "id": "did:sol:devnet:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa#default",
+      "type": "Ed25519VerificationKey2018",
+      "controller": "did:sol:devnet:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa",
+      "publicKeyBase58": "ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa"
+    }
+  ],
+  "authentication": [],
+  "assertionMethod": [],
+  "keyAgreement": [],
+  "capabilityInvocation": [
+    "#default"
+  ],
+  "capabilityDelegation": [],
+  "service": [],
+  "id": "did:sol:devnet:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa"
+}`,
   ];
 
   static flags = {};
 
   static args = [
-    { name: 'didsol', description: 'DID to be resolved', required: true },
+    {
+      name: 'did:sol:...',
+      description: 'did:sol DID to be resolved',
+      required: true,
+    },
   ];
 
   async run(): Promise<void> {
@@ -28,6 +54,3 @@ resolved... (./src/commands/resolve/index.ts)
     this.log(JSON.stringify(doc, null, 2));
   }
 }
-
-// Example.
-// did:sol:localnet:3LqWFGc8KTCigN12n8utPT8ZuRAtDgvtG3v8SFmRuMP6

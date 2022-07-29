@@ -10,12 +10,17 @@
     "homepage": "https://github.com/identity-com/sol-did",
     "files": [
         "/bin",
-        "dist",
+        "/dist",
         "/npm-shrinkwrap.json",
         "/oclif.manifest.json"
     ],
     "keywords": [
-        "oclif"
+        "oclif",
+        "did",
+        "solana",
+        "identity",
+        "did-method",
+        "did-client"
     ],
     "engines": {
         "node": ">=16"
@@ -28,9 +33,9 @@
         "dirname": "sol",
         "default": "resolve",
         "commands": "./dist/src/commands",
+        "repositoryPrefix": "https://github.com/identity-com/sol-did/tree/program_v2/src/commands/",
         "plugins": [
-            "@oclif/plugin-help",
-            "@oclif/plugin-plugins"
+            "@oclif/plugin-help"
         ],
         "topicSeparator": " ",
         "topics": {
@@ -43,10 +48,12 @@
         "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
         "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
         "test": "anchor test",
-        "clean": "rimraf -rf ./dist",
+        "clean": "shx rm -rf ./dist",
         "compile": "tsc -p tsconfig.json",
         "build": "yarn clean && anchor build && yarn compile",
         "prepare": "yarn build",
+        "prepack": "yarn build && oclif manifest && oclif readme",
+        "postpack": "shx rm -f oclif.manifest.json",
         "start-validator": "solana-test-validator --bpf-program didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc ./target/deploy/sol_did.so --reset",
         "start-validator-legacy": "solana-test-validator --bpf-program didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc ./target/deploy/sol_did.so --bpf-program idDa4XeCjVwKcprVAo812coUQbovSZ4kDGJf2sPaBnM ../program/target/deploy/sol_did_legacy.so --reset",
         "create-fixtures": "anchor run createTestFixtureAccount"
@@ -55,7 +62,6 @@
         "@identity.com/sol-did-client-legacy": "^2.0.3",
         "@oclif/core": "^1.12.1",
         "@oclif/plugin-help": "^5.1.12",
-        "@oclif/plugin-plugins": "^2.1.0",
         "@oclif/test": "^2.1.0",
         "@project-serum/anchor": "0.25.0",
         "@solana/web3.js": "^1.48.0",
@@ -73,8 +79,10 @@
         "ethers": "^5.6.9",
         "husky": "^8.0.1",
         "mocha": "^9.0.3",
+        "oclif": "^3.1.2",
         "prettier": "^2.6.2",
         "rimraf": "^3.0.2",
+        "shx": "^0.3.4",
         "ts-mocha": "^10.0.0",
         "typescript": "^4.3.5"
     },
