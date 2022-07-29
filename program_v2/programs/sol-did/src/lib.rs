@@ -2,6 +2,7 @@ mod constants;
 mod errors;
 mod instructions;
 mod legacy;
+mod security_txt;
 mod state;
 mod utils;
 
