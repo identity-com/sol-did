@@ -1,7 +1,7 @@
 import { Ed25519VerificationKey2020 } from '@digitalbazaar/ed25519-verification-key-2020';
 import { X25519KeyAgreementKey2019 } from '@digitalbazaar/x25519-key-agreement-key-2019';
 
-import { PublicKeyBase58 } from '@identity.com/sol-did-client';
+import { PublicKeyBase58 } from '@identity.com/sol-did-client-legacy';
 import { CryptoLD, LDKeyPair } from 'crypto-ld';
 import { DIDDocument } from 'did-resolver';
 

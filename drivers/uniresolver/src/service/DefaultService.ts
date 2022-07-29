@@ -1,7 +1,7 @@
 import { register } from './Registrar';
 import { ResponseContent } from '../utils/writer';
 import { DIDDocument, VerificationMethod } from 'did-resolver';
-import * as DID from '@identity.com/sol-did-client';
+import * as DID from '@identity.com/sol-did-client-legacy';
 import { deactivate } from './Deactivator';
 import { update } from './Updater';
 

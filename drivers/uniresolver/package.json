@@ -18,7 +18,7 @@
     "start": "tsdx watch",
     "build": "tsdx build",
     "postbuild": "mkdir dist/api && cp src/api/openapi.yml dist/api/",
-    "pretest": "(cd ../../client && yarn && yarn build && yarn link) && yarn link @identity.com/sol-did-client",
+    "pretest": "(cd ../../client && yarn && yarn build && yarn link) && yarn link @identity.com/sol-did-client-legacy",
     "test": "tsdx test",
     "lint": "tsdx lint --maxWarnings 0",
     "prepublishOnly": "yarn build",
@@ -43,7 +43,7 @@
     "typescript": "^4.1.5"
   },
   "dependencies": {
-    "@identity.com/sol-did-client": "^1.0.0-beta",
+    "@identity.com/sol-did-client-legacy": "^2.0.3",
     "cors": "^2.8.5",
     "did-resolver": "^3.0.1",
     "oas3-tools": "^2.2.3"

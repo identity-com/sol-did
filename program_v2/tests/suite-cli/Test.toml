@@ -1,0 +1,16 @@
+extends = ["../Test.base.account.toml"]
+
+[[test.validator.account]]
+address = "F4z36iiKA1Ymp7suNTiTGpN9JH3C5sceSGBSzyPsfFJz"
+filename = "../fixtures/accounts/did-account-complete.json"
+
+[[test.validator.account]]
+address = "ESrDYHGCv9rLtnAhDjJ5oHtYYgiR1aJd1kYAGqqTMMqj"
+filename = "../fixtures/accounts/legacy-did-account-complete.json"
+
+[[test.validator.account]]
+address = "78CJ7rLRbMg1eLKudJqmQp1wzPu1NEo9qRJhMXQKoNe7"
+filename = "../fixtures/accounts/idl-account.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/suite-cli/**/*.ts"

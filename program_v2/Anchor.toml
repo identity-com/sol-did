@@ -1,0 +1,19 @@
+[features]
+seeds = false
+[programs.localnet]
+sol_did = "didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "localnet"
+wallet = "./tests/fixtures/keypairs/A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3.json"
+
+#[provider]
+#cluster = "devnet"
+#wallet = "SET UPGRADE AUTHORITY WALLET PATH"
+
+[scripts]
+createTestFixtureAccount = "./node_modules/.bin/ts-node ./scripts/createTestFixtureAccount"
+clientDemo = "./node_modules/.bin/ts-node ./scripts/clientDemo"
