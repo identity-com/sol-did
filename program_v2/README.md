@@ -56,7 +56,7 @@ $ npm install -g @identity.com/sol-did-client
 $ sol COMMAND
 running command...
 $ sol (--version)
-@identity.com/sol-did-client/3.0.0-beta1 darwin-arm64 node-v16.13.0
+@identity.com/sol-did-client/3.0.0-beta3 darwin-arm64 node-v16.13.0
 $ sol --help [COMMAND]
 USAGE
   $ sol COMMAND
@@ -68,7 +68,7 @@ USAGE
 
   <!-- commands -->
 * [`sol help [COMMAND]`](#sol-help-command)
-* [`sol resolve DID:SOL:...`](#sol-resolve-didsol)
+* [`sol resolve DIDSOL`](#sol-resolve-didsol)
 
 ## `sol help [COMMAND]`
 
@@ -90,16 +90,16 @@ DESCRIPTION
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.12/src/commands/help.ts)_
 
-## `sol resolve DID:SOL:...`
+## `sol resolve DIDSOL`
 
 Resolves a did:sol DID
 
 ```
 USAGE
-  $ sol resolve [DID:SOL:...]
+  $ sol resolve [DIDSOL]
 
 ARGUMENTS
-  DID:SOL:...  did:sol DID to be resolved
+  DIDSOL  did:sol DID to be resolved
 
 DESCRIPTION
   Resolves a did:sol DID
@@ -132,7 +132,7 @@ EXAMPLES
   }
 ```
 
-_See code: [dist/src/commands/resolve/index.ts](https://github.com/identity-com/sol-did/tree/feature/IDCOM-1996-Anchor_Migration/program_v2/)_
+_See code: [dist/src/commands/resolve/index.ts](https://github.com/identity-com/sol-did/tree/program_v2/src/commands/)_
 <!-- commandsstop -->
 
 
