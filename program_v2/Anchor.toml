@@ -2,6 +2,10 @@
 seeds = false
 [programs.localnet]
 sol_did = "didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc"
+[programs.devnet]
+sol_did = "didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc"
+[programs.mainnet]
+sol_did = "didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc"
 
 [registry]
 url = "https://anchor.projectserum.com"
@@ -12,6 +16,10 @@ wallet = "./tests/fixtures/keypairs/A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3
 
 #[provider]
 #cluster = "devnet"
+#wallet = "SET UPGRADE AUTHORITY WALLET PATH"
+
+#[provider]
+#cluster = "mainnet"
 #wallet = "SET UPGRADE AUTHORITY WALLET PATH"
 
 [scripts]
