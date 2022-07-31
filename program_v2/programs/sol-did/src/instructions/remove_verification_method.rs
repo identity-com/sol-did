@@ -35,5 +35,4 @@ pub struct RemoveVerificationMethod<'info> {
     )]
     pub did_data: Account<'info, DidAccount>,
     pub authority: Signer<'info>,
-    pub system_program: Program<'info, System>,
 }
