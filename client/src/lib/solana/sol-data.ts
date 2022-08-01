@@ -449,7 +449,6 @@ export class DecentralizedIdentifier extends Assignable {
   }
 
   static REGEX = new RegExp('^did:' + DID_METHOD + ':?(\\w*):(\\w+)#?(\\w*)$');
-  static REGEX2 = new RegExp(`^${DID_SOL_PREFIX}:?(\\w*):(\\w+)#?(\\w*)$`);
 
   /**
    * Parses a given did string
