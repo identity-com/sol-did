@@ -4,8 +4,12 @@ import { DIDDocument, VerificationMethod } from 'did-resolver';
 import * as DID from '@identity.com/sol-did-client-legacy';
 import { deactivate } from './Deactivator';
 import { update } from './Updater';
-import { CustomClusterUrlConfig, DidSolIdentifier, DidSolService } from "@identity.com/sol-did-client";
-import { getConfig } from "../config/config";
+import {
+  CustomClusterUrlConfig,
+  DidSolIdentifier,
+  DidSolService,
+} from '@identity.com/sol-did-client';
+import { getConfig } from '../config/config';
 
 type ResolutionResult = {
   didDocument: DIDDocument;

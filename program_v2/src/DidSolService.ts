@@ -66,7 +66,7 @@ export class DidSolService {
     identifier: DidSolIdentifier,
     customConfig?: CustomClusterUrlConfig,
     wallet: Wallet = new NonSigningWallet(),
-    opts: ConfirmOptions = AnchorProvider.defaultOptions(),
+    opts: ConfirmOptions = AnchorProvider.defaultOptions()
   ): Promise<DidSolService> {
     const _connection = getConnectionByCluster(
       identifier.clusterType,

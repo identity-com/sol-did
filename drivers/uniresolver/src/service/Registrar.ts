@@ -1,17 +1,10 @@
 // @ts-nocheck
-import * as DID from '@identity.com/sol-did-client-legacy';
-import {
-  RegisterRequest,
-  RegisterState,
-  RegisterStateKey,
-} from './DefaultService';
-import { ClusterType } from '@identity.com/sol-did-client-legacy';
+import { RegisterRequest, RegisterState } from './DefaultService';
 
 export const register = async (
-  request: RegisterRequest
+  _request: RegisterRequest
 ): Promise<RegisterState> => {
   throw new Error('Not Implemented for new sol-did-client version >=3.0.0');
-
 
   // const payer = request.secret?.payer || process.env.PAYER;
   // if (!payer)

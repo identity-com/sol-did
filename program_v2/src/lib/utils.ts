@@ -7,7 +7,8 @@ import { decode } from 'bs58';
 
 import {
   DidVerificationMethodComponents,
-  EthSigner, PrivateKey,
+  EthSigner,
+  PrivateKey,
   Service,
   VerificationMethod,
   VerificationMethodFlags,
@@ -159,31 +160,41 @@ export const mapVerificationMethodsToDidComponents = (
       (method.flags & VerificationMethodFlags.Authentication) ===
       VerificationMethodFlags.Authentication
     ) {
-      didComponents.authentication.push(`${identifier.toString()}#${method.fragment}`);
+      didComponents.authentication.push(
+        `${identifier.toString()}#${method.fragment}`
+      );
     }
     if (
       (method.flags & VerificationMethodFlags.Assertion) ===
       VerificationMethodFlags.Assertion
     ) {
-      didComponents.assertionMethod.push(`${identifier.toString()}#${method.fragment}`);
+      didComponents.assertionMethod.push(
+        `${identifier.toString()}#${method.fragment}`
+      );
     }
     if (
       (method.flags & VerificationMethodFlags.KeyAgreement) ===
       VerificationMethodFlags.KeyAgreement
     ) {
-      didComponents.keyAgreement.push(`${identifier.toString()}#${method.fragment}`);
+      didComponents.keyAgreement.push(
+        `${identifier.toString()}#${method.fragment}`
+      );
     }
     if (
       (method.flags & VerificationMethodFlags.CapabilityInvocation) ===
       VerificationMethodFlags.CapabilityInvocation
     ) {
-      didComponents.capabilityInvocation.push(`${identifier.toString()}#${method.fragment}`);
+      didComponents.capabilityInvocation.push(
+        `${identifier.toString()}#${method.fragment}`
+      );
     }
     if (
       (method.flags & VerificationMethodFlags.CapabilityDelegation) ===
       VerificationMethodFlags.CapabilityDelegation
     ) {
-      didComponents.capabilityDelegation.push(`${identifier.toString()}#${method.fragment}`);
+      didComponents.capabilityDelegation.push(
+        `${identifier.toString()}#${method.fragment}`
+      );
     }
 
     let vm: DidVerificationMethod = {
@@ -216,7 +227,9 @@ export const mapVerificationMethodsToDidComponents = (
   return didComponents;
 };
 
-export const mapServices = (services: Service[], identifier: DidSolIdentifier
+export const mapServices = (
+  services: Service[],
+  identifier: DidSolIdentifier
 ): DidService[] =>
   services.map((service) => ({
     id: `${identifier.toString()}#${service.fragment}`,

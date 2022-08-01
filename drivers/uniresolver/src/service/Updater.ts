@@ -1,10 +1,8 @@
 // @ts-nocheck
-import * as DID from '@identity.com/sol-did-client-legacy';
 import { UpdateRequest, UpdateState } from './DefaultService';
 
-export const update = async (request: UpdateRequest): Promise<UpdateState> => {
+export const update = async (_request: UpdateRequest): Promise<UpdateState> => {
   throw new Error('Not Implemented for new sol-did-client version >=3.0.0');
-
 
   // const owner = request.secret.owner;
   // const payer = request.secret.payer || owner || process.env.PAYER;

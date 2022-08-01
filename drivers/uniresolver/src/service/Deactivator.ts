@@ -1,4 +1,8 @@
-import { DidSolService, DidSolIdentifier, makeKeypair } from '@identity.com/sol-did-client';
+import {
+  DidSolService,
+  DidSolIdentifier,
+  makeKeypair,
+} from '@identity.com/sol-did-client';
 import { DeactivateRequest, DeactivateState } from './DefaultService';
 
 export const deactivate = async (
@@ -15,7 +19,8 @@ export const deactivate = async (
   const payerKeypair = makeKeypair(payer);
   const authorityKeypair = owner ? makeKeypair(owner) : payerKeypair;
 
-  await service.close(payerKeypair.publicKey, authorityKeypair.publicKey)
+  await service
+    .close(payerKeypair.publicKey, authorityKeypair.publicKey)
     .withPartialSigners(authorityKeypair)
     .rpc();
 
