@@ -1,11 +1,13 @@
 import * as anchor from '@project-serum/anchor';
 import { Program, Provider } from '@project-serum/anchor';
 import { SolDid } from '../../target/types/sol_did';
-import { PublicKey, TransactionInstruction } from '@solana/web3.js';
+import { Keypair, PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { utils as ethersUtils } from 'ethers';
+import { decode } from 'bs58';
+
 import {
   DidVerificationMethodComponents,
-  EthSigner,
+  EthSigner, PrivateKey,
   Service,
   VerificationMethod,
   VerificationMethodFlags,
@@ -157,31 +159,31 @@ export const mapVerificationMethodsToDidComponents = (
       (method.flags & VerificationMethodFlags.Authentication) ===
       VerificationMethodFlags.Authentication
     ) {
-      didComponents.authentication.push(`#${method.fragment}`);
+      didComponents.authentication.push(`${identifier.toString()}#${method.fragment}`);
     }
     if (
       (method.flags & VerificationMethodFlags.Assertion) ===
       VerificationMethodFlags.Assertion
     ) {
-      didComponents.assertionMethod.push(`#${method.fragment}`);
+      didComponents.assertionMethod.push(`${identifier.toString()}#${method.fragment}`);
     }
     if (
       (method.flags & VerificationMethodFlags.KeyAgreement) ===
       VerificationMethodFlags.KeyAgreement
     ) {
-      didComponents.keyAgreement.push(`#${method.fragment}`);
+      didComponents.keyAgreement.push(`${identifier.toString()}#${method.fragment}`);
     }
     if (
       (method.flags & VerificationMethodFlags.CapabilityInvocation) ===
       VerificationMethodFlags.CapabilityInvocation
     ) {
-      didComponents.capabilityInvocation.push(`#${method.fragment}`);
+      didComponents.capabilityInvocation.push(`${identifier.toString()}#${method.fragment}`);
     }
     if (
       (method.flags & VerificationMethodFlags.CapabilityDelegation) ===
       VerificationMethodFlags.CapabilityDelegation
     ) {
-      didComponents.capabilityDelegation.push(`#${method.fragment}`);
+      didComponents.capabilityDelegation.push(`${identifier.toString()}#${method.fragment}`);
     }
 
     let vm: DidVerificationMethod = {
@@ -214,9 +216,10 @@ export const mapVerificationMethodsToDidComponents = (
   return didComponents;
 };
 
-export const mapServices = (services: Service[]): DidService[] =>
+export const mapServices = (services: Service[], identifier: DidSolIdentifier
+): DidService[] =>
   services.map((service) => ({
-    id: `#${service.fragment}`,
+    id: `${identifier.toString()}#${service.fragment}`,
     type: service.serviceType,
     serviceEndpoint: service.serviceEndpoint,
   }));
@@ -236,3 +239,41 @@ export const mapControllers = (
 
 export const getBinarySize = (input: string): number =>
   Buffer.byteLength(input, 'utf8');
+
+export const privateKeyIsArray = (
+  privateKey: PrivateKey
+): privateKey is number[] => Array.isArray(privateKey);
+export const privateKeyIsString = (
+  privateKey: PrivateKey
+): privateKey is string => typeof privateKey === 'string';
+export const privateKeyIsBuffer = (
+  privateKey: PrivateKey
+): privateKey is Buffer => Buffer.isBuffer(privateKey);
+export const privateKeyIsUint8Array = (
+  privateKey: PrivateKey
+): privateKey is Uint8Array => privateKey instanceof Uint8Array;
+
+/**
+ * Create a Solana account object from an x25519 private key
+ * @param privateKey
+ */
+export const makeKeypair = (privateKey: PrivateKey): Keypair => {
+  if (privateKeyIsArray(privateKey)) {
+    return Keypair.fromSecretKey(Buffer.from(privateKey));
+  }
+  if (privateKeyIsBuffer(privateKey) || privateKeyIsUint8Array(privateKey))
+    return Keypair.fromSecretKey(privateKey);
+  if (privateKeyIsString(privateKey)) {
+    const privateKeyHex = decode(privateKey);
+    return Keypair.fromSecretKey(privateKeyHex);
+  }
+
+  throw new Error('Incompatible private key format');
+};
+
+/**
+ * Given a private key on the x25519 curve, get its public key
+ * @param privateKey
+ */
+export const getPublicKey = (privateKey: PrivateKey): PublicKey =>
+  makeKeypair(privateKey).publicKey;

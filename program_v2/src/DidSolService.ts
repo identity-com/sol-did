@@ -64,9 +64,9 @@ export class DidSolService {
 
   static async build(
     identifier: DidSolIdentifier,
-    wallet: Wallet = new DummyWallet(),
+    customConfig?: CustomClusterUrlConfig,
+    wallet: Wallet = new NonSigningWallet(),
     opts: ConfirmOptions = AnchorProvider.defaultOptions(),
-    customConfig?: CustomClusterUrlConfig
   ): Promise<DidSolService> {
     const _connection = getConnectionByCluster(
       identifier.clusterType,
@@ -119,7 +119,7 @@ export class DidSolService {
     private _didDataAccount: PublicKey,
     private _legacyDidDataAccount: PublicKey,
     private _cluster: ExtendedCluster = 'mainnet-beta',
-    private _wallet: Wallet = new DummyWallet(),
+    private _wallet: Wallet = new NonSigningWallet(),
     private _opts: ConfirmOptions = AnchorProvider.defaultOptions()
   ) {
     this._identifier = DidSolIdentifier.create(_didAuthority, _cluster);
@@ -693,7 +693,7 @@ export type BuilderInstruction = {
   authority: PublicKey;
 };
 
-class DummyWallet implements Wallet {
+class NonSigningWallet implements Wallet {
   publicKey: PublicKey;
 
   constructor() {
@@ -701,11 +701,11 @@ class DummyWallet implements Wallet {
   }
 
   signAllTransactions(txs: Transaction[]): Promise<Transaction[]> {
-    return Promise.reject('DummyWallet does not support signing transactions');
+    return Promise.resolve(txs);
   }
 
   signTransaction(tx: Transaction): Promise<Transaction> {
-    return Promise.reject('DummyWallet does not support signing transactions');
+    return Promise.resolve(tx);
   }
 }
 

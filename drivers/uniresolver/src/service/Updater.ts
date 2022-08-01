@@ -1,23 +1,27 @@
+// @ts-nocheck
 import * as DID from '@identity.com/sol-did-client-legacy';
 import { UpdateRequest, UpdateState } from './DefaultService';
 
 export const update = async (request: UpdateRequest): Promise<UpdateState> => {
-  const owner = request.secret.owner;
-  const payer = request.secret.payer || owner || process.env.PAYER;
-  if (!payer)
-    throw new Error('Missing payer information- add a request secret');
+  throw new Error('Not Implemented for new sol-did-client version >=3.0.0');
 
-  await DID.update({
-    owner,
-    payer,
-    did: request.identifier,
-    document: request.didDocument,
-    mergeBehaviour: request.options?.mergeBehaviour,
-  });
 
-  return {
-    didState: {
-      state: 'finished',
-    },
-  };
+  // const owner = request.secret.owner;
+  // const payer = request.secret.payer || owner || process.env.PAYER;
+  // if (!payer)
+  //   throw new Error('Missing payer information- add a request secret');
+  //
+  // await DID.update({
+  //   owner,
+  //   payer,
+  //   did: request.identifier,
+  //   document: request.didDocument,
+  //   mergeBehaviour: request.options?.mergeBehaviour,
+  // });
+  //
+  // return {
+  //   didState: {
+  //     state: 'finished',
+  //   },
+  // };
 };

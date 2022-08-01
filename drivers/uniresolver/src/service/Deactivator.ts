@@ -1,4 +1,4 @@
-import * as DID from '@identity.com/sol-did-client-legacy';
+import { DidSolService, DidSolIdentifier, makeKeypair } from '@identity.com/sol-did-client';
 import { DeactivateRequest, DeactivateState } from './DefaultService';
 
 export const deactivate = async (
@@ -9,11 +9,15 @@ export const deactivate = async (
   if (!payer)
     throw new Error('Missing payer information- add a request secret');
 
-  await DID.deactivate({
-    owner,
-    payer,
-    did: request.identifier,
-  });
+  const didSolIdentifier = DidSolIdentifier.parse(request.identifier);
+  const service = await DidSolService.build(didSolIdentifier);
+
+  const payerKeypair = makeKeypair(payer);
+  const authorityKeypair = owner ? makeKeypair(owner) : payerKeypair;
+
+  await service.close(payerKeypair.publicKey, authorityKeypair.publicKey)
+    .withPartialSigners(authorityKeypair)
+    .rpc();
 
   return {
     didState: {

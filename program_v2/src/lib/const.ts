@@ -4,7 +4,7 @@ import { DidAccountSizeHelper } from '../DidAccountSizeHelper';
 export const W3ID_CONTEXT = 'https://w3id.org/did/v1.0';
 export const getSolContextPrefix = (version: string) =>
   `https://w3id.org/sol/v${version}`;
-export const DID_SOL_PREFIX = 'did:sol:';
+export const DID_SOL_PREFIX = 'did:sol';
 export const DEFAULT_KEY_ID = 'default';
 
 // export const INITIAL_MIN_ACCOUNT_SIZE = 8 + 50 + 26; // anchor + initial_vm + rest

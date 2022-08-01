@@ -81,7 +81,7 @@ export class DidSolIdentifier {
   toString(): string {
     const urlField =
       !this.urlField || this.urlField === '' ? '' : `#${this.urlField}`; // TODO add support for / urls
-    return `${DID_SOL_PREFIX}${
+    return `${DID_SOL_PREFIX}:${
       this.clusterString
     }${this.authority.toBase58()}${urlField}`;
   }

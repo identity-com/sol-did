@@ -25,13 +25,13 @@
   "assertionMethod": [],
   "keyAgreement": [],
   "capabilityInvocation": [
-    "#default",
-    "#ledger"
+    "did:sol:localnet:LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a#default",
+    "did:sol:localnet:LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a#ledger"
   ],
   "capabilityDelegation": [],
   "service": [
     {
-      "id": "#test784378",
+      "id": "did:sol:localnet:LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a#test784378",
       "type": "testType784378",
       "serviceEndpoint": "testEndpoint784378"
     }

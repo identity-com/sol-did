@@ -66,7 +66,7 @@ export class DidSolDocument implements DIDDocument {
       mapVerificationMethodsToDidComponents(allVerificationMethods, identifier)
     );
     // Services
-    doc.service = mapServices(account.services);
+    doc.service = mapServices(account.services, identifier);
     // Controllers
     doc.controller = mapControllers(
       account.nativeControllers,

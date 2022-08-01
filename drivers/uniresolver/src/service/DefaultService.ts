@@ -4,6 +4,8 @@ import { DIDDocument, VerificationMethod } from 'did-resolver';
 import * as DID from '@identity.com/sol-did-client-legacy';
 import { deactivate } from './Deactivator';
 import { update } from './Updater';
+import { CustomClusterUrlConfig, DidSolIdentifier, DidSolService } from "@identity.com/sol-did-client";
+import { getConfig } from "../config/config";
 
 type ResolutionResult = {
   didDocument: DIDDocument;
@@ -121,7 +123,17 @@ export const resolveDID = async (
   identifier: string,
   _accept: string
 ): Promise<ResponseContent<ResolutionResult>> => {
-  const didDocument = await DID.resolve(identifier);
+  console.log(`Resolving ${identifier}`);
+
+  const config = await getConfig();
+  let clusterConfig: CustomClusterUrlConfig | undefined;
+  if (config) {
+    clusterConfig = config.solanaRpcNodes;
+  }
+
+  const didSolIdentifier = DidSolIdentifier.parse(identifier);
+  const service = await DidSolService.build(didSolIdentifier, clusterConfig);
+  const didDocument = await service.resolve();
 
   if (didDocument) {
     const result: ResolutionResult = {
