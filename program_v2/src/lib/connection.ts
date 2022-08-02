@@ -49,8 +49,7 @@ export const getConnectionByCluster = (
   const clusterUrl = getClusterUrl(cluster, customConfig);
   console.log(`Using clusterUrl ${clusterUrl}`);
   return getConnection(clusterUrl, preflightCommitment);
-}
-
+};
 
 export const getConnection = (
   clusterUrl: string,
