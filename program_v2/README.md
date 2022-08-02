@@ -56,7 +56,7 @@ $ npm install -g @identity.com/sol-did-client
 $ sol COMMAND
 running command...
 $ sol (--version)
-@identity.com/sol-did-client/3.0.0-beta8 darwin-arm64 node-v16.13.0
+@identity.com/sol-did-client/3.0.0-beta9 darwin-arm64 node-v16.13.0
 $ sol --help [COMMAND]
 USAGE
   $ sol COMMAND

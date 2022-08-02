@@ -1335,10 +1335,10 @@
     did-resolver "^3.0.1"
     ramda "^0.27.1"
 
-"@identity.com/sol-did-client@^3.0.0-beta8":
-  version "3.0.0-beta8"
-  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-client/-/sol-did-client-3.0.0-beta8.tgz#00dc7432eac3d3263692182bd10008419d74b34b"
-  integrity sha512-a3f+LKNsePFI/sCPvntBHJwFVHSK7xP1SobGGJRfdrLR4UifDuPu4vTfPn3QSVMZKkbDtG4Mg1SunalEV5NUXA==
+"@identity.com/sol-did-client@^3.0.0-beta9":
+  version "3.0.0-beta9"
+  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-client/-/sol-did-client-3.0.0-beta9.tgz#0f0463c262b1633279e08fb6eb4ef22ecbe65503"
+  integrity sha512-Qo28XrvHf2TY0Kn5Jsp8DLwGxDFtDLBN6ke7tHwENZtWGNRdT+fS74G4mnMixyJO+NQkq6Ve/YkRIH/UUo1Lkg==
   dependencies:
     "@identity.com/sol-did-client-legacy" "^2.0.3"
     "@oclif/core" "^1.12.1"
