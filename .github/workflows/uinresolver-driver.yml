@@ -13,6 +13,8 @@ jobs:
       matrix:
         node: ['16.x']
         os: [ubuntu-latest]
+        rust: ['nightly-2022-05-18']
+        solana: ['v1.10.29']
 
     defaults:
       run:
@@ -26,6 +28,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
+
+      - name: Install Solana
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/${{ matrix.solana }}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
       - name: Install
         run: yarn install
