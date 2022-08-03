@@ -1,7 +1,6 @@
 import { register } from './Registrar';
 import { ResponseContent } from '../utils/writer';
 import { DIDDocument, VerificationMethod } from 'did-resolver';
-import * as DID from '@identity.com/sol-did-client-legacy';
 import { deactivate } from './Deactivator';
 import { update } from './Updater';
 import {
@@ -33,14 +32,10 @@ export type DeactivateRequest = {
   secret: DeactivateSecrets;
 };
 
-export type UpdateOptions = {
-  mergeBehaviour?: DID.MergeBehaviour;
-};
 export type UpdateSecrets = RegisterSecrets & { owner?: string };
 export type UpdateRequest = {
   identifier: string;
   jobId?: string;
-  options?: UpdateOptions;
   secret: UpdateSecrets;
   didDocument: DIDDocument;
 };

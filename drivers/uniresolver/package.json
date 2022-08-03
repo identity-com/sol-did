@@ -35,6 +35,7 @@
   "author": "dankelleher",
   "module": "dist/sol-driver.esm.js",
   "devDependencies": {
+    "@types/bs58": "^4.0.1",
     "@types/cors": "^2.8.10",
     "ts-node-dev": "^1.1.1",
     "tsdx": "^0.14.1",
