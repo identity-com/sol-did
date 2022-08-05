@@ -544,6 +544,19 @@ export class DidSolService {
   }
 
   /**
+   * Updates a DID with contents of document.
+   * @param document A DID Document of the DID to update
+   * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
+   */
+  updateFromDoc(
+    document: DIDDocument,
+    authority: PublicKey = this._didAuthority
+  ): DidSolServiceBuilder {
+    const updateArgs = DidSolDocument.docToUpdateArgs(document);
+    return this.update(updateArgs, authority);
+  }
+
+  /**
    * Updates several properties of a service.
    * @param updateArgs A subset of DID properties to update
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner

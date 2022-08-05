@@ -1,6 +1,6 @@
 import { DIDDocument, VerificationMethod, ServiceEndpoint } from 'did-resolver';
 import { getSolContextPrefix, W3ID_CONTEXT, SOLANA_MAINNET } from './lib/const';
-import { DidDataAccount } from './lib/types';
+import { DidDataAccount, DidSolUpdateArgs, Service } from './lib/types';
 import { PublicKey } from '@solana/web3.js';
 import { DidSolIdentifier } from './DidSolIdentifier';
 import {
@@ -75,4 +75,55 @@ export class DidSolDocument implements DIDDocument {
     );
     return doc;
   }
+
+  static docToUpdateArgs(document: DIDDocument): DidSolUpdateArgs {
+    const args: DidSolUpdateArgs = {
+      controllerDIDs: [],
+      verificationMethods: [],
+      services: [],
+    };
+
+    const didSolIdentifier = DidSolIdentifier.parse(document.id);
+    // TODO: Make sure it matches the given path.
+
+    // Controllers
+    if (document.controller) {
+      if (Array.isArray(document.controller)) {
+        args.controllerDIDs = document.controller;
+      } else {
+        args.controllerDIDs = [document.controller];
+      }
+    }
+
+    // Services
+    if (document.service) {
+      document.service.map((service): Service => {
+        return {
+          fragment: didSolIdentifier.parseFragmentFromId(service.id),
+          serviceType: service.type,
+          serviceEndpoint: service.serviceEndpoint,
+        };
+      });
+    }
+
+    // TODO implement
+    // if (document.controller) {
+    //   args.nativeControllers = document.controller instanceof Array
+    //     ? document.controller
+    //     : [document.controller];
+    // }
+    // if (document.verificationMethod) {
+    //   args.verificationMethods = document.verificationMethod instanceof Array
+    //     ? document.verificationMethod
+    //     : [document.verificationMethod];
+    // }
+    // if (document.service) {
+    //   args.services = document.service instanceof Array
+    //     ? document.service
+    //     : [document.service];
+    // }
+    return args;
+  }
+
+
 }

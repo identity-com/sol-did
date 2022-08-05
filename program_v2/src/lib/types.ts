@@ -72,7 +72,7 @@ export enum VerificationMethodType {
 export type DecentralizedIdentifierConstructor = {
   clusterType: ExtendedCluster | undefined;
   authority: PublicKey;
-  urlField?: string;
+  fragment?: string;
 };
 
 export type DidVerificationMethodComponents = {

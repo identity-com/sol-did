@@ -20,7 +20,7 @@ export class DidSolIdentifier {
   /**
    * The optional field following the DID address and `#`
    */
-  urlField?: string;
+  fragment?: string;
 
   /**
    * Creates a new `DecentralizedIdentifier` from its requisite parts.
@@ -32,7 +32,7 @@ export class DidSolIdentifier {
   constructor(constructor: DecentralizedIdentifierConstructor) {
     this.clusterType = constructor.clusterType;
     this.authority = constructor.authority;
-    this.urlField = constructor.urlField;
+    this.fragment = constructor.fragment;
   }
 
   /**
@@ -53,7 +53,7 @@ export class DidSolIdentifier {
     return new DidSolIdentifier({
       clusterType: this.clusterType,
       authority: this.authority,
-      urlField: this.urlField,
+      fragment: this.fragment,
     });
   }
 
@@ -64,7 +64,7 @@ export class DidSolIdentifier {
   withUrl(urlField: string): DidSolIdentifier {
     return new DidSolIdentifier({
       ...this,
-      urlField,
+      fragment: urlField,
     });
   }
 
@@ -78,14 +78,25 @@ export class DidSolIdentifier {
     return `${this.clusterType}:`;
   }
 
-  toString(): string {
-    const urlField =
-      !this.urlField || this.urlField === '' ? '' : `#${this.urlField}`; // TODO add support for / urls
+  toString(includeURL = true): string {
+    const path = ''; // TODO
+    const query = ''; // TODO
+    const fragment =
+      !this.fragment || this.fragment === '' ? '' : `#${this.fragment}`;
+
+    let urlExtension = '';
+    if (includeURL) {
+      urlExtension = `${path}${query}${fragment}`
+    }
     return `${DID_SOL_PREFIX}:${
       this.clusterString
-    }${this.authority.toBase58()}${urlField}`;
+    }${this.authority.toBase58()}${urlExtension}`;
   }
 
+  // Note fragment is always the last field in the URI.
+  // https://www.rfc-editor.org/rfc/rfc3986#section-3.5
+  // TODO: Note, this REGEX is not robust towards URI spec, specifically paths and queries.
+  // TODO add support for / urls and ? query params
   static REGEX = new RegExp(`^${DID_SOL_PREFIX}:?(\\w*):(\\w+)#?(\\w*)$`);
 
   /**
@@ -103,11 +114,25 @@ export class DidSolIdentifier {
       return new DidSolIdentifier({
         clusterType: mapMethodExtension(matches[1]),
         authority,
-        urlField: matches[3],
+        fragment: matches[3],
       });
     } else {
       throw new Error('Provided DID is not a string');
     }
+  }
+
+  parseFragmentFromId(id: string): string {
+    // fragment self-reference.
+    if (id.startsWith('#')) {
+      return id.replace('#', '');
+    }
+
+    const didIdentifierPrefix = this.toString(false) + '#';
+    if (id.startsWith(didIdentifierPrefix)) {
+      return id.replace(didIdentifierPrefix, '');
+    }
+
+    throw new Error(`${id} does not conform to the DID spec`);
   }
 
   /**
@@ -147,7 +172,7 @@ export class DidSolIdentifier {
     return new DidSolIdentifier({
       authority,
       clusterType,
-      urlField,
+      fragment: urlField,
     });
   }
 }
