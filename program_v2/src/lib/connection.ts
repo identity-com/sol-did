@@ -22,7 +22,9 @@ export type CustomClusterUrlConfig = {
   [cluster in ExtendedCluster]: string;
 };
 
-export const clusterFromString = (cluster: string): ExtendedCluster | undefined => {
+export const clusterFromString = (
+  cluster: string
+): ExtendedCluster | undefined => {
   switch (cluster) {
     case 'localnet':
       return 'localnet';
@@ -35,7 +37,7 @@ export const clusterFromString = (cluster: string): ExtendedCluster | undefined 
     case 'mainnet-beta':
       return 'mainnet-beta';
   }
-}
+};
 
 export const getClusterUrl = (
   cluster: ExtendedCluster,

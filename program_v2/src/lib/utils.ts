@@ -6,6 +6,7 @@ import { utils as ethersUtils } from 'ethers';
 import { decode } from 'bs58';
 
 import {
+  Bytes,
   DidVerificationMethodComponents,
   EthSigner,
   PrivateKey,
@@ -23,8 +24,8 @@ import {
   VALID_DID_REGEX,
 } from './const';
 import {
-  VerificationMethod as DidVerificationMethod,
   ServiceEndpoint as DidService,
+  VerificationMethod as DidVerificationMethod,
 } from 'did-resolver';
 import { DidSolIdentifier } from '../DidSolIdentifier';
 import { ExtendedCluster } from './connection';
@@ -290,3 +291,24 @@ export const makeKeypair = (privateKey: PrivateKey): Keypair => {
  */
 export const getPublicKey = (privateKey: PrivateKey): PublicKey =>
   makeKeypair(privateKey).publicKey;
+
+export const getKeyDataFromVerificationMethod = (
+  vm: DidVerificationMethod
+): Bytes => {
+  switch (vm.type) {
+    case VerificationMethodType[
+      VerificationMethodType.Ed25519VerificationKey2018
+    ]:
+      return new PublicKey(vm.publicKeyBase58 as string).toBuffer();
+    case VerificationMethodType[
+      VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020
+    ]:
+      return Buffer.from(ethersUtils.arrayify(vm.ethereumAddress as string));
+    case VerificationMethodType[
+      VerificationMethodType.EcdsaSecp256k1VerificationKey2019
+    ]:
+      return Buffer.from(ethersUtils.arrayify(vm.publicKeyHex as string));
+    default:
+      throw new Error(`Verification method type '${vm.type}' not recognized`);
+  }
+};

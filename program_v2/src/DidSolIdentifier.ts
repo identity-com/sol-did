@@ -86,7 +86,7 @@ export class DidSolIdentifier {
 
     let urlExtension = '';
     if (includeURL) {
-      urlExtension = `${path}${query}${fragment}`
+      urlExtension = `${path}${query}${fragment}`;
     }
     return `${DID_SOL_PREFIX}:${
       this.clusterString

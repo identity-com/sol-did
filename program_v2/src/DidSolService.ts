@@ -35,7 +35,7 @@ import {
   VerificationMethodFlags,
   Wallet,
 } from './lib/types';
-import { INITIAL_MIN_ACCOUNT_SIZE } from './lib/const';
+import { DEFAULT_KEY_ID, INITIAL_MIN_ACCOUNT_SIZE } from './lib/const';
 import { DidSolDocument } from './DidSolDocument';
 import {
   CustomClusterUrlConfig,
@@ -545,14 +545,20 @@ export class DidSolService {
 
   /**
    * Updates a DID with contents of document.
-   * @param document A DID Document of the DID to update
+   * @param document A did:sol Document of the DID to update
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
   updateFromDoc(
-    document: DIDDocument,
+    document: DidSolDocument,
     authority: PublicKey = this._didAuthority
   ): DidSolServiceBuilder {
-    const updateArgs = DidSolDocument.docToUpdateArgs(document);
+    if (document.id !== this.did) {
+      throw new Error(
+        `DID ${document.id} in document does not match DID of Service ${this.did} `
+      );
+    }
+
+    const updateArgs = document.getDocUpdateArgs();
     return this.update(updateArgs, authority);
   }
 
@@ -587,8 +593,51 @@ export class DidSolService {
     return new DidSolServiceBuilder(this, {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
-      didAccountSizeDeltaCallback: () => 10_000, // TODO: Martin calculate size change
-      allowsDynamicAlloc: false,
+      didAccountSizeDeltaCallback: (didAccountBefore) => {
+        let add = 0;
+        add += updateControllers.nativeControllers.length * 32;
+        add += updateControllers.otherControllers.reduce(
+          (acc, c) => acc + 4 + getBinarySize(c),
+          0
+        );
+        // 'default' does not take up any space
+        add += updateArgs.verificationMethods
+          .filter((value) => value.fragment !== DEFAULT_KEY_ID)
+          .reduce(
+            (acc, method) =>
+              acc + DidAccountSizeHelper.getVerificationMethodSize(method),
+            0
+          );
+        add += updateArgs.services.reduce(
+          (acc, service) => acc + DidAccountSizeHelper.getServiceSize(service),
+          0
+        );
+
+        let remove = 0;
+        if (didAccountBefore) {
+          remove += didAccountBefore.nativeControllers.length * 32;
+          remove += didAccountBefore.otherControllers.reduce(
+            (acc, c) => acc + 4 + getBinarySize(c),
+            0
+          );
+          // 'default' does not take up any space
+          remove += updateArgs.verificationMethods
+            .filter((value) => value.fragment !== DEFAULT_KEY_ID)
+            .reduce(
+              (acc, method) =>
+                acc + DidAccountSizeHelper.getVerificationMethodSize(method),
+              0
+            );
+          remove += didAccountBefore.services.reduce(
+            (acc, service) =>
+              acc + DidAccountSizeHelper.getServiceSize(service),
+            0
+          );
+        }
+
+        return add - remove;
+      },
+      allowsDynamicAlloc: true,
       authority,
     });
   }
