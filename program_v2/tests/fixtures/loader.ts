@@ -35,7 +35,7 @@ export const getGeneratedDidDocument = (
   authentication: [],
   assertionMethod: [],
   keyAgreement: [],
-  capabilityInvocation: ['#default'],
+  capabilityInvocation: [`${didMethodPrefix}${didIdentifier}#default`],
   capabilityDelegation: [],
   service: [],
   id: `${didMethodPrefix}${didIdentifier}`,

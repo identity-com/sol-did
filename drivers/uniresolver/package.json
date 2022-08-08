@@ -12,13 +12,12 @@
     "sol": "sol"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=16"
   },
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
     "postbuild": "mkdir dist/api && cp src/api/openapi.yml dist/api/",
-    "pretest": "(cd ../../client && yarn && yarn build && yarn link) && yarn link @identity.com/sol-did-client-legacy",
     "test": "tsdx test",
     "lint": "tsdx lint --maxWarnings 0",
     "prepublishOnly": "yarn build",
@@ -36,6 +35,7 @@
   "author": "dankelleher",
   "module": "dist/sol-driver.esm.js",
   "devDependencies": {
+    "@types/bs58": "^4.0.1",
     "@types/cors": "^2.8.10",
     "ts-node-dev": "^1.1.1",
     "tsdx": "^0.14.1",
@@ -43,7 +43,7 @@
     "typescript": "^4.1.5"
   },
   "dependencies": {
-    "@identity.com/sol-did-client-legacy": "^2.0.3",
+    "@identity.com/sol-did-client": "3.0.0-beta11",
     "cors": "^2.8.5",
     "did-resolver": "^3.0.1",
     "oas3-tools": "^2.2.3"

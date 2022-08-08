@@ -35,7 +35,7 @@ import {
   VerificationMethodFlags,
   Wallet,
 } from './lib/types';
-import { INITIAL_MIN_ACCOUNT_SIZE } from './lib/const';
+import { DEFAULT_KEY_ID, INITIAL_MIN_ACCOUNT_SIZE } from './lib/const';
 import { DidSolDocument } from './DidSolDocument';
 import {
   CustomClusterUrlConfig,
@@ -64,9 +64,9 @@ export class DidSolService {
 
   static async build(
     identifier: DidSolIdentifier,
-    wallet: Wallet = new DummyWallet(),
-    opts: ConfirmOptions = AnchorProvider.defaultOptions(),
-    customConfig?: CustomClusterUrlConfig
+    customConfig?: CustomClusterUrlConfig,
+    wallet: Wallet = new NonSigningWallet(),
+    opts: ConfirmOptions = AnchorProvider.defaultOptions()
   ): Promise<DidSolService> {
     const _connection = getConnectionByCluster(
       identifier.clusterType,
@@ -119,7 +119,7 @@ export class DidSolService {
     private _didDataAccount: PublicKey,
     private _legacyDidDataAccount: PublicKey,
     private _cluster: ExtendedCluster = 'mainnet-beta',
-    private _wallet: Wallet = new DummyWallet(),
+    private _wallet: Wallet = new NonSigningWallet(),
     private _opts: ConfirmOptions = AnchorProvider.defaultOptions()
   ) {
     this._identifier = DidSolIdentifier.create(_didAuthority, _cluster);
@@ -544,6 +544,25 @@ export class DidSolService {
   }
 
   /**
+   * Updates a DID with contents of document.
+   * @param document A did:sol Document of the DID to update
+   * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
+   */
+  updateFromDoc(
+    document: DidSolDocument,
+    authority: PublicKey = this._didAuthority
+  ): DidSolServiceBuilder {
+    if (document.id !== this.did) {
+      throw new Error(
+        `DID ${document.id} in document does not match DID of Service ${this.did} `
+      );
+    }
+
+    const updateArgs = document.getDocUpdateArgs();
+    return this.update(updateArgs, authority);
+  }
+
+  /**
    * Updates several properties of a service.
    * @param updateArgs A subset of DID properties to update
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
@@ -574,8 +593,51 @@ export class DidSolService {
     return new DidSolServiceBuilder(this, {
       instructionPromise,
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
-      didAccountSizeDeltaCallback: () => 10_000, // TODO: Martin calculate size change
-      allowsDynamicAlloc: false,
+      didAccountSizeDeltaCallback: (didAccountBefore) => {
+        let add = 0;
+        add += updateControllers.nativeControllers.length * 32;
+        add += updateControllers.otherControllers.reduce(
+          (acc, c) => acc + 4 + getBinarySize(c),
+          0
+        );
+        // 'default' does not take up any space
+        add += updateArgs.verificationMethods
+          .filter((value) => value.fragment !== DEFAULT_KEY_ID)
+          .reduce(
+            (acc, method) =>
+              acc + DidAccountSizeHelper.getVerificationMethodSize(method),
+            0
+          );
+        add += updateArgs.services.reduce(
+          (acc, service) => acc + DidAccountSizeHelper.getServiceSize(service),
+          0
+        );
+
+        let remove = 0;
+        if (didAccountBefore) {
+          remove += didAccountBefore.nativeControllers.length * 32;
+          remove += didAccountBefore.otherControllers.reduce(
+            (acc, c) => acc + 4 + getBinarySize(c),
+            0
+          );
+          // 'default' does not take up any space
+          remove += updateArgs.verificationMethods
+            .filter((value) => value.fragment !== DEFAULT_KEY_ID)
+            .reduce(
+              (acc, method) =>
+                acc + DidAccountSizeHelper.getVerificationMethodSize(method),
+              0
+            );
+          remove += didAccountBefore.services.reduce(
+            (acc, service) =>
+              acc + DidAccountSizeHelper.getServiceSize(service),
+            0
+          );
+        }
+
+        return add - remove;
+      },
+      allowsDynamicAlloc: true,
       authority,
     });
   }
@@ -693,7 +755,7 @@ export type BuilderInstruction = {
   authority: PublicKey;
 };
 
-class DummyWallet implements Wallet {
+class NonSigningWallet implements Wallet {
   publicKey: PublicKey;
 
   constructor() {
@@ -701,11 +763,11 @@ class DummyWallet implements Wallet {
   }
 
   signAllTransactions(txs: Transaction[]): Promise<Transaction[]> {
-    return Promise.reject('DummyWallet does not support signing transactions');
+    return Promise.resolve(txs);
   }
 
   signTransaction(tx: Transaction): Promise<Transaction> {
-    return Promise.reject('DummyWallet does not support signing transactions');
+    return Promise.resolve(tx);
   }
 }
 

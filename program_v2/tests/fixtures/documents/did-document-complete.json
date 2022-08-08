@@ -32,14 +32,14 @@
   "assertionMethod": [],
   "keyAgreement": [],
   "capabilityInvocation": [
-    "#default",
-    "#eth-address",
-    "#eth-key"
+    "did:sol:localnet:A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3#default",
+    "did:sol:localnet:A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3#eth-address",
+    "did:sol:localnet:A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3#eth-key"
   ],
   "capabilityDelegation": [],
   "service": [
     {
-      "id": "#test871438247",
+      "id": "did:sol:localnet:A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3#test871438247",
       "type": "testType871438247",
       "serviceEndpoint": "testEndpoint871438247"
     }

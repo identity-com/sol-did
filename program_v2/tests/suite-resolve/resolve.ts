@@ -7,6 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 
 import { before } from 'mocha';
 import {
+  DidSolDocument,
   DidSolIdentifier,
   DidSolService,
   VerificationMethod,
@@ -452,5 +453,22 @@ describe('sol-did resolve and migrate operations', () => {
     ).to.be.rejectedWith(
       'Error Code: VmOwnershipOnAdd. Error Number: 6002. Error Message: Cannot add a verification method with OwnershipProof flag.'
     );
+  });
+
+  it('can update a did:sol with a DID Document', async () => {
+    // close and update the legacy account
+    await legacyDidService.close(legacyAuthority.publicKey).rpc();
+    expect(await legacyDidService.getDidAccount()).to.be.null;
+
+    const document = DidSolDocument.fromDoc(migratedLegacyDidDocComplete);
+    // recreate legacyDidService with update
+    await legacyDidService
+      .updateFromDoc(document)
+      .withAutomaticAlloc(legacyAuthority.publicKey)
+      .rpc();
+
+    // check migration
+    const didDoc = await legacyDidService.resolve();
+    expect(didDoc).to.deep.equal(migratedLegacyDidDocComplete);
   });
 });

@@ -3,6 +3,8 @@ import { PublicKey, Transaction } from '@solana/web3.js';
 import { VerificationMethod as DidVerificationMethod } from 'did-resolver';
 import { ExtendedCluster } from './connection';
 
+export type PrivateKey = number[] | string | Buffer | Uint8Array;
+
 export type Bytes = ArrayLike<number>;
 export type EthSigner = {
   publicKey: string;
@@ -70,7 +72,7 @@ export enum VerificationMethodType {
 export type DecentralizedIdentifierConstructor = {
   clusterType: ExtendedCluster | undefined;
   authority: PublicKey;
-  urlField?: string;
+  fragment?: string;
 };
 
 export type DidVerificationMethodComponents = {
