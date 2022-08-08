@@ -1335,7 +1335,7 @@
     did-resolver "^3.0.1"
     ramda "^0.27.1"
 
-"@identity.com/sol-did-client@^3.0.0-beta9":
+"@identity.com/sol-did-client@^3.0.0-beta11":
   version "3.0.0-beta9"
   resolved "https://registry.yarnpkg.com/@identity.com/sol-did-client/-/sol-did-client-3.0.0-beta9.tgz#0f0463c262b1633279e08fb6eb4ef22ecbe65503"
   integrity sha512-Qo28XrvHf2TY0Kn5Jsp8DLwGxDFtDLBN6ke7tHwENZtWGNRdT+fS74G4mnMixyJO+NQkq6Ve/YkRIH/UUo1Lkg==

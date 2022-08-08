@@ -1,43 +1,61 @@
-import { RegisterRequest, RegisterState, RegisterStateKey } from './DefaultService';
 import {
-  // clusterFromString,
+  RegisterRequest,
+  RegisterState,
+  RegisterStateKey,
+} from './DefaultService';
+import {
+  clusterFromString,
+  CustomClusterUrlConfig,
+  DidSolDocument,
   DidSolIdentifier,
   DidSolService,
-  makeKeypair
-} from "@identity.com/sol-did-client";
+  makeKeypair,
+} from '@identity.com/sol-did-client';
 import { Keypair } from '@solana/web3.js';
 import { encode } from 'bs58';
+import { getConfig } from '../config/config';
 
 export const register = async (
   request: RegisterRequest
 ): Promise<RegisterState> => {
-
   const payer = request.secret?.payer || process.env.PAYER;
   if (!payer)
     throw new Error('Missing payer information- add a request secret');
 
   const payerKeypair = makeKeypair(payer);
-  const ownerKeypair = request.options?.owner ? makeKeypair(request.options.owner) : Keypair.generate();
+  const ownerKeypair = request.options?.owner
+    ? makeKeypair(request.options.owner)
+    : Keypair.generate();
 
-  // TODO
-  const cluster = 'mainnet-beta';
-  // const cluster = clusterFromString(request.options?.cluster) || 'mainnet-beta';
+  const cluster = clusterFromString(request.options?.cluster) || 'mainnet-beta';
   const didSolIdentifier = DidSolIdentifier.create(
     ownerKeypair.publicKey,
     cluster
   );
 
-  const service = await DidSolService.build(didSolIdentifier);
-  await service.initialize().withPartialSigners(payerKeypair).rpc();
+  const config = await getConfig();
+  let clusterConfig: CustomClusterUrlConfig | undefined;
+  if (config) {
+    clusterConfig = config.solanaRpcNodes;
+  }
 
-  // update state to request.didDocument TODO
-  // await service.update(request.didDocument).withPartialSigners(payerKeypair).rpc();
+  const service = await DidSolService.build(didSolIdentifier, clusterConfig);
+  const doc = await DidSolDocument.fromDoc(request.didDocument);
+  await service
+    .updateFromDoc(doc)
+    .withAutomaticAlloc(payerKeypair.publicKey)
+    .withPartialSigners(payerKeypair)
+    .rpc();
 
   const document = await service.resolve();
 
   // DIDs will always have a default verificationMethod.
-  const key: RegisterStateKey = document.verificationMethod?.find(vm => vm.publicKeyBase58 === ownerKeypair.publicKey.toBase58()) || {};
-  if (!request.options?.owner) key.privateKeyBase58 = encode(ownerKeypair.secretKey);
+  const key: RegisterStateKey =
+    document.verificationMethod?.find(
+      vm => vm.publicKeyBase58 === ownerKeypair.publicKey.toBase58()
+    ) || {};
+  if (!request.options?.owner)
+    key.privateKeyBase58 = encode(ownerKeypair.secretKey);
 
   return {
     didState: {

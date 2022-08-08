@@ -379,5 +379,3 @@ Also, install Anchor by using the information found [here](https://book.anchor-l
 ```shell
 anchor test
 ```
-
-

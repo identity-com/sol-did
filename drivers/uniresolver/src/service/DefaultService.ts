@@ -122,8 +122,6 @@ export const resolveDID = async (
   identifier: string,
   _accept: string
 ): Promise<ResponseContent<ResolutionResult>> => {
-  console.log(`Resolving ${identifier}`);
-
   const config = await getConfig();
   let clusterConfig: CustomClusterUrlConfig | undefined;
   if (config) {

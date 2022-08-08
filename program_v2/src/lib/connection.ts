@@ -22,8 +22,12 @@ export type CustomClusterUrlConfig = {
   [cluster in ExtendedCluster]: string;
 };
 
+/**
+ * Try to map a generic (optional) string to a ExtendedCluster string
+ * @param cluster optional cluster string
+ */
 export const clusterFromString = (
-  cluster: string
+  cluster: string | undefined
 ): ExtendedCluster | undefined => {
   switch (cluster) {
     case 'localnet':
