@@ -312,6 +312,59 @@ which are not allowed to be specified within the bulk update.
 ```
 Note, that the `default` Verification Method can never be removed. Therefore not setting it within the update Method will cause all flags to be removed from it.
 
+### Update all properties of a DID with a DID Document
+This operation allows for bulk updates of all changeable properties of a DID by passing an existing DidSolDocument.
+Please note, that this is a more destructive operation and should be handled with care. Furthermore, by overwriting all Verification Methods it removes ANY existing `VerificationMethodFlags.OwnershipProof`,
+which are not allowed to be specified within the bulk update.
+
+```ts
+    const document = DidSolDocument.fromDoc(
+      {
+        "@context": [
+          "https://w3id.org/did/v1.0",
+          "https://w3id.org/sol/v2.0"
+        ],
+        "id": "did:sol:localnet:LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a",
+        "controller": [
+          "did:sol:localnet:A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3"
+        ],
+        "verificationMethod": [
+          {
+            "id": "did:sol:localnet:LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a#default",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:sol:localnet:LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a",
+            "publicKeyBase58": "LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a"
+          },
+          {
+            "id": "did:sol:localnet:LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a#ledger",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:sol:localnet:LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a",
+            "publicKeyBase58": "A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3"
+          }
+        ],
+        "authentication": [],
+        "assertionMethod": [],
+        "keyAgreement": [],
+        "capabilityInvocation": [
+          "did:sol:localnet:LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a#default",
+          "did:sol:localnet:LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a#ledger"
+        ],
+        "capabilityDelegation": [],
+        "service": [
+          {
+            "id": "did:sol:localnet:LEGVfbHQ8VNuquHgWhHwZMKW4GMFemQWD13Vf3hY71a#test784378",
+            "type": "testType784378",
+            "serviceEndpoint": "testEndpoint784378"
+          }
+        ]
+      });
+
+    await service
+      .updateFromDoc(document)
+      .withAutomaticAlloc(legacyAuthority.publicKey)
+      .rpc();
+```
+
 ### Close a DID Account
 This transaction closes a DID account. With that, it implicitly reverts to its generative state.
 
