@@ -1,3 +1,5 @@
+extern crate core;
+
 mod constants;
 mod errors;
 mod instructions;
@@ -6,7 +8,7 @@ mod security_txt;
 mod state;
 mod utils;
 
-use crate::state::DidAccount;
+use crate::{errors::DidSolError, state::DidAccount};
 use anchor_lang::prelude::*;
 use instructions::*;
 use state::{Secp256k1RawSignature, Service, VerificationMethod};
@@ -94,15 +96,56 @@ pub mod sol_did {
     }
 }
 
-pub fn is_authority(
-    did_account: &AccountInfo,
+/// Given a DidAccount, and a list of controlling did accountInfos,
+/// Parse the controlling did accountInfos into DidAccounts,
+/// and validate that the controller chain is correct
+fn valid_controller_chain<'a, 'b: 'a>(
+    did_data: &'a Account<DidAccount>,
+    did_accounts: &'b [AccountInfo<'b>],
+) -> Result<Vec<Account<'b, DidAccount>>> {
+    let controller_chain: Vec<Account<DidAccount>> = did_accounts
+        .iter()
+        .map(|did_account| Account::try_from(did_account))
+        .collect::<Result<Vec<Account<DidAccount>>>>()?;
+
+    if !did_data.is_controlled_by(controller_chain.as_slice()) {
+        return Err(error!(DidSolError::InvalidControllerChain));
+    }
+
+    Ok(controller_chain)
+}
+
+fn last_in_valid_controller_chain<'a, 'b: 'a>(
+    did_data: &'a Account<DidAccount>,
+    did_accounts: &'b [AccountInfo<'b>],
+) -> Result<Option<&'b Account<'b, DidAccount>>> {
+    valid_controller_chain(did_data, did_accounts).map(|chain| chain.last())
+}
+
+/// Will return if given solana public key, or ethereum address (as derived from an ethereum signature)
+/// is a valid authority (CAPABILITY_INVOCATION) on the given did_account.
+/// Authorities may be direct, or via a chain of controlling did accounts.
+/// In the latter case, the chain must be provided in the following order:
+/// did_account -> controlling_did_accounts[0] -> ... -> controlling_did_accounts[n] -> authority
+/// where '->' represents the relationship "is controlled by".
+pub fn is_authority<'a>(
+    did_account: &'a AccountInfo<'a>,
+    controlling_did_accounts: &'a [AccountInfo<'a>],
     sol_authority: &Pubkey,
     eth_message: &[u8],
     eth_raw_signature: Option<&Secp256k1RawSignature>,
     filter_fragment: Option<&String>,
 ) -> Result<bool> {
     let did_data: Account<DidAccount> = Account::try_from(did_account)?;
-    let authority_exists = did_data
+
+    // if a chain of controlling did accounts was provided,
+    // validate them by parsing and checking the controller relationship,
+    // and return the last one, which is the one the authority should be present on.
+    // if no chain was provided, the relationship is direct, so return did_data
+    let did_to_check_authority =
+        last_in_valid_controller_chain(&did_data, controlling_did_accounts)?.unwrap_or(&did_data);
+
+    let authority_exists = did_to_check_authority
         .find_authority(
             sol_authority,
             eth_message,
@@ -163,7 +206,8 @@ mod test {
             rent_epoch: 0,
         };
 
-        let should_be_true = is_authority(&account_info, &test_authority, &[], None, None).unwrap();
+        let should_be_true =
+            is_authority(&account_info, &[], &test_authority, &[], None, None).unwrap();
         assert!(should_be_true);
     }
 
@@ -189,7 +233,7 @@ mod test {
         };
 
         let should_be_false =
-            is_authority(&account_info, &some_other_authority, &[], None, None).unwrap();
+            is_authority(&account_info, &[], &some_other_authority, &[], None, None).unwrap();
         assert!(!should_be_false);
     }
 
@@ -224,7 +268,7 @@ mod test {
         };
 
         let should_be_true =
-            is_authority(&account_info, &some_other_authority, &[], None, None).unwrap();
+            is_authority(&account_info, &[], &some_other_authority, &[], None, None).unwrap();
         assert!(should_be_true);
     }
 
@@ -259,7 +303,7 @@ mod test {
         };
 
         let should_be_false =
-            is_authority(&account_info, &some_other_authority, &[], None, None).unwrap();
+            is_authority(&account_info, &[], &some_other_authority, &[], None, None).unwrap();
         assert!(!should_be_false);
     }
 }

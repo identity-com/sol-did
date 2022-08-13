@@ -38,6 +38,12 @@ impl DidAccount {
         self.initial_verification_method =
             VerificationMethod::default(flags, authority_key.to_bytes().to_vec());
     }
+
+    pub fn to_string(&self) -> String {
+        let base_58_authority_key = &self.native_controllers.first().unwrap().to_string();
+        format!("did:sol:{}", base_58_authority_key)
+    }
+
     /// Accessor for all verification methods (including the initial one)
     /// Enables to pass several filters that are ANDed together.
     fn verification_methods(
@@ -181,6 +187,26 @@ impl DidAccount {
         )
         .into_iter()
         .next()
+    }
+
+    /// Returns true if `other` is a valid controller of this DID
+    pub fn is_directly_controlled_by(&self, other: &DidAccount) -> bool {
+        other.other_controllers.contains(&self.to_string())
+    }
+
+    /// returns true if the controller chain is valid.
+    /// The chain must be provided in the following order:
+    /// this -> chain[0] -> ... -> chain[n]
+    /// where '->' represents the relationship "is controlled by".
+    /// NOTE: an empty chain returns `true`.
+    pub fn is_controlled_by(&self, chain: &[Account<DidAccount>]) -> bool {
+        match chain {
+            [head, tail @ ..] => match self.is_directly_controlled_by(head) {
+                true => head.is_controlled_by(&tail),
+                false => false,
+            },
+            _ => true,
+        }
     }
 
     pub fn find_eth_authority(

@@ -22,4 +22,6 @@ pub enum DidSolError {
     InsufficientInitialSize,
     #[msg("Could not convert between data types")]
     ConversionError,
+    #[msg("Invalid chain of controlling DidAccounts")]
+    InvalidControllerChain,
 }
