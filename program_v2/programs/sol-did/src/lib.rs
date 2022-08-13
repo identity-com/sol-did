@@ -112,7 +112,8 @@ pub fn is_authority(
 mod test {
     use std::cell::RefCell;
     use std::rc::Rc;
-    use crate::state::DidAccount;
+    use crate::constants::VM_DEFAULT_FRAGMENT_NAME;
+    use crate::state::{DidAccount, VerificationMethodFlags};
     use super::*;
 
     fn create_test_authority() -> Pubkey { Pubkey::new_unique() }
@@ -123,8 +124,8 @@ mod test {
             bump: 0,
             nonce: 0,
             initial_verification_method: VerificationMethod {
-                fragment: "".to_string(),
-                flags: 0,
+                fragment: VM_DEFAULT_FRAGMENT_NAME.to_string(),
+                flags: VerificationMethodFlags::CAPABILITY_INVOCATION.bits(),
                 method_type: 0,
                 key_data: test_authority.to_bytes().to_vec()
             },
@@ -139,7 +140,8 @@ mod test {
     fn test_is_authority() {
         let test_authority = create_test_authority();
         let test_did_account = create_test_did(test_authority);
-        let mut data: Vec<u8> = AnchorSerialize::try_to_vec(&test_did_account).unwrap();
+        let mut data: Vec<u8> = Vec::with_capacity(1024);
+        test_did_account.try_serialize(&mut data).unwrap();
 
         let mut lamports = 1; // must be > 0 to pass the Account::try_from
         let account_info = AccountInfo {
