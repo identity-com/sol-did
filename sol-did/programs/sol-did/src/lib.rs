@@ -96,31 +96,31 @@ pub mod sol_did {
     }
 }
 
-/// Given a DidAccount, and a list of controlling did accountInfos,
-/// Parse the controlling did accountInfos into DidAccounts,
-/// and validate that the controller chain is correct
-fn valid_controller_chain<'a, 'b: 'a>(
-    did_data: &'a Account<DidAccount>,
-    did_accounts: &'b [AccountInfo<'b>],
-) -> Result<Vec<Account<'b, DidAccount>>> {
-    let controller_chain: Vec<Account<DidAccount>> = did_accounts
-        .iter()
-        .map(|did_account| Account::try_from(did_account))
-        .collect::<Result<Vec<Account<DidAccount>>>>()?;
-
-    if !did_data.is_controlled_by(controller_chain.as_slice()) {
-        return Err(error!(DidSolError::InvalidControllerChain));
-    }
-
-    Ok(controller_chain)
-}
-
-fn last_in_valid_controller_chain<'a, 'b: 'a>(
-    did_data: &'a Account<DidAccount>,
-    did_accounts: &'b [AccountInfo<'b>],
-) -> Result<Option<&'b Account<'b, DidAccount>>> {
-    valid_controller_chain(did_data, did_accounts).map(|chain| chain.last())
-}
+// /// Given a DidAccount, and a list of controlling did accountInfos,
+// /// Parse the controlling did accountInfos into DidAccounts,
+// /// and validate that the controller chain is correct
+// fn valid_controller_chain<'a, 'b: 'a>(
+//     did_data: &'a Account<DidAccount>,
+//     did_accounts: &'b [AccountInfo<'b>],
+// ) -> Result<Vec<Account<'b, DidAccount>>> {
+//     let controller_chain: Vec<Account<DidAccount>> = did_accounts
+//         .iter()
+//         .map(|did_account| Account::try_from(did_account))
+//         .collect::<Result<Vec<Account<DidAccount>>>>()?;
+//
+//     if !did_data.is_controlled_by(controller_chain.as_slice()) {
+//         return Err(error!(DidSolError::InvalidControllerChain));
+//     }
+//
+//     Ok(controller_chain)
+// }
+//
+// fn last_in_valid_controller_chain<'a, 'b: 'a>(
+//     did_data: &'a Account<DidAccount>,
+//     did_accounts: &'b [AccountInfo<'b>],
+// ) -> Result<Option<&'b Account<'b, DidAccount>>> {
+//     valid_controller_chain(did_data, did_accounts).map(|chain| chain.last())
+// }
 
 /// Will return if given solana public key, or ethereum address (as derived from an ethereum signature)
 /// is a valid authority (CAPABILITY_INVOCATION) on the given did_account.
@@ -142,8 +142,22 @@ pub fn is_authority<'a>(
     // validate them by parsing and checking the controller relationship,
     // and return the last one, which is the one the authority should be present on.
     // if no chain was provided, the relationship is direct, so return did_data
+
+// WHAT I WANT
+    // let did_to_check_authority =
+    //     last_in_valid_controller_chain(&did_data, controlling_did_accounts)?.unwrap_or(&did_data);
+
+// WHAT I HAVE TO DO INSTEAD
+    let controller_chain: Vec<Account<DidAccount>> = controlling_did_accounts
+        .iter()
+        .map(|did_account| Account::try_from(did_account))
+        .collect::<Result<Vec<Account<DidAccount>>>>()?;
+
+    if !did_data.is_controlled_by(controller_chain.as_slice()) {
+        return Err(error!(DidSolError::InvalidControllerChain));
+    }
     let did_to_check_authority =
-        last_in_valid_controller_chain(&did_data, controlling_did_accounts)?.unwrap_or(&did_data);
+        controller_chain.last().unwrap_or(&did_data);
 
     let authority_exists = did_to_check_authority
         .find_authority(
