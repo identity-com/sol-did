@@ -137,6 +137,13 @@ pub fn is_authority<'a>(
     eth_raw_signature: Option<&Secp256k1RawSignature>,
     filter_fragment: Option<&String>,
 ) -> Result<bool> {
+    if did_account.owner == &System::id() && did_account.lamports() == 0 {
+        // the DID is a generative DID - the only authority is the key itself
+        // verify that the authority key derives the correct did account
+        let address = derive_did_account(sol_authority).0;
+        return Ok(*did_account.key == address);
+    }
+
     let did_data: Account<DidAccount> = Account::try_from(did_account)?;
 
     // if a chain of controlling did accounts was provided,
@@ -231,7 +238,7 @@ mod test {
 
         let mut lamports = 1; // must be > 0 to pass the Account::try_from
         let account_info = AccountInfo {
-            key: &Default::default(),
+            key: &derive_did_account(&test_authority).0,
             is_signer: false,
             is_writable: false,
             lamports: Rc::new(RefCell::new(&mut lamports)),
@@ -247,6 +254,51 @@ mod test {
     }
 
     #[test]
+    fn test_is_authority_handles_generative_dids() {
+        let test_authority = create_test_authority();
+
+        let mut data: Vec<u8> = Vec::with_capacity(0);
+        let mut lamports = 0; // empty account
+        let account_info = AccountInfo {
+            key: &derive_did_account(&test_authority).0,
+            is_signer: false,
+            is_writable: false,
+            lamports: Rc::new(RefCell::new(&mut lamports)),
+            data: Rc::new(RefCell::new(&mut data)),
+            owner: &System::id(),
+            executable: false,
+            rent_epoch: 0,
+        };
+
+        let should_be_true =
+            is_authority(&account_info, &[], &test_authority, &[], None, None).unwrap();
+        assert!(should_be_true);
+    }
+
+    #[test]
+    fn test_is_authority_fails_for_incorrectly_derived_generative_dids() {
+        let test_authority = create_test_authority();
+        let invalid_did_account_address = Pubkey::new_unique();
+
+        let mut data: Vec<u8> = Vec::with_capacity(0);
+        let mut lamports = 0; // empty account
+        let account_info = AccountInfo {
+            key: &invalid_did_account_address,
+            is_signer: false,
+            is_writable: false,
+            lamports: Rc::new(RefCell::new(&mut lamports)),
+            data: Rc::new(RefCell::new(&mut data)),
+            owner: &System::id(),
+            executable: false,
+            rent_epoch: 0,
+        };
+
+        let should_be_false =
+            is_authority(&account_info, &[], &test_authority, &[], None, None).unwrap();
+        assert!(!should_be_false);
+    }
+
+    #[test]
     fn test_is_authority_fails_if_key_is_not_on_did() {
         let test_authority = create_test_authority();
         let some_other_authority = create_test_authority();
@@ -257,7 +309,7 @@ mod test {
 
         let mut lamports = 1; // must be > 0 to pass the Account::try_from
         let account_info = AccountInfo {
-            key: &Default::default(),
+            key: &derive_did_account(&test_authority).0,
             is_signer: false,
             is_writable: false,
             lamports: Rc::new(RefCell::new(&mut lamports)),
@@ -292,7 +344,7 @@ mod test {
 
         let mut lamports = 1; // must be > 0 to pass the Account::try_from
         let account_info = AccountInfo {
-            key: &Default::default(),
+            key: &derive_did_account(&test_authority).0,
             is_signer: false,
             is_writable: false,
             lamports: Rc::new(RefCell::new(&mut lamports)),
@@ -327,7 +379,7 @@ mod test {
 
         let mut lamports = 1; // must be > 0 to pass the Account::try_from
         let account_info = AccountInfo {
-            key: &Default::default(),
+            key: &derive_did_account(&test_authority).0,
             is_signer: false,
             is_writable: false,
             lamports: Rc::new(RefCell::new(&mut lamports)),
