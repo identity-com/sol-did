@@ -4,6 +4,7 @@ use bitflags::bitflags;
 use itertools::Itertools;
 use num_derive::*;
 use num_traits::*;
+use std::fmt::{Display, Formatter};
 
 use crate::constants::VM_DEFAULT_FRAGMENT_NAME;
 use crate::utils::{check_other_controllers, convert_secp256k1pub_key_to_address};
@@ -29,6 +30,13 @@ pub struct DidAccount {
     pub other_controllers: Vec<String>,
 }
 
+impl Display for DidAccount {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let base_58_authority_key = &self.native_controllers.first().unwrap().to_string();
+        write!(f, "did:sol:{}", base_58_authority_key)
+    }
+}
+
 impl DidAccount {
     pub fn init(&mut self, bump: u8, authority_key: &Pubkey, flags: VerificationMethodFlags) {
         self.version = 0;
@@ -37,11 +45,6 @@ impl DidAccount {
 
         self.initial_verification_method =
             VerificationMethod::default(flags, authority_key.to_bytes().to_vec());
-    }
-
-    pub fn to_string(&self) -> String {
-        let base_58_authority_key = &self.native_controllers.first().unwrap().to_string();
-        format!("did:sol:{}", base_58_authority_key)
     }
 
     /// Accessor for all verification methods (including the initial one)
@@ -202,7 +205,7 @@ impl DidAccount {
     pub fn is_controlled_by(&self, chain: &[Account<DidAccount>]) -> bool {
         match chain {
             [head, tail @ ..] => match self.is_directly_controlled_by(head) {
-                true => head.is_controlled_by(&tail),
+                true => head.is_controlled_by(tail),
                 false => false,
             },
             _ => true,

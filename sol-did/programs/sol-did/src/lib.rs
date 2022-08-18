@@ -8,6 +8,7 @@ mod security_txt;
 mod state;
 mod utils;
 
+use crate::constants::DID_ACCOUNT_SEED;
 use crate::{errors::DidSolError, state::DidAccount};
 use anchor_lang::prelude::*;
 use instructions::*;
@@ -105,7 +106,7 @@ pub mod sol_did {
 // ) -> Result<Vec<Account<'b, DidAccount>>> {
 //     let controller_chain: Vec<Account<DidAccount>> = did_accounts
 //         .iter()
-//         .map(|did_account| Account::try_from(did_account))
+//         .map(Account::try_from)
 //         .collect::<Result<Vec<Account<DidAccount>>>>()?;
 //
 //     if !did_data.is_controlled_by(controller_chain.as_slice()) {
@@ -143,21 +144,20 @@ pub fn is_authority<'a>(
     // and return the last one, which is the one the authority should be present on.
     // if no chain was provided, the relationship is direct, so return did_data
 
-// WHAT I WANT
+    // WHAT I WANT
     // let did_to_check_authority =
     //     last_in_valid_controller_chain(&did_data, controlling_did_accounts)?.unwrap_or(&did_data);
 
-// WHAT I HAVE TO DO INSTEAD
+    // WHAT I HAVE TO DO INSTEAD
     let controller_chain: Vec<Account<DidAccount>> = controlling_did_accounts
         .iter()
-        .map(|did_account| Account::try_from(did_account))
+        .map(Account::try_from)
         .collect::<Result<Vec<Account<DidAccount>>>>()?;
 
     if !did_data.is_controlled_by(controller_chain.as_slice()) {
         return Err(error!(DidSolError::InvalidControllerChain));
     }
-    let did_to_check_authority =
-        controller_chain.last().unwrap_or(&did_data);
+    let did_to_check_authority = controller_chain.last().unwrap_or(&did_data);
 
     let authority_exists = did_to_check_authority
         .find_authority(
@@ -171,6 +171,13 @@ pub fn is_authority<'a>(
     Ok(authority_exists)
 }
 
+pub fn derive_did_account(authority: &Pubkey) -> (Pubkey, u8) {
+    Pubkey::find_program_address(
+        &[DID_ACCOUNT_SEED.as_bytes(), authority.key().as_ref()],
+        &id(),
+    )
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -178,6 +185,7 @@ mod test {
     use crate::state::{DidAccount, VerificationMethodFlags};
     use std::cell::RefCell;
     use std::rc::Rc;
+    use std::str::FromStr;
 
     fn create_test_authority() -> Pubkey {
         Pubkey::new_unique()
@@ -199,6 +207,19 @@ mod test {
             native_controllers: vec![],
             other_controllers: vec![],
         }
+    }
+
+    #[test]
+    fn test_derive_did_account() {
+        let authority = Pubkey::from_str("6TE7bGggnzahkE7Snfyi8M4LuB3D4YV8CjoBJxn8UDsY").unwrap();
+        let expected_did_account =
+            Pubkey::from_str("3spWJgYRKqrZnBkgv6dwjohKG5x3ZBEdxoLxuC2LfwD2").unwrap();
+        let expected_bump = 255;
+
+        let (did_account_pubkey, bump) = derive_did_account(&authority);
+
+        assert_eq!(did_account_pubkey, expected_did_account);
+        assert_eq!(bump, expected_bump);
     }
 
     #[test]
