@@ -138,9 +138,12 @@ pub fn is_authority<'a>(
     filter_fragment: Option<&String>,
 ) -> Result<bool> {
     if did_account.owner == &System::id() && did_account.lamports() == 0 {
+        msg!("Validating generative DID");
         // the DID is a generative DID - the only authority is the key itself
         // verify that the authority key derives the correct did account
         let address = derive_did_account(sol_authority).0;
+        msg!("Generative DID address for authority: {}", address);
+        msg!("DID account address: {}", did_account.key);
         return Ok(*did_account.key == address);
     }
 
