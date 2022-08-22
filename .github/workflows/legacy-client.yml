@@ -74,8 +74,8 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ./program/target
-          key: cargo-build-${{ hashFiles('program/Cargo.lock') }}
+            ./legacy/program/target
+          key: cargo-legacy-build-${{ hashFiles('legacy/program/Cargo.lock') }}
 
       - name: Cache Solana version
         uses: actions/cache@v2
@@ -93,7 +93,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build-bpf
-          args: --manifest-path program/Cargo.toml
+          args: --manifest-path ./legacy/program/Cargo.toml
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v1
