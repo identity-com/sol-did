@@ -1,4 +1,4 @@
-name: Program
+name: Legacy Program
 on:
   push:
     paths:
@@ -6,7 +6,7 @@ on:
   pull_request:
 jobs:
   program-lint:
-    name: Format and lint the sol on-chain program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
+    name: Format and lint the sol legacy on-chain program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -48,7 +48,7 @@ jobs:
           args: --manifest-path legacy/program/Cargo.toml --tests --features test-bpf --workspace --all-targets -- --deny=warnings
 
   program-unit-test:
-    name: Unit test program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
+    name: Unit test legacy program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -83,7 +83,7 @@ jobs:
           args: --manifest-path legacy/program/Cargo.toml
 
   program-build:
-    name: Build and test the sol on-chain program on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
+    name: Build and test the legacy sol on-chain program on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:

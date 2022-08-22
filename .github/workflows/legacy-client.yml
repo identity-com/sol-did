@@ -1,4 +1,4 @@
-name: Client
+name: Legacy-Client
 on:
   push:
     paths:
@@ -6,7 +6,7 @@ on:
   pull_request:
 jobs:
   build:
-    name: Build, lint, and test the did client on Node ${{ matrix.node }} and ${{ matrix.os }}
+    name: Build, lint, and test the legacy did client on Node ${{ matrix.node }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
