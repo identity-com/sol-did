@@ -922,18 +922,6 @@
     did-resolver "^3.0.1"
     ramda "^0.27.1"
 
-"@identity.com/sol-did-client@^1.0.0-beta":
-  version "1.0.0-beta"
-  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-client/-/sol-did-client-1.0.0-beta.tgz#0fa3f3328f813eeffd216c5588b660f2f47c108d"
-  integrity sha512-uzIo8B5ScUTnr4SAJrxruLb+yu8EtJUvNHaftYBfoJ5RYKZ0e+5kjpVuVlR66yoycOacjNF1o4c/MVzvGMG86g==
-  dependencies:
-    "@solana/web3.js" "^1.21.0"
-    bn.js "^4.12.0"
-    borsh "^0.3.1"
-    bs58 "^4.0.1"
-    did-resolver "^3.0.1"
-    ramda "^0.27.1"
-
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.1.0.tgz#fd3db1d59ecf7cf121e80650bb86712f9b55eced"
@@ -5024,9 +5012,9 @@ minimatch@3.0.4, minimatch@^3.0.4:
     brace-expansion "^1.1.7"
 
 minimist@^1.1.1, minimist@^1.2.0, minimist@^1.2.5:
-  version "1.2.5"
-  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.5.tgz#67d66014b66a6a8aaa0c083c5fd58df4e4e97602"
-  integrity sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.6.tgz#8637a5b759ea0d6e98702cfb3a9283323c93af44"
+  integrity sha512-Jsjnk4bw3YJqYzbdyBiNsPWHPfO++UGG749Cxs6peCu5Xg4nrena6OVxOYxrQTqww0Jmwt+Ref8rggumkTLz9Q==
 
 mixin-deep@^1.2.0:
   version "1.3.2"
