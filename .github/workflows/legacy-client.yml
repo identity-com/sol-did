@@ -2,7 +2,7 @@ name: Client
 on:
   push:
     paths:
-    - 'client/**'
+    - 'legacy/client/**'
   pull_request:
 jobs:
   build:
@@ -16,7 +16,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./client
+        working-directory: ./legacy/client
 
     steps:
       - name: Checkout repo
@@ -31,8 +31,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ./client/node_modules
-          key: yarn-client-${{ hashFiles('client/yarn.lock') }}
+            ./legacy/client/node_modules
+          key: yarn-legacy-client-${{ hashFiles('legacy/client/yarn.lock') }}
 
       - name: Install
         run: yarn install
@@ -104,13 +104,13 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ./client/node_modules
-          key: yarn-client-${{ hashFiles('client/yarn.lock') }}
+            ./legacy/client/node_modules
+          key: yarn-legacy-client-${{ hashFiles('./legacy/client/yarn.lock') }}
 
       - name: Install client dependencies
         run: yarn install
-        working-directory: client
+        working-directory: legacy/client
 
       - name: Test e2e
         run: yarn test-e2e
-        working-directory: client
+        working-directory: legacy/client

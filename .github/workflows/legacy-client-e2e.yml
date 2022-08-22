@@ -2,8 +2,8 @@ name: Client E2E
 on:
   push:
     paths:
-    - 'client/**'
-    - 'program/**'
+    - 'legacy/client/**'
+    - 'legacy/program/**'
   pull_request:
 jobs:
   E2E:
@@ -34,8 +34,8 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ./program/target
-          key: cargo-build-${{ hashFiles('program/Cargo.lock') }}
+            ./legacy/program/target
+          key: cargo-legacy-build-${{ hashFiles('legacy/program/Cargo.lock') }}
 
       - name: Cache Solana version
         uses: actions/cache@v2
@@ -53,7 +53,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build-bpf
-          args: --manifest-path program/Cargo.toml
+          args: --manifest-path legacy/program/Cargo.toml
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v1
@@ -64,13 +64,13 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ./client/node_modules
-          key: yarn-client-${{ hashFiles('client/yarn.lock') }}
+            ./legacy/client/node_modules
+          key: yarn-legacy-client-${{ hashFiles('legacy/client/yarn.lock') }}
 
       - name: Install client dependencies
         run: yarn install
-        working-directory: client
+        working-directory: legacy/client
 
       - name: Test e2e
         run: yarn test-e2e
-        working-directory: client
+        working-directory: legacy/client

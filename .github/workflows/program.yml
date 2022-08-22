@@ -1,8 +1,8 @@
-name: Program
+name: Program V2
 on:
   push:
     paths:
-    - 'program'
+    - 'sol-did'
   pull_request:
 jobs:
   program-lint:
@@ -30,7 +30,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --manifest-path program/Cargo.toml --all -- --check
+          args: --manifest-path sol-did/Cargo.toml --all -- --check
 
       - name: Cache dependencies
         uses: actions/cache@v2
@@ -38,14 +38,14 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ./program/target
-          key: cargo-clippy-${{ hashFiles('program/Cargo.lock') }}
+            ./sol-did/target
+          key: cargo-clippy-${{ hashFiles('sol-did/Cargo.lock') }}
 
       - name: Run Clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --manifest-path program/Cargo.toml --tests --features test-bpf --workspace --all-targets -- --deny=warnings
+          args: --manifest-path sol-did/Cargo.toml --tests --workspace --all-targets -- --deny=warnings
 
   program-unit-test:
     name: Unit test program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
@@ -73,21 +73,26 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ./program/target
-          key: cargo-test-${{ hashFiles('program/Cargo.lock') }}
+            ./sol-did/target
+          key: cargo-test-${{ hashFiles('sol-did/Cargo.lock') }}
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --manifest-path program/Cargo.toml
+          args: --manifest-path sol-did/Cargo.toml
 
-  program-build:
-    name: Build and test the sol on-chain program on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
+  anchor-e2e-test:
+    name: Build, Lint Client and test the sol on-chain program on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, node ${{ matrix.node }}, and ${{ matrix.os }}
+
+    defaults:
+      run:
+        working-directory: ./sol-did
 
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        node: [ '16.x' ]
         rust: ['nightly-2022-05-18']
         solana: ['v1.10.29']
         os: [ubuntu-latest]
@@ -109,8 +114,8 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ./program/target
-          key: cargo-build-${{ hashFiles('program/Cargo.lock') }}
+            ./sol-did/target
+          key: cargo-build-${{ hashFiles('sol-did/Cargo.lock') }}
 
       - name: Cache Solana version
         uses: actions/cache@v2
@@ -124,8 +129,25 @@ jobs:
           sh -c "$(curl -sSfL https://release.solana.com/${{ matrix.solana }}/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
-      - name: Build program and run integration tests
-        uses: actions-rs/cargo@v1
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v1
         with:
-          command: test-bpf
-          args: --manifest-path program/Cargo.toml
+          node-version: ${{ matrix.node }}
+
+      - name: Cache node dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ./sol-did/node_modules
+          key: yarn-client-${{ hashFiles('sol-did/yarn.lock') }}
+
+      - name: Install
+        run: yarn install --ignore-scripts --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Build program and run integration tests
+        run: |
+          yarn build
+          yarn anchor test

@@ -1,8 +1,8 @@
-name: Program V2
+name: Program
 on:
   push:
     paths:
-    - 'program_v2'
+    - 'legacy/program'
   pull_request:
 jobs:
   program-lint:
@@ -30,7 +30,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --manifest-path program_v2/Cargo.toml --all -- --check
+          args: --manifest-path legacy/program/Cargo.toml --all -- --check
 
       - name: Cache dependencies
         uses: actions/cache@v2
@@ -38,14 +38,14 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ./program_v2/target
-          key: cargo-clippy-${{ hashFiles('program_v2/Cargo.lock') }}
+            ./legacy/program/target
+          key: cargo-legacy-clippy-${{ hashFiles('legacy/program/Cargo.lock') }}
 
       - name: Run Clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --manifest-path program_v2/Cargo.toml --tests --workspace --all-targets -- --deny=warnings
+          args: --manifest-path legacy/program/Cargo.toml --tests --features test-bpf --workspace --all-targets -- --deny=warnings
 
   program-unit-test:
     name: Unit test program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
@@ -73,26 +73,21 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ./program_v2/target
-          key: cargo-test-${{ hashFiles('program_v2/Cargo.lock') }}
+            ./legacy/program/target
+          key: cargo-legacy-test-${{ hashFiles('legacy/program/Cargo.lock') }}
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --manifest-path program_v2/Cargo.toml
+          args: --manifest-path legacy/program/Cargo.toml
 
-  anchor-e2e-test:
-    name: Build, Lint Client and test the sol on-chain program on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, node ${{ matrix.node }}, and ${{ matrix.os }}
-
-    defaults:
-      run:
-        working-directory: ./program_v2
+  program-build:
+    name: Build and test the sol on-chain program on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node: [ '16.x' ]
         rust: ['nightly-2022-05-18']
         solana: ['v1.10.29']
         os: [ubuntu-latest]
@@ -114,8 +109,8 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ./program_v2/target
-          key: cargo-build-${{ hashFiles('program_v2/Cargo.lock') }}
+            ./legacy/program/target
+          key: cargo-legacy-build-${{ hashFiles('legacy/program/Cargo.lock') }}
 
       - name: Cache Solana version
         uses: actions/cache@v2
@@ -129,25 +124,8 @@ jobs:
           sh -c "$(curl -sSfL https://release.solana.com/${{ matrix.solana }}/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
-      - name: Use Node ${{ matrix.node }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node }}
-
-      - name: Cache node dependencies
-        uses: actions/cache@v2
-        with:
-          path: |
-            ./program_v2/node_modules
-          key: yarn-client-${{ hashFiles('program_v2/yarn.lock') }}
-
-      - name: Install
-        run: yarn install --ignore-scripts --frozen-lockfile
-
-      - name: Lint
-        run: yarn lint
-
       - name: Build program and run integration tests
-        run: |
-          yarn build
-          yarn anchor test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test-bpf
+          args: --manifest-path legacy/program/Cargo.toml
