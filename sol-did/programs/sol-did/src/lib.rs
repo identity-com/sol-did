@@ -5,7 +5,7 @@ mod errors;
 mod instructions;
 mod legacy;
 mod security_txt;
-mod state;
+pub mod state;
 mod utils;
 
 use crate::constants::DID_ACCOUNT_SEED;
