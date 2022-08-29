@@ -129,9 +129,9 @@ pub mod sol_did {
 /// In the latter case, the chain must be provided in the following order:
 /// did_account -> controlling_did_accounts[0] -> ... -> controlling_did_accounts[n] -> authority
 /// where '->' represents the relationship "is controlled by".
-pub fn is_authority<'a>(
-    did_account: &'a AccountInfo<'a>,
-    controlling_did_accounts: &'a [AccountInfo<'a>],
+pub fn is_authority(
+    did_account: &AccountInfo,
+    controlling_did_accounts: &[AccountInfo],
     sol_authority: &Pubkey,
     eth_message: &[u8],
     eth_raw_signature: Option<&Secp256k1RawSignature>,
@@ -167,16 +167,30 @@ pub fn is_authority<'a>(
     if !did_data.is_controlled_by(controller_chain.as_slice()) {
         return Err(error!(DidSolError::InvalidControllerChain));
     }
-    let did_to_check_authority = controller_chain.last().unwrap_or(&did_data);
-
-    let authority_exists = did_to_check_authority
-        .find_authority(
-            sol_authority,
-            eth_message,
-            eth_raw_signature,
-            filter_fragment,
-        )
-        .is_some();
+    // NOTE: This line links the lifetime of controller_chain and did_data (which we do not want)
+    // NOTE: The following code is a little more verbose to keep lifetimes separate.
+    // let did_to_check_authority = controller_chain.last().unwrap_or(&did_data);
+    let did_to_check_authority = controller_chain.last();
+    let authority_exists;
+    if let Some(did_to_check_authority) = did_to_check_authority {
+        authority_exists = did_to_check_authority
+            .find_authority(
+                sol_authority,
+                eth_message,
+                eth_raw_signature,
+                filter_fragment,
+            )
+            .is_some();
+    } else {
+        authority_exists = did_data
+            .find_authority(
+                sol_authority,
+                eth_message,
+                eth_raw_signature,
+                filter_fragment,
+            )
+            .is_some();
+    }
 
     Ok(authority_exists)
 }
