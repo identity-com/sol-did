@@ -22,10 +22,6 @@ wallet = "./tests/fixtures/keypairs/A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3
 #cluster = "mainnet"
 #wallet = "SET UPGRADE AUTHORITY WALLET PATH"
 
-[[test.validator.account]]
-address = "78CJ7rLRbMg1eLKudJqmQp1wzPu1NEo9qRJhMXQKoNe7"
-filename = "../fixtures/accounts/idl-account.json"
-
 [scripts]
 createTestFixtureAccount = "./node_modules/.bin/ts-node ./scripts/createTestFixtureAccount"
 clientDemo = "./node_modules/.bin/ts-node ./scripts/clientDemo"
