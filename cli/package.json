@@ -17,12 +17,14 @@
     "/oclif.manifest.json"
   ],
   "dependencies": {
+    "@identity.com/sol-did-client": "^3.0.0",
     "@oclif/core": "^1.13.10",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.0.1"
   },
   "devDependencies": {
     "@oclif/test": "^2",
+    "@solana/web3.js": "^1.56.2",
     "@types/chai": "^4",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.9.4",
