@@ -1,8 +1,12 @@
 name: Legacy-Client
-on: workflow_dispatch
+on:
+  push:
+    paths:
+      - 'cli/**'
+  pull_request:
 jobs:
   build:
-    name: Build, lint, and test the legacy did client on Node ${{ matrix.node }} and ${{ matrix.os }}
+    name: Build, lint, and test the CLI on Node ${{ matrix.node }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -12,7 +16,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./legacy/client
+        working-directory: ./cli
 
     steps:
       - name: Checkout repo
@@ -27,8 +31,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ./legacy/client/node_modules
-          key: yarn-legacy-client-${{ hashFiles('legacy/client/yarn.lock') }}
+            ./cli/node_modules
+          key: yarn-cli-${{ hashFiles('cli/yarn.lock') }}
 
       - name: Install
         run: yarn install
@@ -43,7 +47,7 @@ jobs:
         run: yarn build
 
   E2E:
-    name: Test the did client against the on-chain program on Solana ${{ matrix.solana }}, Node ${{ matrix.node }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
+    name: Test the sol:did cli against the on-chain program on Solana ${{ matrix.solana }}, Node ${{ matrix.node }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -51,7 +55,7 @@ jobs:
         node: ['16.x']
         os: [ubuntu-latest]
         solana: ['v1.10.29']
-        rust: ['nightly-2022-05-18']
+        rust: ['1.62.1']
 
     steps:
       - name: Checkout repo
@@ -70,8 +74,8 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ./legacy/program/target
-          key: cargo-legacy-build-${{ hashFiles('legacy/program/Cargo.lock') }}
+            ./sol-did/target
+          key: cargo-build-${{ hashFiles('sol-did/Cargo.lock') }}
 
       - name: Cache Solana version
         uses: actions/cache@v2
@@ -85,12 +89,6 @@ jobs:
           sh -c "$(curl -sSfL https://release.solana.com/${{ matrix.solana }}/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
-      - name: Build program
-        uses: actions-rs/cargo@v1
-        with:
-          command: build-bpf
-          args: --manifest-path ./legacy/program/Cargo.toml
-
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v1
         with:
@@ -100,13 +98,13 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ./legacy/client/node_modules
-          key: yarn-legacy-client-${{ hashFiles('./legacy/client/yarn.lock') }}
+            ./cli/node_modules
+          key: yarn-cli-${{ hashFiles('cli/yarn.lock') }}
 
-      - name: Install client dependencies
+      - name: Install cli dependencies
         run: yarn install
-        working-directory: legacy/client
+        working-directory: cli
 
       - name: Test e2e
         run: yarn test-e2e
-        working-directory: legacy/client
+        working-directory: cli
