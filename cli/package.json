@@ -1,6 +1,6 @@
 {
   "name": "@identity.com/sol-did-cli",
-  "version": "0.0.0",
+  "version": "1.0.0-beta1",
   "description": "sol is a CLI client for the did:sol method on Solana",
   "author": "Martin Riedel @rado0x54",
   "bin": {
