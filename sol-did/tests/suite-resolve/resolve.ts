@@ -164,7 +164,8 @@ describe('sol-did resolve and migrate operations', () => {
     expect(await service.isMigratable()).to.be.false;
 
     const solKey = web3.Keypair.generate();
-    const genDidService = await service.build(solKey.publicKey);
+    const identifier = DidSolIdentifier.create(solKey.publicKey, TEST_CLUSTER);
+    const genDidService = await service.build(identifier);
 
     return expect(
       genDidService

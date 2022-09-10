@@ -27,7 +27,7 @@ import {
 } from '@solana/web3.js';
 import { DIDDocument } from 'did-resolver';
 import {
-  DidDataAccount,
+  DidDataAccount, DidSolServiceOptions,
   DidSolUpdateArgs,
   EthSigner,
   Service,
@@ -38,7 +38,6 @@ import {
 import { DEFAULT_KEY_ID, INITIAL_MIN_ACCOUNT_SIZE } from './lib/const';
 import { DidSolDocument } from './DidSolDocument';
 import {
-  CustomClusterUrlConfig,
   ExtendedCluster,
   getConnectionByCluster,
 } from './lib/connection';
@@ -64,17 +63,17 @@ export class DidSolService {
 
   static async build(
     identifier: DidSolIdentifier,
-    customConfig?: CustomClusterUrlConfig,
-    wallet: Wallet = new NonSigningWallet(),
-    opts: ConfirmOptions = AnchorProvider.defaultOptions()
+    options: DidSolServiceOptions,
   ): Promise<DidSolService> {
-    const _connection = getConnectionByCluster(
+    const wallet = options.wallet || new NonSigningWallet();
+    const confirmOptions = options.confirmOptions || AnchorProvider.defaultOptions();
+    const connection = options.connection || getConnectionByCluster(
       identifier.clusterType,
-      opts.preflightCommitment,
-      customConfig
+      confirmOptions.preflightCommitment,
     );
+
     // Note, DidSolService never signs, so provider does not need a valid Wallet or confirmOptions.
-    const provider = new AnchorProvider(_connection, wallet, opts);
+    const provider = new AnchorProvider(connection, wallet, confirmOptions);
 
     const program = await fetchProgram(provider);
     const [didDataAccount] = await findProgramAddress(identifier.authority);
@@ -139,17 +138,22 @@ export class DidSolService {
 
   /**
    * Build a Service from an existing Service. Note, this will not allow to generate the service with a different cluster.
-   * @param didAuthority
+   * @param identifier
    * @param wallet
    * @param opts
    */
   async build(
-    didAuthority: PublicKey,
+    identifier: DidSolIdentifier,
     wallet?: Wallet,
     opts?: ConfirmOptions
   ): Promise<DidSolService> {
+    const didAuthority = identifier.authority;
     const [didDataAccount] = await findProgramAddress(didAuthority);
     const [legacyDidDataAccount] = await findLegacyProgramAddress(didAuthority);
+
+    if (this._cluster !== identifier.clusterType) {
+      throw new Error('Cannot build a service from an existing service with a different cluster');
+    }
 
     // reuse existing program
     return new DidSolService(

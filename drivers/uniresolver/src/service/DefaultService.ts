@@ -1,14 +1,9 @@
 import { register } from './Registrar';
-import { ResponseContent } from '../utils/writer';
+import { ResponseContent } from '../utils';
 import { DIDDocument, VerificationMethod } from 'did-resolver';
 import { deactivate } from './Deactivator';
 import { update } from './Updater';
-import {
-  CustomClusterUrlConfig,
-  DidSolIdentifier,
-  DidSolService,
-} from '@identity.com/sol-did-client';
-import { getConfig } from '../config/config';
+import { buildService } from "../utils";
 
 type ResolutionResult = {
   didDocument: DIDDocument;
@@ -122,14 +117,8 @@ export const resolveDID = async (
   identifier: string,
   _accept: string
 ): Promise<ResponseContent<ResolutionResult>> => {
-  const config = await getConfig();
-  let clusterConfig: CustomClusterUrlConfig | undefined;
-  if (config) {
-    clusterConfig = config.solanaRpcNodes;
-  }
 
-  const didSolIdentifier = DidSolIdentifier.parse(identifier);
-  const service = await DidSolService.build(didSolIdentifier, clusterConfig);
+  const service = await buildService(identifier);
   const didDocument = await service.resolve();
 
   if (didDocument) {

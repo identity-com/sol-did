@@ -1,5 +1,5 @@
 import { BN, web3 } from '@project-serum/anchor';
-import { PublicKey, Transaction } from '@solana/web3.js';
+import { ConfirmOptions, Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { VerificationMethod as DidVerificationMethod } from 'did-resolver';
 import { ExtendedCluster } from './connection';
 
@@ -90,4 +90,10 @@ export interface Wallet {
   signTransaction(tx: Transaction): Promise<Transaction>;
   signAllTransactions(txs: Transaction[]): Promise<Transaction[]>;
   publicKey: PublicKey;
+}
+
+export type DidSolServiceOptions = {
+  connection?: Connection;
+  wallet?: Wallet;
+  confirmOptions?: ConfirmOptions;
 }
