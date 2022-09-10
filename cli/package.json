@@ -19,12 +19,11 @@
   "dependencies": {
     "@identity.com/sol-did-client": "^3.0.0",
     "@oclif/core": "^1.13.10",
-    "@oclif/plugin-help": "^5",
-    "@oclif/plugin-plugins": "^2.0.1"
+    "@oclif/plugin-help": "^5"
   },
   "devDependencies": {
     "@oclif/test": "^2",
-    "@solana/web3.js": "^1.60.0",
+    "@solana/web3.js": "^1.59.1",
     "@types/chai": "^4",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.9.4",
@@ -41,17 +40,12 @@
   "oclif": {
     "bin": "sol",
     "dirname": "sol",
+    "default": "resolve",
     "commands": "./dist/commands",
     "plugins": [
-      "@oclif/plugin-help",
-      "@oclif/plugin-plugins"
+      "@oclif/plugin-help"
     ],
-    "topicSeparator": " ",
-    "topics": {
-      "hello": {
-        "description": "Say hello to the world and others"
-      }
-    }
+    "topicSeparator": " "
   },
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
@@ -63,7 +57,7 @@
     "start-validator": "solana-test-validator --bpf-program didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc ../sol-did/target/deploy/sol_did.so --account 78CJ7rLRbMg1eLKudJqmQp1wzPu1NEo9qRJhMXQKoNe7 ./tests/fixtures/accounts/idl-account.json --reset"
   },
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=16.0.0"
   },
   "bugs": "https://github.com/identity-com/sol-did/issues",
   "keywords": [

@@ -40,24 +40,6 @@ The `sol-did-client` library provides the following features:
 14. Account Size can grow beyond transaction size limits (an improvement from the legacy program).
 
 
-## Command line tool
-The client library comes with a command line tool `sol` that resolves and manipulate
-DIDs.
-
-### Installation
-```shell
-yarn global add @identity.com/sol-did-client # or npm install -g @identity.com/sol-did-client
-```
-### Usage
-
-#### Resolve a DID
-```shell
-sol did:sol:ygGfLvAyuRymPNv2fJDK1ZMpdy59m8cV5dak6A8uHKa # resolves a DID on mainnet-beta
-...
-sol did:sol:devnet:6fjuEFDTircJVNCQWYe4UHNfbYrU1a4sEr8FQ5w7d8Fx # resolves a DID on devnet
-````
-
-
 ## Client library
 ### Installation
 In TS/JS project:
