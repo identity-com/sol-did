@@ -11,7 +11,7 @@ import {
 } from '@identity.com/sol-did-client';
 import { Keypair } from '@solana/web3.js';
 import { encode } from 'bs58';
-import { buildService } from "../utils";
+import { buildService } from '../utils';
 
 export const register = async (
   request: RegisterRequest

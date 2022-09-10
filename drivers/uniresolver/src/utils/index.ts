@@ -1,14 +1,17 @@
-import { getConfig } from "../config/config";
+import { getConfig } from '../config/config';
 import {
   CustomClusterUrlConfig,
-  DidSolIdentifier, DidSolService,
+  DidSolIdentifier,
+  DidSolService,
   getConnectionByCluster,
-  SOLANA_COMMITMENT
-} from "@identity.com/sol-did-client";
+  SOLANA_COMMITMENT,
+} from '@identity.com/sol-did-client';
 
 export * from './writer';
 
-export const buildService =  async (identifier: string): Promise<DidSolService> => {
+export const buildService = async (
+  identifier: string
+): Promise<DidSolService> => {
   const config = await getConfig();
   let clusterConfig: CustomClusterUrlConfig | undefined;
   if (config) {
@@ -18,9 +21,13 @@ export const buildService =  async (identifier: string): Promise<DidSolService> 
   const didSolIdentifier = DidSolIdentifier.parse(identifier);
 
   // get connection from config
-  const connection = getConnectionByCluster(didSolIdentifier.clusterType, SOLANA_COMMITMENT, clusterConfig);
+  const connection = getConnectionByCluster(
+    didSolIdentifier.clusterType,
+    SOLANA_COMMITMENT,
+    clusterConfig
+  );
 
   return DidSolService.build(didSolIdentifier, {
     connection,
   });
-}
+};

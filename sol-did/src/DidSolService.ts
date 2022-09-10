@@ -27,7 +27,8 @@ import {
 } from '@solana/web3.js';
 import { DIDDocument } from 'did-resolver';
 import {
-  DidDataAccount, DidSolServiceOptions,
+  DidDataAccount,
+  DidSolServiceOptions,
   DidSolUpdateArgs,
   EthSigner,
   Service,
@@ -37,10 +38,7 @@ import {
 } from './lib/types';
 import { DEFAULT_KEY_ID, INITIAL_MIN_ACCOUNT_SIZE } from './lib/const';
 import { DidSolDocument } from './DidSolDocument';
-import {
-  ExtendedCluster,
-  getConnectionByCluster,
-} from './lib/connection';
+import { ExtendedCluster, getConnectionByCluster } from './lib/connection';
 import { DidSolIdentifier } from './DidSolIdentifier';
 import {
   closeAccount,
@@ -63,14 +61,17 @@ export class DidSolService {
 
   static async build(
     identifier: DidSolIdentifier,
-    options: DidSolServiceOptions,
+    options: DidSolServiceOptions
   ): Promise<DidSolService> {
     const wallet = options.wallet || new NonSigningWallet();
-    const confirmOptions = options.confirmOptions || AnchorProvider.defaultOptions();
-    const connection = options.connection || getConnectionByCluster(
-      identifier.clusterType,
-      confirmOptions.preflightCommitment,
-    );
+    const confirmOptions =
+      options.confirmOptions || AnchorProvider.defaultOptions();
+    const connection =
+      options.connection ||
+      getConnectionByCluster(
+        identifier.clusterType,
+        confirmOptions.preflightCommitment
+      );
 
     // Note, DidSolService never signs, so provider does not need a valid Wallet or confirmOptions.
     const provider = new AnchorProvider(connection, wallet, confirmOptions);
@@ -152,7 +153,9 @@ export class DidSolService {
     const [legacyDidDataAccount] = await findLegacyProgramAddress(didAuthority);
 
     if (this._cluster !== identifier.clusterType) {
-      throw new Error('Cannot build a service from an existing service with a different cluster');
+      throw new Error(
+        'Cannot build a service from an existing service with a different cluster'
+      );
     }
 
     // reuse existing program

@@ -1,8 +1,6 @@
-import {
-  makeKeypair,
-} from '@identity.com/sol-did-client';
+import { makeKeypair } from '@identity.com/sol-did-client';
 import { DeactivateRequest, DeactivateState } from './DefaultService';
-import { buildService } from "../utils";
+import { buildService } from '../utils';
 
 export const deactivate = async (
   request: DeactivateRequest
@@ -13,7 +11,6 @@ export const deactivate = async (
     throw new Error('Missing payer information- add a request secret');
 
   const service = await buildService(request.identifier);
-
 
   const payerKeypair = makeKeypair(payer);
   const authorityKeypair = owner ? makeKeypair(owner) : payerKeypair;

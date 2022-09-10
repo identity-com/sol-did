@@ -3,7 +3,7 @@ import { ResponseContent } from '../utils';
 import { DIDDocument, VerificationMethod } from 'did-resolver';
 import { deactivate } from './Deactivator';
 import { update } from './Updater';
-import { buildService } from "../utils";
+import { buildService } from '../utils';
 
 type ResolutionResult = {
   didDocument: DIDDocument;
@@ -117,7 +117,6 @@ export const resolveDID = async (
   identifier: string,
   _accept: string
 ): Promise<ResponseContent<ResolutionResult>> => {
-
   const service = await buildService(identifier);
   const didDocument = await service.resolve();
 

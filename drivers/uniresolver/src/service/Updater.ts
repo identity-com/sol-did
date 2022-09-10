@@ -1,9 +1,6 @@
 import { UpdateRequest, UpdateState } from './DefaultService';
-import {
-  DidSolDocument,
-  makeKeypair,
-} from '@identity.com/sol-did-client';
-import { buildService } from "../utils";
+import { DidSolDocument, makeKeypair } from '@identity.com/sol-did-client';
+import { buildService } from '../utils';
 
 export const update = async (request: UpdateRequest): Promise<UpdateState> => {
   const payer = request.secret?.payer || process.env.PAYER;
