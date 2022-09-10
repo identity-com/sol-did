@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@oclif/test": "^2",
-    "@solana/web3.js": "^1.56.2",
+    "@solana/web3.js": "^1.60.0",
     "@types/chai": "^4",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.9.4",
@@ -57,10 +57,10 @@
     "build": "shx rm -rf dist && tsc -b",
     "postpack": "shx rm -f oclif.manifest.json",
     "prepack": "yarn build && oclif manifest && oclif readme",
-    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
+    "test": "mocha --forbid-only \"tests/**/*.test.ts\"",
     "version": "oclif readme && git add README.md",
     "test-e2e": "start-server-and-test start-validator http://localhost:8899/health test",
-    "start-validator": "solana-test-validator --bpf-program didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc ../sol-did/target/deploy/sol_did.so --account 78CJ7rLRbMg1eLKudJqmQp1wzPu1NEo9qRJhMXQKoNe7 ./test/fixtures/accounts/idl-account.json --reset"
+    "start-validator": "solana-test-validator --bpf-program didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc ../sol-did/target/deploy/sol_did.so --account 78CJ7rLRbMg1eLKudJqmQp1wzPu1NEo9qRJhMXQKoNe7 ./tests/fixtures/accounts/idl-account.json --reset"
   },
   "engines": {
     "node": ">=12.0.0"

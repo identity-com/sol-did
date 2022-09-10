@@ -1,6 +1,7 @@
 import { expect, test } from '@oclif/test';
 import { Keypair } from '@solana/web3.js';
 import { getGeneratedDidDocument } from '../../fixtures/loader';
+
 describe('resolve', () => {
   const randomLocalnetKey = Keypair.generate().publicKey.toBase58();
   const randomDevnetKey = Keypair.generate().publicKey.toBase58();

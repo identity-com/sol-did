@@ -1,6 +1,6 @@
 {
   "require": [
-    "test/helpers/init.js",
+    "tests/helpers/init.js",
     "ts-node/register"
   ],
   "watch-extensions": [
