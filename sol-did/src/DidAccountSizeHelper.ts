@@ -1,8 +1,8 @@
-import { DidDataAccount, Service, VerificationMethod } from './lib/types';
+import { RawDidDataAccount, Service, VerificationMethod } from './lib/types';
 import { getBinarySize } from './lib/utils';
 
 export class DidAccountSizeHelper {
-  constructor(private didAccount: DidDataAccount) {}
+  constructor(private didAccount: RawDidDataAccount) {}
 
   static getServiceSize(service: Service | undefined): number {
     if (!service) {
@@ -104,7 +104,7 @@ export class DidAccountSizeHelper {
     ); // other_controllers
   }
 
-  static fromAccount(didAccount: DidDataAccount): DidAccountSizeHelper {
+  static fromAccount(didAccount: RawDidDataAccount): DidAccountSizeHelper {
     return new DidAccountSizeHelper(didAccount);
   }
 }

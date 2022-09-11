@@ -9,7 +9,6 @@ import { airdrop, checkConnectionLogs, getTestService } from '../utils/utils';
 import { before } from 'mocha';
 import {
   DidAccountSizeHelper,
-  DidDataAccount,
   DidSolIdentifier,
   DidSolService,
   VerificationMethod,
@@ -19,6 +18,7 @@ import {
 import { findProgramAddress, INITIAL_MIN_ACCOUNT_SIZE } from '../../src';
 import { TEST_CLUSTER } from '../utils/const';
 import { utils, Wallet } from 'ethers';
+import { DidSolDataAccount } from '../../src/DidSolDataAccount';
 
 chai.use(chaiAsPromised);
 
@@ -36,7 +36,7 @@ describe('sol-did alloc operations', () => {
 
   const nonAuthoritySigner = anchor.web3.Keypair.generate();
 
-  let didDataAccount: DidDataAccount | null = null;
+  let didDataAccount: DidSolDataAccount | null = null;
   let didDataAccountSize: number = 0;
 
   before(async () => {
@@ -95,20 +95,18 @@ describe('sol-did alloc operations', () => {
     expect(didDataAccount.bump).to.equal(didDataPDABump);
     expect(didDataAccount.nonce.eq(new anchor.BN(0))).to.be.true;
 
-    expect(didDataAccount.nativeControllers.length).to.equal(0);
-    expect(didDataAccount.otherControllers.length).to.equal(0);
+    expect(didDataAccount.controllers.length).to.equal(0);
 
     expect(didDataAccount.services.length).to.equal(0);
-    expect(didDataAccount.verificationMethods.length).to.equal(0);
-    expect(didDataAccount.initialVerificationMethod.keyData).to.deep.equal(
+    expect(didDataAccount.verificationMethods.length).to.equal(1);
+    expect(didDataAccount.verificationMethods[0].keyData).to.deep.equal(
       authority.publicKey.toBytes()
     );
-    expect(didDataAccount.initialVerificationMethod.flags).to.equal(
+    expect(didDataAccount.verificationMethods[0].flags).to.equal(
       VerificationMethodFlags.CapabilityInvocation |
         VerificationMethodFlags.OwnershipProof
     );
 
-    expect(didDataAccount.otherControllers.length).to.equal(0);
     expect(didDataAccountSize).to.equal(INITIAL_MIN_ACCOUNT_SIZE);
 
     // close again
@@ -176,13 +174,13 @@ describe('sol-did alloc operations', () => {
       .rpc();
     expect(didDataAccountSizeBefore).to.be.greaterThan(
       DidAccountSizeHelper.fromAccount(
-        didDataAccount
+        didDataAccount.raw
       ).getTotalNativeAccountSize() + 32
     );
 
     [didDataAccount, didDataAccountSize] =
       await service.getDidAccountWithSize();
-    expect(didDataAccount.nativeControllers.length).to.equal(1);
+    expect(didDataAccount.controllers.length).to.equal(1);
     expect(didDataAccountSize).to.equal(didDataAccountSizeBefore);
   });
 
@@ -209,7 +207,7 @@ describe('sol-did alloc operations', () => {
     // check data
     [didDataAccount, didDataAccountSize] =
       await service.getDidAccountWithSize();
-    expect(didDataAccount.verificationMethods.length).to.equal(1);
+    expect(didDataAccount.verificationMethods.length).to.equal(2);
     expect(didDataAccountSize).to.equal(
       didDataAccountSizeBefore + vmSize + 32 - removedServiceSize
     );
@@ -236,8 +234,7 @@ describe('sol-did alloc operations', () => {
 
     [didDataAccount, didDataAccountSize] =
       await service.getDidAccountWithSize();
-    expect(didDataAccount.nativeControllers.length).to.equal(1);
-    expect(didDataAccount.otherControllers.length).to.equal(1);
+    expect(didDataAccount.controllers.length).to.equal(2);
 
     expect(didDataAccountSize).to.equal(
       didDataAccountSizeBefore + newController.length + 4

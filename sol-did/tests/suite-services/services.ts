@@ -2,7 +2,7 @@ import * as anchor from '@project-serum/anchor';
 import { Program } from '@project-serum/anchor';
 import { SolDid } from '../../target/types/sol_did';
 import {
-  DidDataAccount,
+  RawDidDataAccount,
   DidSolIdentifier,
   DidSolService,
   findProgramAddress,
@@ -30,7 +30,7 @@ describe('sol-did service operations', () => {
   let didData, didDataPDABump;
   let service: DidSolService;
 
-  let didDataAccount: DidDataAccount;
+  let didDataAccount: RawDidDataAccount;
 
   const ethAuthority0 = Wallet.fromMnemonic(MNEMONIC, getDerivationPath(0));
   const ethAuthority1 = Wallet.fromMnemonic(MNEMONIC, getDerivationPath(1));

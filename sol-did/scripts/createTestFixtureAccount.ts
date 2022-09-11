@@ -78,7 +78,7 @@ export async function idlAddress(programId: PublicKey): Promise<PublicKey> {
   const ethKey = Wallet.fromMnemonic(MNEMONIC, getDerivationPath());
 
   console.log('DidIdentifier: ' + authority.publicKey.toBase58());
-  console.log('DidDataAccount: ' + didData.toBase58());
+  console.log('RawDidDataAccount: ' + didData.toBase58());
 
   console.log(`LegacyDidKey: ${legacyDidKey.publicKey.toBase58()}`);
   console.log(`EthKey: ${ethKey.address}`);

@@ -77,17 +77,17 @@ describe('sol-did auth operations', () => {
 
     const didDataAccount = await service.getDidAccount();
 
-    expect(didDataAccount.verificationMethods.length).to.equal(1);
-    expect(didDataAccount.verificationMethods[0].fragment).to.equal(
+    expect(didDataAccount.verificationMethods.length).to.equal(2);
+    expect(didDataAccount.verificationMethods[1].fragment).to.equal(
       newSolKeyAlias
     );
-    expect(didDataAccount.verificationMethods[0].keyData).to.deep.equal(
+    expect(didDataAccount.verificationMethods[1].keyData).to.deep.equal(
       newSolKey.publicKey.toBytes()
     );
-    expect(didDataAccount.verificationMethods[0].methodType).to.equal(
+    expect(didDataAccount.verificationMethods[1].methodType).to.equal(
       VerificationMethodType.Ed25519VerificationKey2018
     );
-    expect(didDataAccount.verificationMethods[0].flags).to.equal(
+    expect(didDataAccount.verificationMethods[1].flags).to.equal(
       VerificationMethodFlags.CapabilityInvocation
     );
   });
@@ -171,18 +171,18 @@ describe('sol-did auth operations', () => {
 
     const didDataAccount = await service.getDidAccount();
 
-    expect(didDataAccount.verificationMethods.length).to.equal(2);
-    expect(didDataAccount.verificationMethods[1].fragment).to.equal(
+    expect(didDataAccount.verificationMethods.length).to.equal(3);
+    expect(didDataAccount.verificationMethods[2].fragment).to.equal(
       newEthKeyAlias
     );
-    expect(didDataAccount.verificationMethods[1].keyData.length).to.equal(20);
-    expect(didDataAccount.verificationMethods[1].keyData).to.deep.equal(
+    expect(didDataAccount.verificationMethods[2].keyData.length).to.equal(20);
+    expect(didDataAccount.verificationMethods[2].keyData).to.deep.equal(
       ethAddressAsBytes
     );
-    expect(didDataAccount.verificationMethods[1].methodType).to.equal(
+    expect(didDataAccount.verificationMethods[2].methodType).to.equal(
       VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020
     );
-    expect(didDataAccount.verificationMethods[1].flags).to.equal(
+    expect(didDataAccount.verificationMethods[2].flags).to.equal(
       VerificationMethodFlags.CapabilityInvocation
     );
   });
@@ -265,18 +265,18 @@ describe('sol-did auth operations', () => {
     expect(didDataAccount.nonce.toString()).to.be.equal(
       didDataAccountBefore.nonce.addn(1).toString()
     );
-    expect(didDataAccount.verificationMethods.length).to.equal(3);
-    expect(didDataAccount.verificationMethods[2].fragment).to.equal(
+    expect(didDataAccount.verificationMethods.length).to.equal(4);
+    expect(didDataAccount.verificationMethods[3].fragment).to.equal(
       newEthKeyAlias2
     );
-    expect(didDataAccount.verificationMethods[2].keyData.length).to.equal(64);
-    expect(didDataAccount.verificationMethods[2].keyData).to.deep.equal(
+    expect(didDataAccount.verificationMethods[3].keyData.length).to.equal(64);
+    expect(didDataAccount.verificationMethods[3].keyData).to.deep.equal(
       keyData
     );
-    expect(didDataAccount.verificationMethods[2].methodType).to.equal(
+    expect(didDataAccount.verificationMethods[3].methodType).to.equal(
       VerificationMethodType.EcdsaSecp256k1VerificationKey2019
     );
-    expect(didDataAccount.verificationMethods[2].flags).to.equal(
+    expect(didDataAccount.verificationMethods[3].flags).to.equal(
       VerificationMethodFlags.CapabilityInvocation
     );
 
@@ -352,10 +352,10 @@ describe('sol-did auth operations', () => {
 
     const didDataAccount = await service.getDidAccount();
     expect(didDataAccount.verificationMethods.length).to.equal(vmLengthBefore);
-    expect(didDataAccount.verificationMethods[1].fragment).to.equal(
+    expect(didDataAccount.verificationMethods[2].fragment).to.equal(
       newEthKeyAlias
     );
-    expect(didDataAccount.verificationMethods[1].flags).to.equal(newFlags);
+    expect(didDataAccount.verificationMethods[2].flags).to.equal(newFlags);
   });
 
   it('cannot update the flags (WITH Ownership Proof) of a verification method with a different verification method', async () => {
@@ -389,22 +389,20 @@ describe('sol-did auth operations', () => {
 
     const didDataAccount = await service.getDidAccount();
     expect(didDataAccount.verificationMethods.length).to.equal(vmLengthBefore);
-    expect(didDataAccount.verificationMethods[1].fragment).to.equal(
+    expect(didDataAccount.verificationMethods[2].fragment).to.equal(
       newEthKeyAlias
     );
-    expect(didDataAccount.verificationMethods[1].flags).to.equal(newFlags);
+    expect(didDataAccount.verificationMethods[2].flags).to.equal(newFlags);
   });
 
   it('successfully set flags to 0 when removing the default verification method', async () => {
     const didDataAccountBefore = await service.getDidAccount();
-    expect(didDataAccountBefore.initialVerificationMethod.flags).to.not.equal(
-      0
-    );
+    expect(didDataAccountBefore.verificationMethods[0].flags).to.not.equal(0);
 
     await service.removeVerificationMethod(DEFAULT_KEY_ID).rpc();
 
     const didDataAccount = await service.getDidAccount();
-    expect(didDataAccount.initialVerificationMethod.flags).to.equal(0);
+    expect(didDataAccount.verificationMethods[0].flags).to.equal(0);
   });
 
   it('can remove a verification method with the same verification method', async () => {

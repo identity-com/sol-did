@@ -11,7 +11,7 @@ export type EthSigner = {
   signMessage: (message: Bytes | string) => Promise<string>;
 };
 
-export type DidDataAccount = {
+export type RawDidDataAccount = {
   version: number;
   bump: number;
   nonce: BN;

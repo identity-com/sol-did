@@ -27,7 +27,7 @@ import {
 } from '@solana/web3.js';
 import { DIDDocument } from 'did-resolver';
 import {
-  DidDataAccount,
+  RawDidDataAccount,
   DidSolUpdateArgs,
   EthSigner,
   Service,
@@ -52,6 +52,7 @@ import {
   SolTransaction,
 } from '@identity.com/sol-did-client-legacy';
 import { DidAccountSizeHelper } from './DidAccountSizeHelper';
+import { DidSolDataAccount } from './DidSolDataAccount';
 
 /**
  * The DidSolService class is a wrapper around the Solana DID program.
@@ -163,32 +164,42 @@ export class DidSolService {
     );
   }
 
-  async getDidAccount(): Promise<DidDataAccount | null> {
-    return (await this._program.account.didAccount.fetchNullable(
+  async getDidAccount(): Promise<DidSolDataAccount | null> {
+    const dataAccount = (await this._program.account.didAccount.fetchNullable(
       this._didDataAccount
-    )) as DidDataAccount;
+    )) as RawDidDataAccount;
+
+    if (!dataAccount) {
+      return null;
+    }
+
+    return DidSolDataAccount.from(dataAccount, this._cluster);
   }
 
   async getDidAccountWithSize(
     commitment?: Commitment
-  ): Promise<[DidDataAccount | null, number]> {
+  ): Promise<[DidSolDataAccount | null, number]> {
     const accountInfo = await this._program.account.didAccount.getAccountInfo(
       this._didDataAccount,
       commitment
     );
-    if (accountInfo === null) {
+    if (accountInfo === null || accountInfo.data.length === 0) {
       return [null, 0];
     }
 
     const size = accountInfo.data.length;
 
-    const didAccount =
-      this._program.account.didAccount.coder.accounts.decode<DidDataAccount>(
+    const dataAccount =
+      this._program.account.didAccount.coder.accounts.decode<RawDidDataAccount>(
         'DidAccount', // TODO: from "this._program.account.didAccount._idlAccount.name" - How to get this officially?
         accountInfo.data
       );
 
-    return [didAccount, size];
+    if (!dataAccount) {
+      return [null, size];
+    }
+
+    return [DidSolDataAccount.from(dataAccount, this._cluster), size];
   }
 
   /**
@@ -694,10 +705,7 @@ export class DidSolService {
   async resolve(checkLegacy = true): Promise<DIDDocument> {
     const didDataAccount = await this.getDidAccount();
     if (didDataAccount) {
-      return DidSolDocument.from(
-        didDataAccount as DidDataAccount,
-        this._cluster
-      );
+      return DidSolDocument.from(didDataAccount, this._cluster);
     }
 
     // backwards compatibility
@@ -749,7 +757,7 @@ export type BuilderInstruction = {
   instructionPromise: Promise<TransactionInstruction>;
   ethSignStatus: DidSolEthSignStatusType;
   didAccountSizeDeltaCallback: (
-    didAccountBefore: DidDataAccount | null
+    didAccountBefore: RawDidDataAccount | null
   ) => number;
   allowsDynamicAlloc: boolean;
   authority: PublicKey;
@@ -889,9 +897,9 @@ export class DidSolServiceBuilder {
       // Reallocation
       const requiredSize =
         DidAccountSizeHelper.fromAccount(
-          didAccount
+          didAccount.raw
         ).getTotalNativeAccountSize() +
-        this.instruction.didAccountSizeDeltaCallback(didAccount);
+        this.instruction.didAccountSizeDeltaCallback(didAccount.raw);
       if (didAccountSize >= requiredSize) {
         // ALLOC does NOT shrink an account.
         return [];

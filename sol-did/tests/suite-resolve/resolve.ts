@@ -140,7 +140,7 @@ describe('sol-did resolve and migrate operations', () => {
 
     // check that auth
     const didAccount = await legacyDidService.getDidAccount();
-    expect(didAccount.initialVerificationMethod.flags).to.equal(
+    expect(didAccount.verificationMethods[0].flags).to.equal(
       VerificationMethodFlags.OwnershipProof |
         VerificationMethodFlags.CapabilityInvocation
     );
@@ -272,22 +272,21 @@ describe('sol-did resolve and migrate operations', () => {
     // Default Element will not be updated on verificationMethods
     const lastElement = vms.pop();
     // Default (Initial) Verification Method will ONLY update the flags
-    expect(updated_account?.initialVerificationMethod.fragment).to.be.equal(
+    expect(updated_account?.verificationMethods[0].fragment).to.be.equal(
       DEFAULT_KEY_ID
     );
-    expect(updated_account?.initialVerificationMethod.flags).to.be.equal(
+    expect(updated_account?.verificationMethods[0].flags).to.be.equal(
       lastElement.flags
     );
-    expect(updated_account?.initialVerificationMethod.keyData).to.be.deep.equal(
+    expect(updated_account?.verificationMethods[0].keyData).to.be.deep.equal(
       authority.publicKey.toBytes()
     );
-    expect(updated_account?.initialVerificationMethod.methodType).to.be.equal(
+    expect(updated_account?.verificationMethods[0].methodType).to.be.equal(
       VerificationMethodType.Ed25519VerificationKey2018
     );
 
-    expect(updated_account?.verificationMethods).to.be.deep.equal(vms); // default key will not be updated
-    expect(updated_account?.nativeControllers).to.be.deep.equal([]);
-    expect(updated_account?.otherControllers).to.be.deep.equal([]);
+    expect(updated_account?.verificationMethods.slice(1)).to.be.deep.equal(vms); // default key will not be updated
+    expect(updated_account?.controllers).to.be.deep.equal([]);
   });
 
   it('cannot update the verificationMethods of a Did if there are replications', async () => {
@@ -325,9 +324,8 @@ describe('sol-did resolve and migrate operations', () => {
       .rpc();
     let updated_account = await service.getDidAccount();
     expect(updated_account?.services).to.be.deep.equal(services);
-    expect(updated_account?.verificationMethods).to.be.deep.equal([]);
-    expect(updated_account?.nativeControllers).to.be.deep.equal([]);
-    expect(updated_account?.otherControllers).to.be.deep.equal([]);
+    expect(updated_account?.verificationMethods.slice(1)).to.be.deep.equal([]);
+    expect(updated_account?.controllers).to.be.deep.equal([]);
   });
 
   it('cannot update the services of a Did when there are duplicates', async () => {
@@ -365,11 +363,11 @@ describe('sol-did resolve and migrate operations', () => {
       .rpc();
     let updated_account = await service.getDidAccount();
     expect(updated_account?.services).to.be.deep.equal([]);
-    expect(updated_account?.verificationMethods).to.be.deep.equal([]);
-    expect(updated_account?.nativeControllers).to.be.deep.equal([
-      solKey.publicKey,
+    expect(updated_account?.verificationMethods.slice(1)).to.be.deep.equal([]);
+    expect(updated_account?.controllers).to.be.deep.equal([
+      DidSolIdentifier.create(solKey.publicKey, TEST_CLUSTER).toString(),
+      ethrDid,
     ]);
-    expect(updated_account?.otherControllers).to.be.deep.equal([ethrDid]);
   });
 
   it('cannot update controllers when itself is added', async () => {
@@ -423,9 +421,8 @@ describe('sol-did resolve and migrate operations', () => {
       .rpc();
     let updated_account = await service.getDidAccount();
     expect(updated_account?.services).to.be.deep.equal(services);
-    expect(updated_account?.verificationMethods).to.be.deep.equal(vms);
-    expect(updated_account?.nativeControllers).to.be.deep.equal([]);
-    expect(updated_account?.otherControllers).to.be.deep.equal([ethrDid]);
+    expect(updated_account?.verificationMethods.slice(1)).to.be.deep.equal(vms);
+    expect(updated_account?.controllers).to.be.deep.equal([ethrDid]);
   });
 
   it('fails to update when any verification methods try to set the Ownership flag.', async () => {

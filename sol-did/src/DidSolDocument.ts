@@ -3,25 +3,22 @@ import {
   ServiceEndpoint,
   VerificationMethod as DidVerificationMethod,
 } from 'did-resolver';
-import { getSolContextPrefix, W3ID_CONTEXT, SOLANA_MAINNET } from './lib/const';
+import { getSolContextPrefix, W3ID_CONTEXT } from './lib/const';
 import {
-  DidDataAccount,
   DidSolUpdateArgs,
   Service,
   VerificationMethod,
   VerificationMethodFlags,
   VerificationMethodType,
 } from './lib/types';
-import { PublicKey } from '@solana/web3.js';
 import { DidSolIdentifier } from './DidSolIdentifier';
 import {
   defaultVerificationMethod,
   getKeyDataFromVerificationMethod,
-  mapControllers,
   mapServices,
   mapVerificationMethodsToDidComponents,
 } from './lib/utils';
-import { ExtendedCluster } from './lib/connection';
+import { DidSolDataAccount } from './DidSolDataAccount';
 
 /**
  * A class representing a did:sol document
@@ -64,31 +61,20 @@ export class DidSolDocument implements DIDDocument {
     return new DidSolDocument(identifier);
   }
 
-  static from(
-    account: DidDataAccount,
-    clusterType: ExtendedCluster = SOLANA_MAINNET
-  ): DidSolDocument {
-    const identifier = new DidSolIdentifier({
-      authority: new PublicKey(account.initialVerificationMethod.keyData),
-      clusterType,
-    });
-    const doc = DidSolDocument.sparse(identifier);
+  static from(account: DidSolDataAccount): DidSolDocument {
+    const doc = DidSolDocument.sparse(account.identifier);
     // VM related
-    const allVerificationMethods = [account.initialVerificationMethod].concat(
-      account.verificationMethods
-    );
     Object.assign(
       doc,
-      mapVerificationMethodsToDidComponents(allVerificationMethods, identifier)
+      mapVerificationMethodsToDidComponents(
+        account.verificationMethods,
+        account.identifier
+      )
     );
     // Services
-    doc.service = mapServices(account.services, identifier);
+    doc.service = mapServices(account.services, account.identifier);
     // Controllers
-    doc.controller = mapControllers(
-      account.nativeControllers,
-      account.otherControllers,
-      clusterType
-    );
+    doc.controller = account.controllers;
     return doc;
   }
 
