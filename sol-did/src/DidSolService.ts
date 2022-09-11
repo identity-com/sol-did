@@ -705,7 +705,7 @@ export class DidSolService {
   async resolve(checkLegacy = true): Promise<DIDDocument> {
     const didDataAccount = await this.getDidAccount();
     if (didDataAccount) {
-      return DidSolDocument.from(didDataAccount, this._cluster);
+      return DidSolDocument.from(didDataAccount);
     }
 
     // backwards compatibility
