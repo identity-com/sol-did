@@ -7,7 +7,7 @@ on:
   pull_request:
 jobs:
   program-lint:
-    name: Format and lint the sol on-chain program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
+    name: Format, lint and test the sol on-chain program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -47,6 +47,12 @@ jobs:
         with:
           command: clippy
           args: --manifest-path sol-did/Cargo.toml --tests --workspace --all-targets -- --deny=warnings
+
+      - name: Run Tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --manifest-path sol-did/Cargo.toml
 
   program-unit-test:
     name: Unit test program on Rust ${{ matrix.rust }} and ${{ matrix.os }}
