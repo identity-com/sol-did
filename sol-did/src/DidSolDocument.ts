@@ -7,8 +7,8 @@ import { getSolContextPrefix, W3ID_CONTEXT } from './lib/const';
 import {
   DidSolUpdateArgs,
   Service,
-  VerificationMethod,
-  VerificationMethodFlags,
+  RawVerificationMethod,
+  BitwiseVerificationMethodFlag,
   VerificationMethodType,
 } from './lib/types';
 import { DidSolIdentifier } from './DidSolIdentifier';
@@ -18,7 +18,7 @@ import {
   mapServices,
   mapVerificationMethodsToDidComponents,
 } from './lib/utils';
-import { DidSolDataAccount } from './DidSolDataAccount';
+import { DidSolDataAccount } from './lib/wrappers';
 
 /**
  * A class representing a did:sol document
@@ -158,7 +158,7 @@ export class DidSolDocument implements DIDDocument {
     // Verification Methods
     if (this.verificationMethod) {
       args.verificationMethods = this.verificationMethod.map(
-        (vm: DidVerificationMethod): VerificationMethod =>
+        (vm: DidVerificationMethod): RawVerificationMethod =>
           this.mapVerificationMethod(vm)
       );
     }
@@ -166,52 +166,54 @@ export class DidSolDocument implements DIDDocument {
     return args;
   }
 
-  getFlagsFromVerificationMethod(fragment: string): VerificationMethodFlags {
-    let flags = VerificationMethodFlags.None;
+  getFlagsFromVerificationMethod(
+    fragment: string
+  ): BitwiseVerificationMethodFlag {
+    let flags = BitwiseVerificationMethodFlag.None;
 
     if (
       this.authentication &&
       this.authentication.find((id) => id.endsWith(`#${fragment}`))
     ) {
-      flags |= VerificationMethodFlags.Authentication;
+      flags |= BitwiseVerificationMethodFlag.Authentication;
     }
 
     if (
       this.assertionMethod &&
       this.assertionMethod.find((id) => id.endsWith(`#${fragment}`))
     ) {
-      flags |= VerificationMethodFlags.Assertion;
+      flags |= BitwiseVerificationMethodFlag.Assertion;
     }
 
     if (
       this.keyAgreement &&
       this.keyAgreement.find((id) => id.endsWith(`#${fragment}`))
     ) {
-      flags |= VerificationMethodFlags.KeyAgreement;
+      flags |= BitwiseVerificationMethodFlag.KeyAgreement;
     }
 
     if (
       this.capabilityInvocation &&
       this.capabilityInvocation.find((id) => id.endsWith(`#${fragment}`))
     ) {
-      flags |= VerificationMethodFlags.CapabilityInvocation;
+      flags |= BitwiseVerificationMethodFlag.CapabilityInvocation;
     }
 
     if (
       this.capabilityDelegation &&
       this.capabilityDelegation.find((id) => id.endsWith(`#${fragment}`))
     ) {
-      flags |= VerificationMethodFlags.CapabilityDelegation;
+      flags |= BitwiseVerificationMethodFlag.CapabilityDelegation;
     }
 
     return flags;
   }
 
   /**
-   * Map a DidVerificationMethod to a compressed did:sol VerificationMethod with flags.
+   * Map a DidVerificationMethod to a compressed did:sol RawVerificationMethod with flags.
    * @param vm DidVerificationMethod to map
    */
-  mapVerificationMethod(vm: DidVerificationMethod): VerificationMethod {
+  mapVerificationMethod(vm: DidVerificationMethod): RawVerificationMethod {
     const id = DidSolIdentifier.parse(this.id);
 
     const methodType =

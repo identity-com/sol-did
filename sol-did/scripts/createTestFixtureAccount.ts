@@ -49,10 +49,11 @@ export async function idlAddress(programId: PublicKey): Promise<PublicKey> {
 
   const cluster: ExtendedCluster = 'localnet';
 
+  const identifier = DidSolIdentifier.create(authority.publicKey, cluster);
+
   const service = await DidSolService.buildFromAnchor(
     program,
-    authority.publicKey,
-    cluster,
+    identifier,
     programProvider
   );
 
@@ -78,7 +79,7 @@ export async function idlAddress(programId: PublicKey): Promise<PublicKey> {
   const ethKey = Wallet.fromMnemonic(MNEMONIC, getDerivationPath());
 
   console.log('DidIdentifier: ' + authority.publicKey.toBase58());
-  console.log('RawDidDataAccount: ' + didData.toBase58());
+  console.log('RawDidSolDataAccount: ' + didData.toBase58());
 
   console.log(`LegacyDidKey: ${legacyDidKey.publicKey.toBase58()}`);
   console.log(`EthKey: ${ethKey.address}`);

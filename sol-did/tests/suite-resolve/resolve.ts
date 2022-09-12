@@ -11,8 +11,9 @@ import {
   DidSolIdentifier,
   DidSolService,
   VerificationMethod,
-  VerificationMethodFlags,
+  BitwiseVerificationMethodFlag,
   VerificationMethodType,
+  RawVerificationMethod,
 } from '../../src';
 
 import {
@@ -140,9 +141,9 @@ describe('sol-did resolve and migrate operations', () => {
 
     // check that auth
     const didAccount = await legacyDidService.getDidAccount();
-    expect(didAccount.verificationMethods[0].flags).to.equal(
-      VerificationMethodFlags.OwnershipProof |
-        VerificationMethodFlags.CapabilityInvocation
+    expect(didAccount.verificationMethods[0].flags.raw).to.equal(
+      BitwiseVerificationMethodFlag.OwnershipProof |
+        BitwiseVerificationMethodFlag.CapabilityInvocation
     );
   });
 
@@ -234,27 +235,27 @@ describe('sol-did resolve and migrate operations', () => {
 
   it('can update the verificationMethods of a Did', async () => {
     await existingAccount(service);
-    let vms: VerificationMethod[] = [
+    let vms: RawVerificationMethod[] = [
       getTestVerificationMethod(
         'key1',
         Keypair.generate().publicKey,
-        VerificationMethodFlags.KeyAgreement |
-          VerificationMethodFlags.CapabilityInvocation
+        BitwiseVerificationMethodFlag.KeyAgreement |
+          BitwiseVerificationMethodFlag.CapabilityInvocation
       ),
       getTestVerificationMethod('key2'),
       getTestVerificationMethod(
         'key3',
         Keypair.generate().publicKey,
-        VerificationMethodFlags.KeyAgreement |
-          VerificationMethodFlags.CapabilityInvocation |
-          VerificationMethodFlags.CapabilityDelegation
+        BitwiseVerificationMethodFlag.KeyAgreement |
+          BitwiseVerificationMethodFlag.CapabilityInvocation |
+          BitwiseVerificationMethodFlag.CapabilityDelegation
       ),
       getTestVerificationMethod(
         DEFAULT_KEY_ID,
         Keypair.generate().publicKey,
-        VerificationMethodFlags.KeyAgreement |
-          VerificationMethodFlags.CapabilityInvocation |
-          VerificationMethodFlags.Authentication,
+        BitwiseVerificationMethodFlag.KeyAgreement |
+          BitwiseVerificationMethodFlag.CapabilityInvocation |
+          BitwiseVerificationMethodFlag.Authentication,
         VerificationMethodType.EcdsaSecp256k1VerificationKey2019
       ), // Intentionally wrong
     ];
@@ -275,7 +276,7 @@ describe('sol-did resolve and migrate operations', () => {
     expect(updated_account?.verificationMethods[0].fragment).to.be.equal(
       DEFAULT_KEY_ID
     );
-    expect(updated_account?.verificationMethods[0].flags).to.be.equal(
+    expect(updated_account?.verificationMethods[0].flags.raw).to.be.equal(
       lastElement.flags
     );
     expect(updated_account?.verificationMethods[0].keyData).to.be.deep.equal(
@@ -285,7 +286,9 @@ describe('sol-did resolve and migrate operations', () => {
       VerificationMethodType.Ed25519VerificationKey2018
     );
 
-    expect(updated_account?.verificationMethods.slice(1)).to.be.deep.equal(vms); // default key will not be updated
+    expect(updated_account?.verificationMethods.slice(1)).to.be.deep.equal(
+      vms.map(VerificationMethod.from)
+    ); // default key will not be updated
     expect(updated_account?.controllers).to.be.deep.equal([]);
   });
 
@@ -421,7 +424,9 @@ describe('sol-did resolve and migrate operations', () => {
       .rpc();
     let updated_account = await service.getDidAccount();
     expect(updated_account?.services).to.be.deep.equal(services);
-    expect(updated_account?.verificationMethods.slice(1)).to.be.deep.equal(vms);
+    expect(updated_account?.verificationMethods.slice(1)).to.be.deep.equal(
+      vms.map(VerificationMethod.from)
+    );
     expect(updated_account?.controllers).to.be.deep.equal([ethrDid]);
   });
 
@@ -432,8 +437,8 @@ describe('sol-did resolve and migrate operations', () => {
       getTestVerificationMethod(
         'key2',
         Keypair.generate().publicKey,
-        VerificationMethodFlags.CapabilityInvocation |
-          VerificationMethodFlags.OwnershipProof
+        BitwiseVerificationMethodFlag.CapabilityInvocation |
+          BitwiseVerificationMethodFlag.OwnershipProof
       ),
       getTestVerificationMethod('key3'),
     ];

@@ -1,18 +1,21 @@
 import * as anchor from '@project-serum/anchor';
 import { Program } from '@project-serum/anchor';
 import { SolDid } from '../../target/types/sol_did';
-import { DidSolIdentifier, DidSolService } from '../../src';
+import {
+  DidSolIdentifier,
+  DidSolService,
+  findProgramAddress,
+  DidSolDataAccount,
+} from '../../src';
 import { before } from 'mocha';
 
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import { expect } from 'chai';
-import { findProgramAddress } from '../../src';
 import { TEST_CLUSTER } from '../utils/const';
 import { Wallet } from 'ethers';
 import { getDerivationPath, MNEMONIC } from '../fixtures/config';
-import { DidSolDataAccount } from '../../src/DidSolDataAccount';
 
 chai.use(chaiAsPromised);
 

@@ -11,22 +11,22 @@ export type EthSigner = {
   signMessage: (message: Bytes | string) => Promise<string>;
 };
 
-export type RawDidDataAccount = {
+export type RawDidSolDataAccount = {
   version: number;
   bump: number;
   nonce: BN;
-  initialVerificationMethod: VerificationMethod;
-  verificationMethods: VerificationMethod[];
+  initialVerificationMethod: RawVerificationMethod;
+  verificationMethods: RawVerificationMethod[];
   services: Service[];
   nativeControllers: web3.PublicKey[];
   otherControllers: string[];
 };
 
-export type VerificationMethod = {
+export type RawVerificationMethod = {
   fragment: string;
   keyData: Bytes;
   methodType: VerificationMethodType;
-  flags: VerificationMethodFlags;
+  flags: number;
 };
 
 export type Service = {
@@ -36,12 +36,12 @@ export type Service = {
 };
 
 export type DidSolUpdateArgs = {
-  verificationMethods: VerificationMethod[];
+  verificationMethods: RawVerificationMethod[];
   services: Service[];
   controllerDIDs: string[];
 };
 
-export enum VerificationMethodFlags {
+export enum BitwiseVerificationMethodFlag {
   None = 0,
   Authentication = 1 << 0,
   Assertion = 1 << 1,
@@ -84,7 +84,7 @@ export type DidVerificationMethodComponents = {
   capabilityDelegation: (string | DidVerificationMethod)[];
 };
 
-// TODO: Change back to Anchor import does not export the correct Wallet type.
+// TODO: Change back to Anchor. import does not export the correct Wallet type.
 // TODO: Create Ticket within Anchor (and post PR?)
 export interface Wallet {
   signTransaction(tx: Transaction): Promise<Transaction>;

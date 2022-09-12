@@ -27,12 +27,11 @@ import {
 } from '@solana/web3.js';
 import { DIDDocument } from 'did-resolver';
 import {
-  RawDidDataAccount,
+  RawDidSolDataAccount,
   DidSolUpdateArgs,
   EthSigner,
   Service,
-  VerificationMethod,
-  VerificationMethodFlags,
+  RawVerificationMethod,
   Wallet,
 } from './lib/types';
 import { DEFAULT_KEY_ID, INITIAL_MIN_ACCOUNT_SIZE } from './lib/const';
@@ -52,7 +51,7 @@ import {
   SolTransaction,
 } from '@identity.com/sol-did-client-legacy';
 import { DidAccountSizeHelper } from './DidAccountSizeHelper';
-import { DidSolDataAccount } from './DidSolDataAccount';
+import { DidSolDataAccount } from './lib/wrappers';
 
 /**
  * The DidSolService class is a wrapper around the Solana DID program.
@@ -167,7 +166,7 @@ export class DidSolService {
   async getDidAccount(): Promise<DidSolDataAccount | null> {
     const dataAccount = (await this._program.account.didAccount.fetchNullable(
       this._didDataAccount
-    )) as RawDidDataAccount;
+    )) as RawDidSolDataAccount;
 
     if (!dataAccount) {
       return null;
@@ -190,7 +189,7 @@ export class DidSolService {
     const size = accountInfo.data.length;
 
     const dataAccount =
-      this._program.account.didAccount.coder.accounts.decode<RawDidDataAccount>(
+      this._program.account.didAccount.coder.accounts.decode<RawDidSolDataAccount>(
         'DidAccount', // TODO: from "this._program.account.didAccount._idlAccount.name" - How to get this officially?
         accountInfo.data
       );
@@ -343,7 +342,7 @@ export class DidSolService {
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
   addVerificationMethod(
-    method: VerificationMethod,
+    method: RawVerificationMethod,
     authority: PublicKey = this._didAuthority
   ): DidSolServiceBuilder {
     const instructionPromise = this._program.methods
@@ -475,12 +474,12 @@ export class DidSolService {
   /**
    * Update the Flags of a VerificationMethod.
    * @param fragment The fragment of the VerificationMethod to update
-   * @param flags The flags to set. If flags contain VerificationMethodFlags.OwnershipProof, the transaction must be signed by the exact same VM.
+   * @param flags The flags to set. If flags contain BitwiseVerificationMethodFlag.OwnershipProof, the transaction must be signed by the exact same VM.
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
   setVerificationMethodFlags(
     fragment: string,
-    flags: VerificationMethodFlags,
+    flags: number,
     authority: PublicKey = this._didAuthority
   ): DidSolServiceBuilder {
     const instructionPromise = this._program.methods
@@ -757,7 +756,7 @@ export type BuilderInstruction = {
   instructionPromise: Promise<TransactionInstruction>;
   ethSignStatus: DidSolEthSignStatusType;
   didAccountSizeDeltaCallback: (
-    didAccountBefore: RawDidDataAccount | null
+    didAccountBefore: RawDidSolDataAccount | null
   ) => number;
   allowsDynamicAlloc: boolean;
   authority: PublicKey;
