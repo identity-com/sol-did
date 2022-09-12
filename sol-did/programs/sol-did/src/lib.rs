@@ -131,6 +131,7 @@ pub mod sol_did {
 /// where '->' represents the relationship "is controlled by".
 pub fn is_authority(
     did_account: &AccountInfo,
+    did_account_seed_bump: u8,
     controlling_did_accounts: &[AccountInfo],
     sol_authority: &Pubkey,
     eth_message: &[u8],
@@ -141,7 +142,7 @@ pub fn is_authority(
         msg!("Validating generative DID");
         // the DID is a generative DID - the only authority is the key itself
         // verify that the authority key derives the correct did account
-        let address = derive_did_account(sol_authority).0;
+        let address = derive_did_account_with_bump(sol_authority, did_account_seed_bump)?;
         msg!("Generative DID address for authority: {}", address);
         msg!("DID account address: {}", did_account.key);
         return Ok(*did_account.key == address);
@@ -201,6 +202,18 @@ pub fn derive_did_account(authority: &Pubkey) -> (Pubkey, u8) {
     )
 }
 
+pub fn derive_did_account_with_bump(authority: &Pubkey, bump_seed: u8) -> Result<Pubkey> {
+    Pubkey::create_program_address(
+        &[
+            DID_ACCOUNT_SEED.as_bytes(),
+            authority.key().as_ref(),
+            &[bump_seed],
+        ],
+        &id(),
+    )
+    .map_err(|_| Error::from(ErrorCode::ConstraintSeeds))
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -251,10 +264,11 @@ mod test {
         let test_did_account = create_test_did(test_authority);
         let mut data: Vec<u8> = Vec::with_capacity(1024);
         test_did_account.try_serialize(&mut data).unwrap();
+        let derived_did_account = derive_did_account(&test_authority);
 
         let mut lamports = 1; // must be > 0 to pass the Account::try_from
         let account_info = AccountInfo {
-            key: &derive_did_account(&test_authority).0,
+            key: &derived_did_account.0,
             is_signer: false,
             is_writable: false,
             lamports: Rc::new(RefCell::new(&mut lamports)),
@@ -264,8 +278,16 @@ mod test {
             rent_epoch: 0,
         };
 
-        let should_be_true =
-            is_authority(&account_info, &[], &test_authority, &[], None, None).unwrap();
+        let should_be_true = is_authority(
+            &account_info,
+            derived_did_account.1,
+            &[],
+            &test_authority,
+            &[],
+            None,
+            None,
+        )
+        .unwrap();
         assert!(should_be_true);
     }
 
@@ -275,8 +297,10 @@ mod test {
 
         let mut data: Vec<u8> = Vec::with_capacity(0);
         let mut lamports = 0; // empty account
+        let derived_did_account = derive_did_account(&test_authority);
+
         let account_info = AccountInfo {
-            key: &derive_did_account(&test_authority).0,
+            key: &derived_did_account.0,
             is_signer: false,
             is_writable: false,
             lamports: Rc::new(RefCell::new(&mut lamports)),
@@ -286,8 +310,16 @@ mod test {
             rent_epoch: 0,
         };
 
-        let should_be_true =
-            is_authority(&account_info, &[], &test_authority, &[], None, None).unwrap();
+        let should_be_true = is_authority(
+            &account_info,
+            derived_did_account.1,
+            &[],
+            &test_authority,
+            &[],
+            None,
+            None,
+        )
+        .unwrap();
         assert!(should_be_true);
     }
 
@@ -309,9 +341,11 @@ mod test {
             rent_epoch: 0,
         };
 
-        let should_be_false =
-            is_authority(&account_info, &[], &test_authority, &[], None, None).unwrap();
-        assert!(!should_be_false);
+        let should_be_error = is_authority(&account_info, 0, &[], &test_authority, &[], None, None);
+        assert_eq!(
+            should_be_error.unwrap_err(),
+            Error::from(ErrorCode::ConstraintSeeds)
+        );
     }
 
     #[test]
@@ -322,10 +356,11 @@ mod test {
         let test_did_account = create_test_did(test_authority);
         let mut data: Vec<u8> = Vec::with_capacity(1024);
         test_did_account.try_serialize(&mut data).unwrap();
+        let derived_did_account = derive_did_account(&test_authority);
 
         let mut lamports = 1; // must be > 0 to pass the Account::try_from
         let account_info = AccountInfo {
-            key: &derive_did_account(&test_authority).0,
+            key: &derived_did_account.0,
             is_signer: false,
             is_writable: false,
             lamports: Rc::new(RefCell::new(&mut lamports)),
@@ -335,8 +370,16 @@ mod test {
             rent_epoch: 0,
         };
 
-        let should_be_false =
-            is_authority(&account_info, &[], &some_other_authority, &[], None, None).unwrap();
+        let should_be_false = is_authority(
+            &account_info,
+            derived_did_account.1,
+            &[],
+            &some_other_authority,
+            &[],
+            None,
+            None,
+        )
+        .unwrap();
         assert!(!should_be_false);
     }
 
@@ -357,10 +400,11 @@ mod test {
 
         let mut data: Vec<u8> = Vec::with_capacity(1024);
         test_did_account.try_serialize(&mut data).unwrap();
+        let derived_did_account = derive_did_account(&test_authority);
 
         let mut lamports = 1; // must be > 0 to pass the Account::try_from
         let account_info = AccountInfo {
-            key: &derive_did_account(&test_authority).0,
+            key: &derived_did_account.0,
             is_signer: false,
             is_writable: false,
             lamports: Rc::new(RefCell::new(&mut lamports)),
@@ -370,8 +414,16 @@ mod test {
             rent_epoch: 0,
         };
 
-        let should_be_true =
-            is_authority(&account_info, &[], &some_other_authority, &[], None, None).unwrap();
+        let should_be_true = is_authority(
+            &account_info,
+            derived_did_account.1,
+            &[],
+            &some_other_authority,
+            &[],
+            None,
+            None,
+        )
+        .unwrap();
         assert!(should_be_true);
     }
 
@@ -394,8 +446,10 @@ mod test {
         test_did_account.try_serialize(&mut data).unwrap();
 
         let mut lamports = 1; // must be > 0 to pass the Account::try_from
+        let derived_did_account = derive_did_account(&test_authority);
+
         let account_info = AccountInfo {
-            key: &derive_did_account(&test_authority).0,
+            key: &derived_did_account.0,
             is_signer: false,
             is_writable: false,
             lamports: Rc::new(RefCell::new(&mut lamports)),
@@ -405,8 +459,16 @@ mod test {
             rent_epoch: 0,
         };
 
-        let should_be_false =
-            is_authority(&account_info, &[], &some_other_authority, &[], None, None).unwrap();
+        let should_be_false = is_authority(
+            &account_info,
+            derived_did_account.1,
+            &[],
+            &some_other_authority,
+            &[],
+            None,
+            None,
+        )
+        .unwrap();
         assert!(!should_be_false);
     }
 }
