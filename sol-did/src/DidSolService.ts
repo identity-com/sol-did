@@ -164,9 +164,23 @@ export class DidSolService {
   }
 
   async getDidAccount(): Promise<DidDataAccount | null> {
-    return (await this._program.account.didAccount.fetchNullable(
+    // TODO: this should be reverted as soon as https://github.com/coral-xyz/anchor/issues/2172 is fixed
+    const accountInfo = await this._program.account.didAccount.getAccountInfo(
       this._didDataAccount
-    )) as DidDataAccount;
+    );
+    if (accountInfo === null || accountInfo.data.length === 0) {
+      return null;
+    }
+
+    return this._program.account.didAccount.coder.accounts.decode<DidDataAccount>(
+      'DidAccount', // TODO: from "this._program.account.didAccount._idlAccount.name" - How to get this officially?
+      accountInfo.data
+    );
+
+    // Original Code
+    // return (await this._program.account.didAccount.fetchNullable(
+    //   this._didDataAccount
+    // )) as DidDataAccount;
   }
 
   async getDidAccountWithSize(
