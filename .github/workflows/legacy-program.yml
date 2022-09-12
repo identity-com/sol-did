@@ -1,9 +1,5 @@
 name: Legacy Program
-on:
-  push:
-    paths:
-    - 'legacy/program'
-  pull_request:
+on: workflow_dispatch
 jobs:
   program-lint:
     name: Format and lint the sol legacy on-chain program on Rust ${{ matrix.rust }} and ${{ matrix.os }}

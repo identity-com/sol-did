@@ -113,6 +113,22 @@ describe('sol-did resolve and migrate operations', () => {
     );
   });
 
+  it('can successfully resolve a generative DID if the PDA has a balance.', async () => {
+    const solKey = web3.Keypair.generate();
+    const localService = await DidSolService.buildFromAnchor(
+      program,
+      DidSolIdentifier.create(solKey.publicKey, TEST_CLUSTER),
+      programProvider
+    );
+
+    await airdrop(programProvider.connection, localService.didDataAccount);
+
+    const didDoc = await localService.resolve();
+    expect(didDoc).to.deep.equal(
+      getGeneratedDidDocument(solKey.publicKey.toBase58(), 'did:sol:localnet:')
+    );
+  });
+
   it('can successfully resolve a DID', async () => {
     const didDoc = await service.resolve();
     expect(didDoc).to.deep.equal(didDocComplete);

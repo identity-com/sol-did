@@ -1,10 +1,5 @@
 name: Legacy-Client E2E
-on:
-  push:
-    paths:
-    - 'legacy/client/**'
-    - 'legacy/program/**'
-  pull_request:
+on: workflow_dispatch
 jobs:
   E2E:
     name: Test the legacy did client against the on-chain program on Solana ${{ matrix.solana }}, Node ${{ matrix.node }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
