@@ -137,6 +137,7 @@ pub fn is_authority(
     eth_raw_signature: Option<&Secp256k1RawSignature>,
     filter_fragment: Option<&String>,
 ) -> Result<bool> {
+
     if did_account.owner == &System::id() && did_account.lamports() == 0 {
         msg!("Validating generative DID");
         // the DID is a generative DID - the only authority is the key itself
@@ -171,26 +172,25 @@ pub fn is_authority(
     // NOTE: The following code is a little more verbose to keep lifetimes separate.
     // let did_to_check_authority = controller_chain.last().unwrap_or(&did_data);
     let did_to_check_authority = controller_chain.last();
-    let authority_exists;
-    if let Some(did_to_check_authority) = did_to_check_authority {
-        authority_exists = did_to_check_authority
+    let authority_exists = if let Some(did_to_check_authority) = did_to_check_authority {
+        did_to_check_authority
             .find_authority(
                 sol_authority,
                 eth_message,
                 eth_raw_signature,
                 filter_fragment,
             )
-            .is_some();
+            .is_some()
     } else {
-        authority_exists = did_data
+        did_data
             .find_authority(
                 sol_authority,
                 eth_message,
                 eth_raw_signature,
                 filter_fragment,
             )
-            .is_some();
-    }
+            .is_some()
+    };
 
     Ok(authority_exists)
 }
