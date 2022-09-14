@@ -16,23 +16,28 @@ export type EthSigner = {
   signMessage: (message: Bytes | string) => Promise<string>;
 };
 
-export type DidDataAccount = {
+export type RawDidSolDataAccount = {
   version: number;
   bump: number;
   nonce: BN;
-  initialVerificationMethod: VerificationMethod;
-  verificationMethods: VerificationMethod[];
+  initialVerificationMethod: RawVerificationMethod;
+  verificationMethods: RawVerificationMethod[];
   services: Service[];
   nativeControllers: web3.PublicKey[];
   otherControllers: string[];
 };
 
-export type VerificationMethod = {
+export type RawVerificationMethod = {
   fragment: string;
   keyData: Bytes;
   methodType: VerificationMethodType;
-  flags: VerificationMethodFlags;
+  flags: number;
 };
+
+export type AddVerificationMethodParams = Omit<
+  RawVerificationMethod,
+  'flags'
+> & { flags: BitwiseVerificationMethodFlag[] };
 
 export type Service = {
   fragment: string;
@@ -41,13 +46,12 @@ export type Service = {
 };
 
 export type DidSolUpdateArgs = {
-  verificationMethods: VerificationMethod[];
+  verificationMethods: AddVerificationMethodParams[];
   services: Service[];
   controllerDIDs: string[];
 };
 
-export enum VerificationMethodFlags {
-  None = 0,
+export enum BitwiseVerificationMethodFlag {
   Authentication = 1 << 0,
   Assertion = 1 << 1,
   KeyAgreement = 1 << 2,
@@ -55,13 +59,6 @@ export enum VerificationMethodFlags {
   CapabilityDelegation = 1 << 4,
   DidDocHidden = 1 << 5,
   OwnershipProof = 1 << 6,
-  All = Authentication |
-    Assertion |
-    KeyAgreement |
-    CapabilityInvocation |
-    CapabilityDelegation |
-    DidDocHidden |
-    OwnershipProof,
 }
 
 export enum VerificationMethodType {
@@ -89,7 +86,7 @@ export type DidVerificationMethodComponents = {
   capabilityDelegation: (string | DidVerificationMethod)[];
 };
 
-// TODO: Change back to Anchor import does not export the correct Wallet type.
+// TODO: Change back to Anchor. import does not export the correct Wallet type.
 // TODO: Create Ticket within Anchor (and post PR?)
 export interface Wallet {
   signTransaction(tx: Transaction): Promise<Transaction>;

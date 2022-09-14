@@ -2,10 +2,10 @@ import * as anchor from '@project-serum/anchor';
 import { Program } from '@project-serum/anchor';
 import { SolDid } from '../../target/types/sol_did';
 import {
-  DidDataAccount,
   DidSolIdentifier,
   DidSolService,
   findProgramAddress,
+  DidSolDataAccount,
 } from '../../src';
 import { before } from 'mocha';
 import { getTestService } from '../utils/utils';
@@ -30,7 +30,7 @@ describe('sol-did service operations', () => {
   let didData, didDataPDABump;
   let service: DidSolService;
 
-  let didDataAccount: DidDataAccount;
+  let didDataAccount: DidSolDataAccount;
 
   const ethAuthority0 = Wallet.fromMnemonic(MNEMONIC, getDerivationPath(0));
   const ethAuthority1 = Wallet.fromMnemonic(MNEMONIC, getDerivationPath(1));

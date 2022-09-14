@@ -4,9 +4,9 @@ import { expect } from 'chai';
 import {
   DidSolService,
   Service,
-  VerificationMethod,
-  VerificationMethodFlags,
+  BitwiseVerificationMethodFlag,
   VerificationMethodType,
+  AddVerificationMethodParams,
 } from '../../src';
 import { Keypair, PublicKey } from '@solana/web3.js';
 
@@ -45,9 +45,11 @@ export const existingAccount = async (service: DidSolService) => {
 export const getTestVerificationMethod = (
   fragment: string,
   key: PublicKey = Keypair.generate().publicKey,
-  flags: VerificationMethodFlags = VerificationMethodFlags.CapabilityInvocation,
+  flags: BitwiseVerificationMethodFlag[] = [
+    BitwiseVerificationMethodFlag.CapabilityInvocation,
+  ],
   methodType: VerificationMethodType = VerificationMethodType.Ed25519VerificationKey2018
-): VerificationMethod => ({
+): AddVerificationMethodParams => ({
   fragment,
   keyData: key.toBytes(),
   methodType,

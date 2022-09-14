@@ -116,7 +116,7 @@ For example:
       fragment: 'eth-address',
       keyData: Buffer.from(ethAddress),
       methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
-      flags: VerificationMethodFlags.CapabilityInvocation | VerificationMethodFlags.Authentication,
+      flags: [VerificationMethodFlags.CapabilityInvocation, VerificationMethodFlags.Authentication],
     },
       nonAuthority.publicKey
     )
@@ -177,7 +177,7 @@ The operation will add a new Verification Method to the DID. The `keyData` can b
       fragment: 'eth-address',
       keyData: Buffer.from(ethAddress),
       methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
-      flags: VerificationMethodFlags.CapabilityInvocation | VerificationMethodFlags.Authentication,
+      flags: [VerificationMethodFlags.CapabilityInvocation, VerificationMethodFlags.Authentication],
     })
   .withAutomaticAlloc(authority.publicKey)
   .rpc();
@@ -206,7 +206,7 @@ that specific VM). `VerificationMethodFlags.OwnershipProof` is supported for the
 // Note in this example the 'default" VM must match authority.publicKey
   await service
     .setVerificationMethodFlags('default', 
-      VerificationMethodFlags.CapabilityInvocation | VerificationMethodFlags.OwnershipProof, 
+      [VerificationMethodFlags.CapabilityInvocation, VerificationMethodFlags.OwnershipProof], 
       authority.publicKey)
     .withAutomaticAlloc(authority.publicKey)
     .rpc();
@@ -279,13 +279,13 @@ which are not allowed to be specified within the bulk update.
             fragment: 'default',
             keyData: authority.publicKey.toBytes(),
             methodType: VerificationMethodType.Ed25519VerificationKey2018,
-            flags: VerificationMethodFlags.CapabilityInvocation | VerificationMethodFlags.Authentication,
+            flags: [VerificationMethodFlags.CapabilityInvocation, VerificationMethodFlags.Authentication],
           },
           {
             fragment: 'eth-address',
             keyData: Buffer.from(ethAddress),
             methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
-            flags: VerificationMethodFlags.CapabilityInvocation | VerificationMethodFlags.Authentication,
+            flags: [VerificationMethodFlags.CapabilityInvocation, VerificationMethodFlags.Authentication],
           }
         ],
       })

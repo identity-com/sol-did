@@ -11,8 +11,7 @@ import {
   EthSigner,
   PrivateKey,
   Service,
-  VerificationMethod,
-  VerificationMethodFlags,
+  BitwiseVerificationMethodFlag,
   VerificationMethodType,
 } from './types';
 import {
@@ -29,6 +28,7 @@ import {
 } from 'did-resolver';
 import { DidSolIdentifier } from '../DidSolIdentifier';
 import { ExtendedCluster } from './connection';
+import { VerificationMethod } from './wrappers';
 
 export const fetchProgram = async (
   provider: Provider
@@ -126,16 +126,17 @@ export const validateAndSplitControllers = (controllerDids: string[]) => {
 
 export const defaultVerificationMethod = (
   authority: PublicKey
-): VerificationMethod => ({
-  fragment: DEFAULT_KEY_ID,
-  methodType: VerificationMethodType.Ed25519VerificationKey2018,
-  flags:
-    VerificationMethodFlags.CapabilityInvocation |
-    VerificationMethodFlags.OwnershipProof,
-  keyData: authority.toBuffer(),
-});
+): VerificationMethod =>
+  VerificationMethod.from({
+    fragment: DEFAULT_KEY_ID,
+    methodType: VerificationMethodType.Ed25519VerificationKey2018,
+    flags:
+      BitwiseVerificationMethodFlag.CapabilityInvocation |
+      BitwiseVerificationMethodFlag.OwnershipProof,
+    keyData: authority.toBuffer(),
+  });
 
-// Note: VerificationMethodFlags.OwnershipProof is not mapped to DID components
+// Note: BitwiseVerificationMethodFlag.OwnershipProof is not mapped to DID components
 export const mapVerificationMethodsToDidComponents = (
   methods: VerificationMethod[],
   identifier: DidSolIdentifier
@@ -151,48 +152,30 @@ export const mapVerificationMethodsToDidComponents = (
 
   for (const method of methods) {
     // skip hidden methods
-    if (
-      (method.flags & VerificationMethodFlags.DidDocHidden) ===
-      VerificationMethodFlags.DidDocHidden
-    ) {
+    if (method.flags.has(BitwiseVerificationMethodFlag.DidDocHidden)) {
       continue;
     }
-    if (
-      (method.flags & VerificationMethodFlags.Authentication) ===
-      VerificationMethodFlags.Authentication
-    ) {
+    if (method.flags.has(BitwiseVerificationMethodFlag.Authentication)) {
       didComponents.authentication.push(
         `${identifier.toString()}#${method.fragment}`
       );
     }
-    if (
-      (method.flags & VerificationMethodFlags.Assertion) ===
-      VerificationMethodFlags.Assertion
-    ) {
+    if (method.flags.has(BitwiseVerificationMethodFlag.Authentication)) {
       didComponents.assertionMethod.push(
         `${identifier.toString()}#${method.fragment}`
       );
     }
-    if (
-      (method.flags & VerificationMethodFlags.KeyAgreement) ===
-      VerificationMethodFlags.KeyAgreement
-    ) {
+    if (method.flags.has(BitwiseVerificationMethodFlag.KeyAgreement)) {
       didComponents.keyAgreement.push(
         `${identifier.toString()}#${method.fragment}`
       );
     }
-    if (
-      (method.flags & VerificationMethodFlags.CapabilityInvocation) ===
-      VerificationMethodFlags.CapabilityInvocation
-    ) {
+    if (method.flags.has(BitwiseVerificationMethodFlag.CapabilityInvocation)) {
       didComponents.capabilityInvocation.push(
         `${identifier.toString()}#${method.fragment}`
       );
     }
-    if (
-      (method.flags & VerificationMethodFlags.CapabilityDelegation) ===
-      VerificationMethodFlags.CapabilityDelegation
-    ) {
+    if (method.flags.has(BitwiseVerificationMethodFlag.CapabilityDelegation)) {
       didComponents.capabilityDelegation.push(
         `${identifier.toString()}#${method.fragment}`
       );

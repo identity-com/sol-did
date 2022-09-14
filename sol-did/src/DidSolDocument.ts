@@ -3,25 +3,22 @@ import {
   ServiceEndpoint,
   VerificationMethod as DidVerificationMethod,
 } from 'did-resolver';
-import { getSolContextPrefix, W3ID_CONTEXT, SOLANA_MAINNET } from './lib/const';
+import { getSolContextPrefix, W3ID_CONTEXT } from './lib/const';
 import {
-  DidDataAccount,
   DidSolUpdateArgs,
   Service,
-  VerificationMethod,
-  VerificationMethodFlags,
+  BitwiseVerificationMethodFlag,
   VerificationMethodType,
+  AddVerificationMethodParams,
 } from './lib/types';
-import { PublicKey } from '@solana/web3.js';
 import { DidSolIdentifier } from './DidSolIdentifier';
 import {
   defaultVerificationMethod,
   getKeyDataFromVerificationMethod,
-  mapControllers,
   mapServices,
   mapVerificationMethodsToDidComponents,
 } from './lib/utils';
-import { ExtendedCluster } from './lib/connection';
+import { DidSolDataAccount, VerificationMethodFlags } from './lib/wrappers';
 
 /**
  * A class representing a did:sol document
@@ -64,31 +61,20 @@ export class DidSolDocument implements DIDDocument {
     return new DidSolDocument(identifier);
   }
 
-  static from(
-    account: DidDataAccount,
-    clusterType: ExtendedCluster = SOLANA_MAINNET
-  ): DidSolDocument {
-    const identifier = new DidSolIdentifier({
-      authority: new PublicKey(account.initialVerificationMethod.keyData),
-      clusterType,
-    });
-    const doc = DidSolDocument.sparse(identifier);
+  static from(account: DidSolDataAccount): DidSolDocument {
+    const doc = DidSolDocument.sparse(account.identifier);
     // VM related
-    const allVerificationMethods = [account.initialVerificationMethod].concat(
-      account.verificationMethods
-    );
     Object.assign(
       doc,
-      mapVerificationMethodsToDidComponents(allVerificationMethods, identifier)
+      mapVerificationMethodsToDidComponents(
+        account.verificationMethods,
+        account.identifier
+      )
     );
     // Services
-    doc.service = mapServices(account.services, identifier);
+    doc.service = mapServices(account.services, account.identifier);
     // Controllers
-    doc.controller = mapControllers(
-      account.nativeControllers,
-      account.otherControllers,
-      clusterType
-    );
+    doc.controller = account.controllers;
     return doc;
   }
 
@@ -172,7 +158,7 @@ export class DidSolDocument implements DIDDocument {
     // Verification Methods
     if (this.verificationMethod) {
       args.verificationMethods = this.verificationMethod.map(
-        (vm: DidVerificationMethod): VerificationMethod =>
+        (vm: DidVerificationMethod): AddVerificationMethodParams =>
           this.mapVerificationMethod(vm)
       );
     }
@@ -180,42 +166,44 @@ export class DidSolDocument implements DIDDocument {
     return args;
   }
 
-  getFlagsFromVerificationMethod(fragment: string): VerificationMethodFlags {
-    let flags = VerificationMethodFlags.None;
+  getFlagsFromVerificationMethod(
+    fragment: string
+  ): BitwiseVerificationMethodFlag {
+    let flags = 0;
 
     if (
       this.authentication &&
       this.authentication.find((id) => id.endsWith(`#${fragment}`))
     ) {
-      flags |= VerificationMethodFlags.Authentication;
+      flags |= BitwiseVerificationMethodFlag.Authentication;
     }
 
     if (
       this.assertionMethod &&
       this.assertionMethod.find((id) => id.endsWith(`#${fragment}`))
     ) {
-      flags |= VerificationMethodFlags.Assertion;
+      flags |= BitwiseVerificationMethodFlag.Assertion;
     }
 
     if (
       this.keyAgreement &&
       this.keyAgreement.find((id) => id.endsWith(`#${fragment}`))
     ) {
-      flags |= VerificationMethodFlags.KeyAgreement;
+      flags |= BitwiseVerificationMethodFlag.KeyAgreement;
     }
 
     if (
       this.capabilityInvocation &&
       this.capabilityInvocation.find((id) => id.endsWith(`#${fragment}`))
     ) {
-      flags |= VerificationMethodFlags.CapabilityInvocation;
+      flags |= BitwiseVerificationMethodFlag.CapabilityInvocation;
     }
 
     if (
       this.capabilityDelegation &&
       this.capabilityDelegation.find((id) => id.endsWith(`#${fragment}`))
     ) {
-      flags |= VerificationMethodFlags.CapabilityDelegation;
+      flags |= BitwiseVerificationMethodFlag.CapabilityDelegation;
     }
 
     return flags;
@@ -225,7 +213,9 @@ export class DidSolDocument implements DIDDocument {
    * Map a DidVerificationMethod to a compressed did:sol VerificationMethod with flags.
    * @param vm DidVerificationMethod to map
    */
-  mapVerificationMethod(vm: DidVerificationMethod): VerificationMethod {
+  mapVerificationMethod(
+    vm: DidVerificationMethod
+  ): AddVerificationMethodParams {
     const id = DidSolIdentifier.parse(this.id);
 
     const methodType =
@@ -241,7 +231,7 @@ export class DidSolDocument implements DIDDocument {
     return {
       fragment,
       methodType,
-      flags,
+      flags: VerificationMethodFlags.of(flags).array,
       keyData,
     };
   }

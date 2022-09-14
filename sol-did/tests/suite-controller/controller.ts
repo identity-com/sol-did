@@ -1,14 +1,18 @@
 import * as anchor from '@project-serum/anchor';
 import { Program } from '@project-serum/anchor';
 import { SolDid } from '../../target/types/sol_did';
-import { DidDataAccount, DidSolIdentifier, DidSolService } from '../../src';
+import {
+  DidSolIdentifier,
+  DidSolService,
+  findProgramAddress,
+  DidSolDataAccount,
+} from '../../src';
 import { before } from 'mocha';
 
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import { expect } from 'chai';
-import { findProgramAddress } from '../../src';
 import { TEST_CLUSTER } from '../utils/const';
 import { Wallet } from 'ethers';
 import { getDerivationPath, MNEMONIC } from '../fixtures/config';
@@ -27,7 +31,7 @@ describe('sol-did controller operations', () => {
 
   const authority = programProvider.wallet;
 
-  let didDataAccount: DidDataAccount;
+  let didDataAccount: DidSolDataAccount;
 
   const nonAuthoritySigner = anchor.web3.Keypair.generate();
   const ethAuthority = Wallet.fromMnemonic(MNEMONIC, getDerivationPath(0));
@@ -69,8 +73,10 @@ describe('sol-did controller operations', () => {
       .rpc();
 
     didDataAccount = await service.getDidAccount();
-    expect(didDataAccount.nativeControllers).to.deep.equal([solKey.publicKey]);
-    expect(didDataAccount.otherControllers).to.deep.equal([ethrDid]);
+    expect(didDataAccount.controllers).to.deep.equal([
+      DidSolIdentifier.create(solKey.publicKey, TEST_CLUSTER).toString(),
+      ethrDid,
+    ]);
   });
 
   it('can update the controllers of a DID and successfully filters duplicates', async () => {
@@ -86,8 +92,10 @@ describe('sol-did controller operations', () => {
       .rpc();
 
     didDataAccount = await service.getDidAccount();
-    expect(didDataAccount.nativeControllers).to.deep.equal([solKey.publicKey]);
-    expect(didDataAccount.otherControllers).to.deep.equal([ethrDid]);
+    expect(didDataAccount.controllers).to.deep.equal([
+      DidSolIdentifier.create(solKey.publicKey, TEST_CLUSTER).toString(),
+      ethrDid,
+    ]);
   });
 
   it('cannot add itself as a controller', async () => {
@@ -112,7 +120,6 @@ describe('sol-did controller operations', () => {
       .rpc();
 
     didDataAccount = await service.getDidAccount();
-    expect(didDataAccount.nativeControllers).to.deep.equal([]);
-    expect(didDataAccount.otherControllers).to.deep.equal([ethrDid]);
+    expect(didDataAccount.controllers).to.deep.equal([ethrDid]);
   });
 });
