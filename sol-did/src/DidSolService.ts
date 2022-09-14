@@ -31,8 +31,9 @@ import {
   DidSolUpdateArgs,
   EthSigner,
   Service,
-  RawVerificationMethod,
   Wallet,
+  BitwiseVerificationMethodFlag,
+  AddVerificationMethodParams,
 } from './lib/types';
 import { DEFAULT_KEY_ID, INITIAL_MIN_ACCOUNT_SIZE } from './lib/const';
 import { DidSolDocument } from './DidSolDocument';
@@ -51,7 +52,7 @@ import {
   SolTransaction,
 } from '@identity.com/sol-did-client-legacy';
 import { DidAccountSizeHelper } from './DidAccountSizeHelper';
-import { DidSolDataAccount } from './lib/wrappers';
+import { DidSolDataAccount, VerificationMethodFlags } from './lib/wrappers';
 
 /**
  * The DidSolService class is a wrapper around the Solana DID program.
@@ -348,7 +349,7 @@ export class DidSolService {
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
   addVerificationMethod(
-    method: RawVerificationMethod,
+    method: AddVerificationMethodParams,
     authority: PublicKey = this._didAuthority
   ): DidSolServiceBuilder {
     const instructionPromise = this._program.methods
@@ -357,7 +358,7 @@ export class DidSolService {
           fragment: method.fragment,
           keyData: method.keyData,
           methodType: method.methodType,
-          flags: method.flags,
+          flags: VerificationMethodFlags.ofArray(method.flags).raw,
         },
         null
       )
@@ -485,14 +486,14 @@ export class DidSolService {
    */
   setVerificationMethodFlags(
     fragment: string,
-    flags: number,
+    flags: BitwiseVerificationMethodFlag[],
     authority: PublicKey = this._didAuthority
   ): DidSolServiceBuilder {
     const instructionPromise = this._program.methods
       .setVmFlags(
         {
           fragment,
-          flags,
+          flags: VerificationMethodFlags.ofArray(flags).raw,
         },
         null
       )
@@ -593,7 +594,12 @@ export class DidSolService {
     const instructionPromise = this._program.methods
       .update(
         {
-          verificationMethods: updateArgs.verificationMethods,
+          verificationMethods: updateArgs.verificationMethods.map((method) => ({
+            fragment: method.fragment,
+            keyData: method.keyData,
+            methodType: method.methodType,
+            flags: VerificationMethodFlags.ofArray(method.flags).raw,
+          })),
           services: updateArgs.services,
           nativeControllers: updateControllers.nativeControllers,
           otherControllers: updateControllers.otherControllers,

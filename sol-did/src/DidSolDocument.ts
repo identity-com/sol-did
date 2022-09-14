@@ -7,9 +7,9 @@ import { getSolContextPrefix, W3ID_CONTEXT } from './lib/const';
 import {
   DidSolUpdateArgs,
   Service,
-  RawVerificationMethod,
   BitwiseVerificationMethodFlag,
   VerificationMethodType,
+  AddVerificationMethodParams,
 } from './lib/types';
 import { DidSolIdentifier } from './DidSolIdentifier';
 import {
@@ -18,7 +18,7 @@ import {
   mapServices,
   mapVerificationMethodsToDidComponents,
 } from './lib/utils';
-import { DidSolDataAccount } from './lib/wrappers';
+import { DidSolDataAccount, VerificationMethodFlags } from './lib/wrappers';
 
 /**
  * A class representing a did:sol document
@@ -158,7 +158,7 @@ export class DidSolDocument implements DIDDocument {
     // Verification Methods
     if (this.verificationMethod) {
       args.verificationMethods = this.verificationMethod.map(
-        (vm: DidVerificationMethod): RawVerificationMethod =>
+        (vm: DidVerificationMethod): AddVerificationMethodParams =>
           this.mapVerificationMethod(vm)
       );
     }
@@ -169,7 +169,7 @@ export class DidSolDocument implements DIDDocument {
   getFlagsFromVerificationMethod(
     fragment: string
   ): BitwiseVerificationMethodFlag {
-    let flags = BitwiseVerificationMethodFlag.None;
+    let flags = 0;
 
     if (
       this.authentication &&
@@ -213,7 +213,9 @@ export class DidSolDocument implements DIDDocument {
    * Map a DidVerificationMethod to a compressed did:sol RawVerificationMethod with flags.
    * @param vm DidVerificationMethod to map
    */
-  mapVerificationMethod(vm: DidVerificationMethod): RawVerificationMethod {
+  mapVerificationMethod(
+    vm: DidVerificationMethod
+  ): AddVerificationMethodParams {
     const id = DidSolIdentifier.parse(this.id);
 
     const methodType =
@@ -229,7 +231,7 @@ export class DidSolDocument implements DIDDocument {
     return {
       fragment,
       methodType,
-      flags,
+      flags: VerificationMethodFlags.of(flags).array,
       keyData,
     };
   }

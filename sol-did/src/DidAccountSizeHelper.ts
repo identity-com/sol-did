@@ -2,6 +2,7 @@ import {
   RawDidSolDataAccount,
   Service,
   RawVerificationMethod,
+  AddVerificationMethodParams,
 } from './lib/types';
 import { getBinarySize } from './lib/utils';
 
@@ -24,7 +25,10 @@ export class DidAccountSizeHelper {
   }
 
   static getVerificationMethodSize(
-    verificationMethod: RawVerificationMethod | undefined
+    verificationMethod:
+      | RawVerificationMethod
+      | AddVerificationMethodParams
+      | undefined
   ): number {
     if (!verificationMethod) {
       return 0;

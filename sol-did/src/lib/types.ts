@@ -29,6 +29,11 @@ export type RawVerificationMethod = {
   flags: number;
 };
 
+export type AddVerificationMethodParams = Omit<
+  RawVerificationMethod,
+  'flags'
+> & { flags: BitwiseVerificationMethodFlag[] };
+
 export type Service = {
   fragment: string;
   serviceType: string;
@@ -36,13 +41,12 @@ export type Service = {
 };
 
 export type DidSolUpdateArgs = {
-  verificationMethods: RawVerificationMethod[];
+  verificationMethods: AddVerificationMethodParams[];
   services: Service[];
   controllerDIDs: string[];
 };
 
 export enum BitwiseVerificationMethodFlag {
-  None = 0,
   Authentication = 1 << 0,
   Assertion = 1 << 1,
   KeyAgreement = 1 << 2,
@@ -50,13 +54,6 @@ export enum BitwiseVerificationMethodFlag {
   CapabilityDelegation = 1 << 4,
   DidDocHidden = 1 << 5,
   OwnershipProof = 1 << 6,
-  All = Authentication |
-    Assertion |
-    KeyAgreement |
-    CapabilityInvocation |
-    CapabilityDelegation |
-    DidDocHidden |
-    OwnershipProof,
 }
 
 export enum VerificationMethodType {

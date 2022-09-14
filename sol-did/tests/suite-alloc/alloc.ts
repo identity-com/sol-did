@@ -12,7 +12,6 @@ import {
   DidSolIdentifier,
   DidSolService,
   DidSolDataAccount,
-  RawVerificationMethod,
   BitwiseVerificationMethodFlag,
   VerificationMethodType,
 } from '../../src';
@@ -102,10 +101,10 @@ describe('sol-did alloc operations', () => {
     expect(didDataAccount.verificationMethods[0].keyData).to.deep.equal(
       authority.publicKey.toBytes()
     );
-    expect(didDataAccount.verificationMethods[0].flags.raw).to.equal(
-      BitwiseVerificationMethodFlag.CapabilityInvocation |
-        BitwiseVerificationMethodFlag.OwnershipProof
-    );
+    expect(didDataAccount.verificationMethods[0].flags.array).to.deep.equal([
+      BitwiseVerificationMethodFlag.CapabilityInvocation,
+      BitwiseVerificationMethodFlag.OwnershipProof,
+    ]);
 
     expect(didDataAccountSize).to.equal(INITIAL_MIN_ACCOUNT_SIZE);
 
@@ -188,11 +187,11 @@ describe('sol-did alloc operations', () => {
     const didDataAccountSizeBefore = didDataAccountSize;
     const ethAddressAsBytes = utils.arrayify(ethKey.address);
 
-    const method: RawVerificationMethod = {
+    const method = {
       fragment: 'eth-key',
       keyData: Buffer.from(ethAddressAsBytes),
       methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
-      flags: BitwiseVerificationMethodFlag.CapabilityInvocation,
+      flags: [BitwiseVerificationMethodFlag.CapabilityInvocation],
     };
     const vmSize = DidAccountSizeHelper.getVerificationMethodSize(method);
     const removedServiceSize = DidAccountSizeHelper.getServiceSize(

@@ -5,6 +5,7 @@ import {
   Bytes,
   VerificationMethodType,
   BitwiseVerificationMethodFlag,
+  AddVerificationMethodParams,
 } from './types';
 import { BN } from '@project-serum/anchor';
 import { mapControllers } from './utils';
@@ -88,6 +89,15 @@ export class VerificationMethod {
     return new VerificationMethod(rawVerificationMethod);
   }
 
+  toParams(): AddVerificationMethodParams {
+    return {
+      fragment: this.fragment,
+      keyData: this.keyData,
+      methodType: this.methodType,
+      flags: this.flags.array,
+    };
+  }
+
   get fragment(): string {
     return this._rawVerificationMethod.fragment;
   }
@@ -109,11 +119,30 @@ export class VerificationMethodFlags {
   constructor(private _flags: number) {}
 
   static none() {
-    return new VerificationMethodFlags(BitwiseVerificationMethodFlag.None);
+    return new VerificationMethodFlags(0);
+  }
+
+  static of(flags: number) {
+    return new VerificationMethodFlags(flags);
   }
 
   get raw(): number {
     return this._flags;
+  }
+
+  static ofArray(
+    flags: BitwiseVerificationMethodFlag[]
+  ): VerificationMethodFlags {
+    return flags.reduce(
+      (acc, flag) => acc.set(flag),
+      VerificationMethodFlags.none()
+    );
+  }
+
+  get array(): BitwiseVerificationMethodFlag[] {
+    return Object.keys(BitwiseVerificationMethodFlag)
+      .map((i) => parseInt(i))
+      .filter((i) => !isNaN(i) && this.has(i));
   }
 
   has(flag: BitwiseVerificationMethodFlag): boolean {
