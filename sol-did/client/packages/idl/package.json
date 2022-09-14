@@ -1,6 +1,6 @@
 {
   "name": "@identity.com/sol-did-idl",
-  "version": "3.0.1-beta1",
+  "version": "3.0.0",
   "description": "The official Solana IDL for did:sol",
   "license": "MIT",
   "main": "dist/src/index.js",
@@ -22,7 +22,6 @@
     "clean": "shx rm -rf ./dist",
     "compile": "tsc -p tsconfig.json",
     "build": "yarn clean && yarn compile",
-    "prepare": "yarn build",
     "prepack": "yarn build"
   },
   "dependencies": {

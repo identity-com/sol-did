@@ -1,4 +1,4 @@
-# SOL DID CLI
+# `did:sol` CLI
 
 A typescript-based CLI for registering, manipulating, and resolving DIDs using the `did:sol` method.
 
