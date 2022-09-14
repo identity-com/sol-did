@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Restructured npm packages to be a single `yarn` workspace under [sol-did](./sol-did/package.json)
 
 ### Changed
 - **Breaking**: `getDidAccount()` now returns a clearer data model for a Verification Method and not the raw on-chain version
