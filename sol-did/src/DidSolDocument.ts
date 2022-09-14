@@ -210,7 +210,7 @@ export class DidSolDocument implements DIDDocument {
   }
 
   /**
-   * Map a DidVerificationMethod to a compressed did:sol RawVerificationMethod with flags.
+   * Map a DidVerificationMethod to a compressed did:sol VerificationMethod with flags.
    * @param vm DidVerificationMethod to map
    */
   mapVerificationMethod(
