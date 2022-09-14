@@ -1,6 +1,6 @@
 import * as anchor from '@project-serum/anchor';
 import { LangErrorCode, Program } from '@project-serum/anchor';
-import { SolDid } from '../../target/types/sol_did';
+import { SolDid } from '@identity.com/sol-did-idl';
 
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -13,8 +13,9 @@ import {
   DidSolService,
   BitwiseVerificationMethodFlag,
   VerificationMethodType,
-} from '../../src';
-import { findProgramAddress, DEFAULT_KEY_ID } from '../../src';
+  findProgramAddress,
+  DEFAULT_KEY_ID
+} from '@identity.com/sol-did-client';
 import { TEST_CLUSTER } from '../utils/const';
 
 chai.use(chaiAsPromised);

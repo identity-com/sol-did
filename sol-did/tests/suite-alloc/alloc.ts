@@ -1,6 +1,6 @@
 import * as anchor from '@project-serum/anchor';
 import { Program } from '@project-serum/anchor';
-import { SolDid } from '../../target/types/sol_did';
+import { SolDid } from '@identity.com/sol-did-idl';
 
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -14,8 +14,9 @@ import {
   DidSolDataAccount,
   BitwiseVerificationMethodFlag,
   VerificationMethodType,
-} from '../../src';
-import { findProgramAddress, INITIAL_MIN_ACCOUNT_SIZE } from '../../src';
+  findProgramAddress,
+  INITIAL_MIN_ACCOUNT_SIZE
+} from '@identity.com/sol-did-client';
 import { TEST_CLUSTER } from '../utils/const';
 import { utils, Wallet } from 'ethers';
 

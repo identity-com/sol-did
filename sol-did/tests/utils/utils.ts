@@ -7,7 +7,7 @@ import {
   BitwiseVerificationMethodFlag,
   VerificationMethodType,
   AddVerificationMethodParams,
-} from '../../src';
+} from '@identity.com/sol-did-client';
 import { Keypair, PublicKey } from '@solana/web3.js';
 
 export const checkConnectionLogs = (connection: web3.Connection) => {

@@ -1,6 +1,6 @@
 import * as anchor from '@project-serum/anchor';
 import { Program, Wallet, web3 } from '@project-serum/anchor';
-import { SolDid } from '../../target/types/sol_did';
+import { SolDid } from '@identity.com/sol-did-idl';
 
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -13,7 +13,7 @@ import {
   BitwiseVerificationMethodFlag,
   VerificationMethodType,
   AddVerificationMethodParams,
-} from '../../src';
+} from '@identity.com/sol-did-client';
 
 import {
   getGeneratedDidDocument,
