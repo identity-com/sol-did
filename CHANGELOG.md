@@ -8,8 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
-- Breaking: `getDidAccount()` now returns a clearer data model for a Verification Method and not the raw on-chain version
-- Breaking: `addVerificationMethod` and `setVerificationMethodFlags` now accept `flags` as an array of `BitwiseVerificationMethodFlag`
+- **Breaking**: `getDidAccount()` now returns a clearer data model for a Verification Method and not the raw on-chain version
+- **Breaking**: `addVerificationMethod` and `setVerificationMethodFlags` now accept `flags` as an array of `BitwiseVerificationMethodFlag`
+- **Breaking**: Updated `DidSolService.build()` Builder interface signature.
 
 ### Deprecated
 
