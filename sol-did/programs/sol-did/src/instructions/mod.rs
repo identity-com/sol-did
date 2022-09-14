@@ -1,5 +1,4 @@
 mod add_service;
-mod add_service2;
 mod add_verification_method;
 mod close;
 mod initialize;
@@ -12,7 +11,6 @@ mod set_vm_flags;
 mod update;
 
 pub use add_service::*;
-pub use add_service2::*;
 pub use add_verification_method::*;
 pub use close::*;
 pub use initialize::*;

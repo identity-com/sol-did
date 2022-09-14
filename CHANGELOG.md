@@ -7,16 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Restructured npm packages to be a single `yarn` workspace under [sol-did](./sol-did/package.json)
-- `add_service2` added that allows to add a service that can overwrite an existing service.
 
 ### Changed
 - **Breaking**: `getDidAccount()` now returns a clearer data model for a Verification Method and not the raw on-chain version
 - **Breaking**: `addVerificationMethod` and `setVerificationMethodFlags` now accept `flags` as an array of `BitwiseVerificationMethodFlag`
 - **Breaking**: Updated `DidSolService.build()` Builder interface signature.
-- `addService` operation takes an additional `allowsOverwrite` flag to allow an update of an existing service without removing it first.
+- **Breaking**: `addService` operation takes an additional `allowsOverwrite` flag to allow an update of an existing service without removing it first.
 
 ### Deprecated
-- `add_service` instruction is deprecated in favor of `add_service2`;
 
 ### Removed
 

@@ -49,22 +49,13 @@ pub mod sol_did {
         instructions::remove_verification_method(ctx, fragment, eth_signature)
     }
 
-    #[deprecated(since = "3.0.1", note = "add_service was deprecated for add_service2")]
     pub fn add_service(
         ctx: Context<AddService>,
-        service: Service,
-        eth_signature: Option<Secp256k1RawSignature>,
-    ) -> Result<()> {
-        instructions::add_service(ctx, service, eth_signature)
-    }
-
-    pub fn add_service2(
-        ctx: Context<AddService2>,
         service: Service,
         allow_overwrite: bool,
         eth_signature: Option<Secp256k1RawSignature>,
     ) -> Result<()> {
-        instructions::add_service2(ctx, service, allow_overwrite, eth_signature)
+        instructions::add_service(ctx, service, allow_overwrite, eth_signature)
     }
 
     pub fn remove_service(
