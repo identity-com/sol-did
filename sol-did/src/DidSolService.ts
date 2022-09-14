@@ -252,7 +252,7 @@ export class DidSolService {
    */
   initialize(
     size: number = INITIAL_MIN_ACCOUNT_SIZE,
-    payer: PublicKey = this._didAuthority
+    payer: PublicKey = this._wallet.publicKey
   ): DidSolServiceBuilder {
     if (size < INITIAL_MIN_ACCOUNT_SIZE) {
       throw new Error(
@@ -289,8 +289,8 @@ export class DidSolService {
    */
   resize(
     size: number,
-    payer: PublicKey = this._didAuthority,
-    authority: PublicKey = this._didAuthority
+    payer: PublicKey = this._wallet.publicKey,
+    authority: PublicKey = this._wallet.publicKey
   ): DidSolServiceBuilder {
     const instructionPromise = this._program.methods
       .resize(size, null)
@@ -320,7 +320,7 @@ export class DidSolService {
    */
   close(
     destination: PublicKey,
-    authority: PublicKey = this._didAuthority
+    authority: PublicKey = this._wallet.publicKey
   ): DidSolServiceBuilder {
     const instructionPromise = this._program.methods
       .close(null)
@@ -350,7 +350,7 @@ export class DidSolService {
    */
   addVerificationMethod(
     method: AddVerificationMethodParams,
-    authority: PublicKey = this._didAuthority
+    authority: PublicKey = this._wallet.publicKey
   ): DidSolServiceBuilder {
     const instructionPromise = this._program.methods
       .addVerificationMethod(
@@ -385,7 +385,7 @@ export class DidSolService {
    */
   removeVerificationMethod(
     fragment: string,
-    authority: PublicKey = this._didAuthority
+    authority: PublicKey = this._wallet.publicKey
   ): DidSolServiceBuilder {
     const instructionPromise = this._program.methods
       .removeVerificationMethod(fragment, null)
@@ -423,7 +423,7 @@ export class DidSolService {
    */
   addService(
     service: Service,
-    authority: PublicKey = this._didAuthority
+    authority: PublicKey = this._wallet.publicKey
   ): DidSolServiceBuilder {
     const instructionPromise = this._program.methods
       .addService(service, null)
@@ -451,7 +451,7 @@ export class DidSolService {
    */
   removeService(
     fragment: string,
-    authority: PublicKey = this._didAuthority
+    authority: PublicKey = this._wallet.publicKey
   ): DidSolServiceBuilder {
     const instructionPromise = this._program.methods
       .removeService(fragment, null)
@@ -487,7 +487,7 @@ export class DidSolService {
   setVerificationMethodFlags(
     fragment: string,
     flags: BitwiseVerificationMethodFlag[],
-    authority: PublicKey = this._didAuthority
+    authority: PublicKey = this._wallet.publicKey
   ): DidSolServiceBuilder {
     const instructionPromise = this._program.methods
       .setVmFlags(
@@ -521,7 +521,7 @@ export class DidSolService {
    */
   setControllers(
     controllerDIDs: string[],
-    authority: PublicKey = this._didAuthority
+    authority: PublicKey = this._wallet.publicKey
   ): DidSolServiceBuilder {
     const updateControllers = validateAndSplitControllers(controllerDIDs);
 
@@ -567,7 +567,7 @@ export class DidSolService {
    */
   updateFromDoc(
     document: DidSolDocument,
-    authority: PublicKey = this._didAuthority
+    authority: PublicKey = this._wallet.publicKey
   ): DidSolServiceBuilder {
     if (document.id !== this.did) {
       throw new Error(
@@ -586,7 +586,7 @@ export class DidSolService {
    */
   update(
     updateArgs: DidSolUpdateArgs,
-    authority: PublicKey = this._didAuthority
+    authority: PublicKey = this._wallet.publicKey
   ): DidSolServiceBuilder {
     const updateControllers = validateAndSplitControllers(
       updateArgs.controllerDIDs
@@ -670,7 +670,7 @@ export class DidSolService {
    * @param legacyAuthority if passed, close the legacy account after migration. Refund will go to payer.
    */
   migrate(
-    payer: PublicKey = this._didAuthority,
+    payer: PublicKey = this._wallet.publicKey,
     legacyAuthority?: PublicKey
   ): DidSolServiceBuilder {
     const authority = this._didAuthority;
