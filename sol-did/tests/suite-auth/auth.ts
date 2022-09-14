@@ -207,11 +207,11 @@ describe('sol-did auth operations', () => {
     expect(didDataAccount.nonce.toString()).to.be.equal(
       didDataAccountBefore.nonce.addn(1).toString()
     );
-    expect(didDataAccount.services[1].fragment).to.equal(tService.fragment);
-    expect(didDataAccount.services[1].serviceType).to.equal(
+    expect(didDataAccount.services[0].fragment).to.equal(tService.fragment);
+    expect(didDataAccount.services[0].serviceType).to.equal(
       tService.serviceType
     );
-    expect(didDataAccount.services[1].serviceEndpoint).to.equal(
+    expect(didDataAccount.services[0].serviceEndpoint).to.equal(
       tService.serviceEndpoint
     );
 
@@ -310,11 +310,11 @@ describe('sol-did auth operations', () => {
     expect(didDataAccount.nonce.toString()).to.be.equal(
       didDataAccountBefore.nonce.addn(1).toString()
     );
-    expect(didDataAccount.services[2].fragment).to.equal(tService.fragment);
-    expect(didDataAccount.services[2].serviceType).to.equal(
+    expect(didDataAccount.services[0].fragment).to.equal(tService.fragment);
+    expect(didDataAccount.services[0].serviceType).to.equal(
       tService.serviceType
     );
-    expect(didDataAccount.services[2].serviceEndpoint).to.equal(
+    expect(didDataAccount.services[0].serviceEndpoint).to.equal(
       tService.serviceEndpoint
     );
 

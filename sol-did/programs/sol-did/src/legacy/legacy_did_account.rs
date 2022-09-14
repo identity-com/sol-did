@@ -98,7 +98,7 @@ impl LegacyDidAccount {
         let migrated = self.migrate_verification_methods();
         into.set_verification_methods(Vec::new(), migrated)?;
         let migrated = self.migrate_services();
-        into.set_services(migrated)?;
+        into.set_services(migrated, false)?;
         into.set_native_controllers(self.controller.clone())?;
 
         // TODO: Documentation

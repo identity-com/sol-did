@@ -199,6 +199,41 @@ export type SolDid = {
       ]
     },
     {
+      "name": "addService2",
+      "accounts": [
+        {
+          "name": "didData",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "service",
+          "type": {
+            "defined": "Service"
+          }
+        },
+        {
+          "name": "allowOverwrite",
+          "type": "bool"
+        },
+        {
+          "name": "ethSignature",
+          "type": {
+            "option": {
+              "defined": "Secp256k1RawSignature"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "removeService",
       "accounts": [
         {
@@ -870,6 +905,41 @@ export const IDL: SolDid = {
           "type": {
             "defined": "Service"
           }
+        },
+        {
+          "name": "ethSignature",
+          "type": {
+            "option": {
+              "defined": "Secp256k1RawSignature"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "addService2",
+      "accounts": [
+        {
+          "name": "didData",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "service",
+          "type": {
+            "defined": "Service"
+          }
+        },
+        {
+          "name": "allowOverwrite",
+          "type": "bool"
         },
         {
           "name": "ethSignature",

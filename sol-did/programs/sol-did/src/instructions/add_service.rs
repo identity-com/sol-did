@@ -2,6 +2,7 @@ use crate::constants::DID_ACCOUNT_SEED;
 use crate::state::{DidAccount, Secp256k1RawSignature, Service};
 use anchor_lang::prelude::*;
 
+#[deprecated(since = "3.0.1", note = "add_service was deprecated for add_service2")]
 pub fn add_service(
     ctx: Context<AddService>,
     service: Service,
@@ -12,12 +13,13 @@ pub fn add_service(
         data.nonce += 1;
     }
 
-    let joint_services = [data.services.as_slice(), &[service]].concat();
-    data.set_services(joint_services)
+    let joint_services = [&[service], data.services.as_slice()].concat();
+    data.set_services(joint_services, false)
 }
 
 #[derive(Accounts)]
 #[instruction(service: Service, eth_signature: Option<Secp256k1RawSignature>)]
+#[deprecated(since = "3.0.1", note = "AddService was deprecated for AddService2")]
 pub struct AddService<'info> {
     #[account(
         mut,
