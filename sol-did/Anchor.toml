@@ -1,3 +1,6 @@
+[workspace]
+types = "client/packages/idl/src/"
+
 [features]
 seeds = false
 [programs.localnet]

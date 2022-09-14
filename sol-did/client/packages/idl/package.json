@@ -1,0 +1,34 @@
+{
+  "name": "@identity.com/sol-did-idl",
+  "version": "3.0.1-beta1",
+  "description": "The official Solana IDL for did:sol",
+  "license": "MIT",
+  "main": "dist/src/index.js",
+  "typings": "dist/src/index.d.ts",
+  "author": "Martin Riedel <martin@identity.org>",
+  "repository": "https://github.com/identity-com/sol-did",
+  "homepage": "https://github.com/identity-com/sol-did",
+  "files": [
+    "/dist"
+  ],
+  "keywords": [
+    "did",
+    "solana",
+    "identity",
+    "did-method",
+    "did-client"
+  ],
+  "scripts": {
+    "clean": "shx rm -rf ./dist",
+    "compile": "tsc -p tsconfig.json",
+    "build": "yarn clean && yarn compile",
+    "prepare": "yarn build",
+    "prepack": "yarn build"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "shx": "^0.3.4",
+    "typescript": "^4.3.5"
+  }
+}
