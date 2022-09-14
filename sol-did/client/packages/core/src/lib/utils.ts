@@ -1,6 +1,6 @@
 import * as anchor from '@project-serum/anchor';
 import { Program, Provider } from '@project-serum/anchor';
-import { SolDid } from '../../target/types/sol_did';
+import { SolDid, IDL } from '@identity.com/sol-did-idl';
 import { Keypair, PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { utils as ethersUtils } from 'ethers';
 import { decode } from 'bs58';
@@ -35,7 +35,10 @@ export const fetchProgram = async (
 ): Promise<Program<SolDid>> => {
   let idl = await Program.fetchIdl<SolDid>(DID_SOL_PROGRAM, provider);
 
-  if (!idl) throw new Error('Notification IDL could not be found');
+  // TODO: Fallback implemented. This should allow us to remove the test account IDLs
+  if (!idl) {
+    idl = IDL;
+  }
 
   return new Program<SolDid>(idl, DID_SOL_PROGRAM, provider) as Program<SolDid>;
 };

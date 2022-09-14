@@ -3,7 +3,6 @@ on:
   push:
     paths:
     - 'sol-did'
-    - 'cli'
   pull_request:
 jobs:
   program-lint:
@@ -164,6 +163,10 @@ jobs:
     name: Test the sol:did cli against the on-chain program on Solana ${{ matrix.solana }}, Node ${{ matrix.node }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
     needs: anchor-e2e-test
 
+    defaults:
+      run:
+        working-directory: ./sol-did
+
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -213,12 +216,11 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ./cli/node_modules
-          key: yarn-cli-${{ hashFiles('cli/yarn.lock') }}
+            ./sol-did/node_modules
+          key: yarn-client-${{ hashFiles('sol-did/yarn.lock') }}
 
-      - name: Install cli dependencies
-        run: yarn install
-        working-directory: cli
+      - name: Install
+        run: yarn install --ignore-scripts --frozen-lockfile
 
       - name: Download a single artifact
         uses: actions/download-artifact@v3
@@ -227,4 +229,4 @@ jobs:
 
       - name: Test e2e
         run: yarn test-e2e
-        working-directory: cli
+        working-directory: ./sol-did/client/packages/cli

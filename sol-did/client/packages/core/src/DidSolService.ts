@@ -1,4 +1,4 @@
-import { SolDid } from '../target/types/sol_did';
+import { SolDid } from '@identity.com/sol-did-idl';
 import {
   AnchorProvider,
   BN,

@@ -1,4 +1,4 @@
-# SOL DID Client
+# `did:sol` Client
 
 A typescript client library for registering, manipulating, and resolving DIDs
 using the `did:sol` method.
