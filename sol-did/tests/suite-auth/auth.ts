@@ -14,7 +14,7 @@ import {
   BitwiseVerificationMethodFlag,
   VerificationMethodType,
   findProgramAddress,
-  DEFAULT_KEY_ID
+  DEFAULT_KEY_ID,
 } from '@identity.com/sol-did-client';
 import { TEST_CLUSTER } from '../utils/const';
 

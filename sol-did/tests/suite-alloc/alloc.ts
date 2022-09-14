@@ -15,7 +15,7 @@ import {
   BitwiseVerificationMethodFlag,
   VerificationMethodType,
   findProgramAddress,
-  INITIAL_MIN_ACCOUNT_SIZE
+  INITIAL_MIN_ACCOUNT_SIZE,
 } from '@identity.com/sol-did-client';
 import { TEST_CLUSTER } from '../utils/const';
 import { utils, Wallet } from 'ethers';
