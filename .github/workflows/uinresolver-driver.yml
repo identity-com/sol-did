@@ -12,6 +12,8 @@ jobs:
     strategy:
       matrix:
         node: ['16.x']
+        rust: [ '1.61' ]
+        solana: [ 'v1.10.29' ]
         os: [ubuntu-latest]
 
     defaults:
@@ -21,6 +23,34 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
+
+      - name: Use Rust ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+          profile: minimal
+
+      - name: Cache build dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ./sol-did/target
+          key: cargo-build-${{ hashFiles('sol-did/Cargo.lock') }}
+
+      - name: Cache Solana version
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache
+          key: solana-${{ matrix.solana }}
+
+      - name: Install Solana
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/${{ matrix.solana }}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v1

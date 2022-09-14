@@ -5,15 +5,13 @@ import {
 } from './DefaultService';
 import {
   clusterFromString,
-  CustomClusterUrlConfig,
   DidSolDocument,
   DidSolIdentifier,
-  DidSolService,
   makeKeypair,
 } from '@identity.com/sol-did-client';
 import { Keypair } from '@solana/web3.js';
 import { encode } from 'bs58';
-import { getConfig } from '../config/config';
+import { buildService } from '../utils';
 
 export const register = async (
   request: RegisterRequest
@@ -33,13 +31,8 @@ export const register = async (
     cluster
   );
 
-  const config = await getConfig();
-  let clusterConfig: CustomClusterUrlConfig | undefined;
-  if (config) {
-    clusterConfig = config.solanaRpcNodes;
-  }
+  const service = await buildService(didSolIdentifier.toString());
 
-  const service = await DidSolService.build(didSolIdentifier, clusterConfig);
   const doc = await DidSolDocument.fromDoc(request.didDocument);
   await service
     .updateFromDoc(doc)
