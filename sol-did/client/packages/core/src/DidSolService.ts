@@ -451,8 +451,19 @@ export class DidSolService extends DidSolTransactionBuilder {
       postInstructionPromises: [],
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountChangeCallback: (account, size) => {
+        const index = account.services.findIndex(
+          (x) => x.fragment === service.fragment
+        );
+        let newSize = size;
+        if (allowOverwrite && index !== -1) {
+          newSize -= DidAccountSizeHelper.getServiceSize(
+            account.services[index]
+          );
+          account.services.splice(index, 1);
+        }
         account.services.push(service);
-        return [account, size + DidAccountSizeHelper.getServiceSize(service)];
+        newSize += DidAccountSizeHelper.getServiceSize(service);
+        return [account, newSize];
       },
       allowsDynamicAlloc: true,
       authority,

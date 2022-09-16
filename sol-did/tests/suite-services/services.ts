@@ -85,15 +85,23 @@ describe('sol-did service operations', () => {
 
   it('should allow to add service with the same ID if allowOverwrite is true', async () => {
     const serviceLengthBefore = didDataAccount.services.length;
+    const sizeBefore = (await service.getDidAccountWithSize())[1];
 
     const tService = getTestService(1);
-    tService.serviceEndpoint = `${tService.serviceEndpoint}-updated`;
+    const updated = '-updated';
+    tService.serviceEndpoint = `${tService.serviceEndpoint}${updated}`;
 
-    await service.addService(tService, true).rpc();
+    await service
+      .addService(tService, true)
+      .withAutomaticAlloc(authority.publicKey)
+      .rpc();
 
-    didDataAccount = await service.getDidAccount();
+    let sizeAfter;
+    [didDataAccount, sizeAfter] = await service.getDidAccountWithSize();
+
     expect(didDataAccount.services.length).to.equal(serviceLengthBefore);
     expect(didDataAccount.services[0]).to.deep.equal(tService);
+    expect(sizeAfter).to.equal(sizeBefore + updated.length);
   });
 
   // delete a service
@@ -152,9 +160,9 @@ describe('sol-did service operations', () => {
     const tService4 = getTestService(4);
     const tService5 = getTestService(5);
     await service
-      .addService(tService3, nonAuthoritySigner.publicKey)
-      .addService(tService4, nonAuthoritySigner.publicKey)
-      .addService(tService5, nonAuthoritySigner.publicKey)
+      .addService(tService3, false, nonAuthoritySigner.publicKey)
+      .addService(tService4, false, nonAuthoritySigner.publicKey)
+      .addService(tService5, false, nonAuthoritySigner.publicKey)
       .withEthSigner(ethAuthority1)
       .withSolWallet(nonAuthorityWallet)
       .withAutomaticAlloc(nonAuthoritySigner.publicKey)
@@ -172,11 +180,12 @@ describe('sol-did service operations', () => {
     const tService5 = getTestService(5);
     const tService6 = getTestService(6);
 
-    tService5.serviceEndpoint = `${tService5.serviceEndpoint}-updated`;
+    tService5.serviceEndpoint = tService5.serviceEndpoint.substring(1); // remove 1 char
+
     await service
       .removeService(tService4.fragment, nonAuthoritySigner.publicKey) // remove
-      // .addService(tService5,  nonAuthoritySigner.publicKey) // update
-      .addService(tService6, nonAuthoritySigner.publicKey) // add
+      .addService(tService5, true, nonAuthoritySigner.publicKey) // update
+      .addService(tService6, false, nonAuthoritySigner.publicKey) // add
       .withEthSigner(ethAuthority1)
       .withSolWallet(nonAuthorityWallet)
       .withAutomaticAlloc(nonAuthoritySigner.publicKey)
@@ -185,6 +194,9 @@ describe('sol-did service operations', () => {
     let sizeAfter;
     [didDataAccount, sizeAfter] = await service.getDidAccountWithSize();
     expect(didDataAccount.services.length).to.equal(serviceLengthBefore);
+    expect(didDataAccount.services[1]).to.deep.equal(tService5);
+    expect(didDataAccount.services[0]).to.deep.equal(tService6);
+
     expect(sizeAfter).to.equal(sizeBefore);
   });
 });
