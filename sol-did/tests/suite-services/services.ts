@@ -74,6 +74,19 @@ describe('sol-did service operations', () => {
     );
   });
 
+  it('should allow to add service with the same ID if allowOverwrite is true', async () => {
+    const serviceLengthBefore = didDataAccount.services.length;
+
+    const tService = getTestService(1);
+    tService.serviceEndpoint = `${tService.serviceEndpoint}-updated`;
+
+    await service.addService(tService, true).rpc();
+
+    didDataAccount = await service.getDidAccount();
+    expect(didDataAccount.services.length).to.equal(serviceLengthBefore);
+    expect(didDataAccount.services[0]).to.deep.equal(tService);
+  });
+
   // delete a service
   it('can successfully delete a service', async () => {
     const serviceLengthBefore = didDataAccount.services.length;
@@ -99,7 +112,7 @@ describe('sol-did service operations', () => {
 
     const tService = getTestService(2);
     await service
-      .addService(tService, nonAuthoritySigner.publicKey)
+      .addService(tService, false, nonAuthoritySigner.publicKey)
       .withEthSigner(ethAuthority0)
       .withPartialSigners(nonAuthoritySigner)
       .rpc();

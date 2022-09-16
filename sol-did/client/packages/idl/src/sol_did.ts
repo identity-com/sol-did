@@ -189,6 +189,10 @@ export type SolDid = {
           }
         },
         {
+          "name": "allowOverwrite",
+          "type": "bool"
+        },
+        {
           "name": "ethSignature",
           "type": {
             "option": {
@@ -870,6 +874,10 @@ export const IDL: SolDid = {
           "type": {
             "defined": "Service"
           }
+        },
+        {
+          "name": "allowOverwrite",
+          "type": "bool"
         },
         {
           "name": "ethSignature",

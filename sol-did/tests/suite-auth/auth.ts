@@ -97,20 +97,14 @@ describe('sol-did auth operations', () => {
     const tService = getTestService(1);
 
     await service
-      .addService(tService, newSolKey.publicKey)
+      .addService(tService, false, newSolKey.publicKey)
       .withPartialSigners(newSolKey)
       .rpc();
 
     const didDataAccount = await service.getDidAccount();
 
     expect(didDataAccount.services.length).to.equal(1);
-    expect(didDataAccount.services[0].fragment).to.equal(tService.fragment);
-    expect(didDataAccount.services[0].serviceType).to.equal(
-      tService.serviceType
-    );
-    expect(didDataAccount.services[0].serviceEndpoint).to.equal(
-      tService.serviceEndpoint
-    );
+    expect(didDataAccount.services[0]).to.deep.equal(tService);
   });
 
   it('can not add a new key with OwnershipProof to an account', async () => {
@@ -195,7 +189,7 @@ describe('sol-did auth operations', () => {
 
     // use transaction to test replay attack
     const transaction = await service
-      .addService(tService, nonAuthoritySigner.publicKey)
+      .addService(tService, false, nonAuthoritySigner.publicKey)
       .withEthSigner(newEthKey)
       .transaction();
 
@@ -207,13 +201,39 @@ describe('sol-did auth operations', () => {
     expect(didDataAccount.nonce.toString()).to.be.equal(
       didDataAccountBefore.nonce.addn(1).toString()
     );
-    expect(didDataAccount.services[1].fragment).to.equal(tService.fragment);
-    expect(didDataAccount.services[1].serviceType).to.equal(
-      tService.serviceType
+    expect(didDataAccount.services[0]).to.deep.equal(tService);
+
+    // it cannot reuse a nonce
+    return expect(
+      programProvider.sendAndConfirm(transaction, [nonAuthoritySigner])
+    ).to.be.rejectedWith(
+      `Error processing Instruction 0: custom program error: 0x${LangErrorCode.ConstraintRaw.toString(
+        16
+      )}`
     );
-    expect(didDataAccount.services[1].serviceEndpoint).to.equal(
-      tService.serviceEndpoint
+  });
+
+  it('can use the new EcdsaSecp256k1RecoveryMethod2020 Key and update a Service to the account and not reuse nonce', async () => {
+    const didDataAccountBefore = await service.getDidAccount();
+    expect(didDataAccountBefore.nonce.toString()).to.be.equal('1');
+    const tService = getTestService(2);
+    tService.serviceEndpoint = `${tService.serviceEndpoint}-updated`;
+
+    // use transaction to test replay attack
+    const transaction = await service
+      .addService(tService, true, nonAuthoritySigner.publicKey)
+      .withEthSigner(newEthKey)
+      .transaction();
+
+    await programProvider.sendAndConfirm(transaction, [nonAuthoritySigner]);
+
+    const didDataAccount = await service.getDidAccount();
+
+    expect(didDataAccount.services.length).to.equal(2);
+    expect(didDataAccount.nonce.toString()).to.be.equal(
+      didDataAccountBefore.nonce.addn(1).toString()
     );
+    expect(didDataAccount.services[0]).to.deep.equal(tService);
 
     // it cannot reuse a nonce
     return expect(
@@ -231,7 +251,7 @@ describe('sol-did auth operations', () => {
 
     return expect(
       service
-        .addService(tService, nonAuthoritySigner.publicKey)
+        .addService(tService, false, nonAuthoritySigner.publicKey)
         .withEthSigner(wrongEthKey)
         .withPartialSigners(nonAuthoritySigner)
         .rpc()
@@ -298,7 +318,7 @@ describe('sol-did auth operations', () => {
 
     // use transaction to test replay attack
     const transaction = await service
-      .addService(tService, nonAuthoritySigner.publicKey)
+      .addService(tService, false, nonAuthoritySigner.publicKey)
       .withEthSigner(newEthKey2)
       .transaction();
 
@@ -310,13 +330,7 @@ describe('sol-did auth operations', () => {
     expect(didDataAccount.nonce.toString()).to.be.equal(
       didDataAccountBefore.nonce.addn(1).toString()
     );
-    expect(didDataAccount.services[2].fragment).to.equal(tService.fragment);
-    expect(didDataAccount.services[2].serviceType).to.equal(
-      tService.serviceType
-    );
-    expect(didDataAccount.services[2].serviceEndpoint).to.equal(
-      tService.serviceEndpoint
-    );
+    expect(didDataAccount.services[0]).to.deep.equal(tService);
 
     // it cannot reuse a nonce
     return expect(
