@@ -260,16 +260,17 @@ impl DidAccount {
         None
     }
 
-    pub fn set_services(&mut self, services: Vec<Service>) -> Result<()> {
+    pub fn set_services(&mut self, services: Vec<Service>, allow_duplicates: bool) -> Result<()> {
         let original_size = services.len();
         // make sure there are not duplicate services
+        // Note: the first service is the one retained.
         let unique_services = services
             .into_iter()
             .unique_by(|x| x.fragment.clone())
             .collect_vec();
 
         require!(
-            unique_services.len() == original_size,
+            allow_duplicates || unique_services.len() == original_size,
             DidSolError::ServiceFragmentAlreadyInUse
         );
 

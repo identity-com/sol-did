@@ -430,14 +430,16 @@ export class DidSolService extends DidSolTransactionBuilder {
    * Add a Service to the did:sol account.
    * Supports ethSignInstruction
    * @param service The service to add
+   * @param allowOverwrite If true, will overwrite an existing service with the same id
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
   addService(
     service: Service,
+    allowOverwrite: boolean = false,
     authority: PublicKey = this._wallet.publicKey
   ): DidSolService {
     const instructionPromise = this._program.methods
-      .addService(service, null)
+      .addService(service, allowOverwrite, null)
       .accounts({
         didData: this._didDataAccount,
         authority,

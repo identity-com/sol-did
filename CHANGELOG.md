@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: `getDidAccount()` now returns a clearer data model for a Verification Method and not the raw on-chain version
 - **Breaking**: `addVerificationMethod` and `setVerificationMethodFlags` now accept `flags` as an array of `BitwiseVerificationMethodFlag`
 - **Breaking**: Updated `DidSolService.build()` Builder interface signature.
+- **Breaking**: `addService` operation takes an additional `allowsOverwrite` flag to allow an update of an existing service without removing it first.
 - Client operations with `authority` and `payer` default to `this._wallet.publicKey` and not `this._didAuthority`
 
 ### Deprecated
