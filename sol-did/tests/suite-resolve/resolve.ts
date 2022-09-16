@@ -138,6 +138,61 @@ describe('sol-did resolve and migrate operations', () => {
     expect(didDoc).to.deep.equal(legacyDidDocComplete);
   });
 
+  it('cannot chain operations after migrate that increase the existing size', async () => {
+    return expect(
+      legacyDidService
+        .migrate(nonAuthoritySigner.publicKey)
+        .addService(getTestService(1))
+        // .withSolWallet(nonAuthorityWallet)
+        .withAutomaticAlloc(nonAuthoritySigner.publicKey)
+        .withPartialSigners(nonAuthoritySigner)
+        .rpc()
+    ).to.be.rejectedWith('Init instruction already set.');
+  });
+
+  it('can successfully migrate a legacy DID and chain commands that do not increase size', async () => {
+    const existing = await legacyDidService.getDidAccount();
+    expect(existing).to.be.null;
+
+    expect(await legacyDidService.isMigratable()).to.be.true;
+
+    // migrate
+    await legacyDidService
+      .migrate(nonAuthoritySigner.publicKey)
+      .removeService('test784378')
+      .removeVerificationMethod('ledger')
+      .withPartialSigners(nonAuthoritySigner)
+      .rpc();
+
+    // check migration
+    const didDoc = await legacyDidService.resolve();
+    expect(didDoc).to.deep.equal(
+      Object.assign({}, migratedLegacyDidDocComplete, {
+        capabilityInvocation:
+          migratedLegacyDidDocComplete.capabilityInvocation.filter(
+            (x: string) => !x.endsWith('ledger')
+          ),
+        verificationMethod:
+          migratedLegacyDidDocComplete.verificationMethod.filter(
+            (vm) => !vm.id.endsWith('#ledger')
+          ),
+        service: migratedLegacyDidDocComplete.service.filter(
+          (s) => !s.id.endsWith('#test784378')
+        ),
+      })
+    );
+
+    // check that auth
+    const didAccount = await legacyDidService.getDidAccount();
+    expect(didAccount.verificationMethods[0].flags.raw).to.equal(
+      BitwiseVerificationMethodFlag.OwnershipProof |
+        BitwiseVerificationMethodFlag.CapabilityInvocation
+    );
+
+    // close migration again for next test
+    await legacyDidService.close(authority.publicKey).rpc();
+  });
+
   it('can successfully migrate a legacy DID with a nonAuthority signer', async () => {
     const existing = await legacyDidService.getDidAccount();
     expect(existing).to.be.null;

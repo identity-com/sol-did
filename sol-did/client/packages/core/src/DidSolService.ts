@@ -406,8 +406,18 @@ export class DidSolService extends DidSolTransactionBuilder {
       postInstructionPromises: [],
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountChangeCallback: (account, size) => {
-        // TODO: Downsizing is currently not supported
-        return [account, size];
+        const index = account.verificationMethods.findIndex(
+          (x) => x.fragment === fragment
+        );
+        let newSize = size;
+        if (index !== -1) {
+          newSize -= DidAccountSizeHelper.getVerificationMethodSize(
+            account.verificationMethods[index]
+          );
+          account.verificationMethods.splice(index, 1);
+        }
+
+        return [account, newSize];
       },
       allowsDynamicAlloc: true,
       authority,
@@ -472,8 +482,18 @@ export class DidSolService extends DidSolTransactionBuilder {
       postInstructionPromises: [],
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountChangeCallback: (account, size) => {
-        // TODO: Downsizing is currently not supported
-        return [account, size];
+        const index = account.services.findIndex(
+          (x) => x.fragment === fragment
+        );
+        let newSize = size;
+        if (index !== -1) {
+          newSize -= DidAccountSizeHelper.getServiceSize(
+            account.services[index]
+          );
+          account.services.splice(index, 1);
+        }
+
+        return [account, newSize];
       },
       allowsDynamicAlloc: true,
       authority,
@@ -512,6 +532,7 @@ export class DidSolService extends DidSolTransactionBuilder {
       postInstructionPromises: [],
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountChangeCallback: (account, size) => {
+        // no size change (just flags)
         return [account, size];
       },
       allowsDynamicAlloc: true,

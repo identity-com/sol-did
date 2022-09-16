@@ -1,5 +1,5 @@
 import * as anchor from '@project-serum/anchor';
-import { Program } from '@project-serum/anchor';
+import { Program, Wallet } from '@project-serum/anchor';
 import { SolDid } from '@identity.com/sol-did-idl';
 import {
   DidSolIdentifier,
@@ -8,15 +8,15 @@ import {
   DidSolDataAccount,
 } from '@identity.com/sol-did-client';
 import { before } from 'mocha';
-import { getTestService } from '../utils/utils';
+import { airdrop, getTestService } from '../utils/utils';
 
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import { expect } from 'chai';
 import { TEST_CLUSTER } from '../utils/const';
-import { Wallet } from 'ethers';
 import { getDerivationPath, MNEMONIC } from '../fixtures/config';
+import { Wallet as EtherWallet } from 'ethers';
 
 chai.use(chaiAsPromised);
 
@@ -32,10 +32,17 @@ describe('sol-did service operations', () => {
 
   let didDataAccount: DidSolDataAccount;
 
-  const ethAuthority0 = Wallet.fromMnemonic(MNEMONIC, getDerivationPath(0));
-  const ethAuthority1 = Wallet.fromMnemonic(MNEMONIC, getDerivationPath(1));
+  const ethAuthority0 = EtherWallet.fromMnemonic(
+    MNEMONIC,
+    getDerivationPath(0)
+  );
+  const ethAuthority1 = EtherWallet.fromMnemonic(
+    MNEMONIC,
+    getDerivationPath(1)
+  );
 
   const nonAuthoritySigner = anchor.web3.Keypair.generate();
+  const nonAuthorityWallet = new Wallet(nonAuthoritySigner);
 
   const authority = programProvider.wallet;
 
@@ -47,8 +54,7 @@ describe('sol-did service operations', () => {
       programProvider
     );
 
-    // size up
-    await service.resize(1_000).rpc();
+    await airdrop(programProvider.connection, nonAuthoritySigner.publicKey);
 
     didDataAccount = await service.getDidAccount();
   });
@@ -58,7 +64,10 @@ describe('sol-did service operations', () => {
     const serviceLengthBefore = didDataAccount.services.length;
 
     const tService = getTestService(1);
-    await service.addService(tService).rpc();
+    await service
+      .addService(tService)
+      .withAutomaticAlloc(authority.publicKey)
+      .rpc();
 
     didDataAccount = await service.getDidAccount();
     expect(didDataAccount.services.length).to.equal(serviceLengthBefore + 1);
@@ -97,11 +106,12 @@ describe('sol-did service operations', () => {
   it('add a new service to the data.services with an ethereum key', async () => {
     const serviceLengthBefore = didDataAccount.services.length;
 
-    const tService = getTestService(2);
+    const tService = getTestService(10000); // requires more size
     await service
       .addService(tService, nonAuthoritySigner.publicKey)
       .withEthSigner(ethAuthority0)
-      .withPartialSigners(nonAuthoritySigner)
+      .withSolWallet(nonAuthorityWallet)
+      .withAutomaticAlloc(nonAuthoritySigner.publicKey)
       .rpc();
 
     didDataAccount = await service.getDidAccount();
@@ -111,14 +121,57 @@ describe('sol-did service operations', () => {
   it('can successfully delete a service with an ethereum key', async () => {
     const serviceLengthBefore = didDataAccount.services.length;
 
-    const tService = getTestService(2);
+    const tService = getTestService(10000);
     await service
       .removeService(tService.fragment, nonAuthoritySigner.publicKey)
       .withEthSigner(ethAuthority1)
-      .withPartialSigners(nonAuthoritySigner)
+      .withSolWallet(nonAuthorityWallet)
       .rpc();
 
     didDataAccount = await service.getDidAccount();
     expect(didDataAccount.services.length).to.equal(serviceLengthBefore - 1);
+  });
+
+  it('add multiple new services to the data.services with an ethereum key and autoalloc', async () => {
+    const serviceLengthBefore = didDataAccount.services.length;
+
+    const tService3 = getTestService(3);
+    const tService4 = getTestService(4);
+    const tService5 = getTestService(5);
+    await service
+      .addService(tService3, nonAuthoritySigner.publicKey)
+      .addService(tService4, nonAuthoritySigner.publicKey)
+      .addService(tService5, nonAuthoritySigner.publicKey)
+      .withEthSigner(ethAuthority1)
+      .withSolWallet(nonAuthorityWallet)
+      .withAutomaticAlloc(nonAuthoritySigner.publicKey)
+      .rpc();
+
+    didDataAccount = await service.getDidAccount();
+    expect(didDataAccount.services.length).to.equal(serviceLengthBefore + 3);
+  });
+
+  it('does not resize the account if more is added than removed.', async () => {
+    const serviceLengthBefore = didDataAccount.services.length;
+    const sizeBefore = (await service.getDidAccountWithSize())[1];
+
+    const tService4 = getTestService(4);
+    const tService5 = getTestService(5);
+    const tService6 = getTestService(6);
+
+    tService5.serviceEndpoint = `${tService5.serviceEndpoint}-updated`;
+    await service
+      .removeService(tService4.fragment, nonAuthoritySigner.publicKey) // remove
+      // .addService(tService5,  nonAuthoritySigner.publicKey) // update
+      .addService(tService6, nonAuthoritySigner.publicKey) // add
+      .withEthSigner(ethAuthority1)
+      .withSolWallet(nonAuthorityWallet)
+      .withAutomaticAlloc(nonAuthoritySigner.publicKey)
+      .rpc();
+
+    let sizeAfter;
+    [didDataAccount, sizeAfter] = await service.getDidAccountWithSize();
+    expect(didDataAccount.services.length).to.equal(serviceLengthBefore);
+    expect(sizeAfter).to.equal(sizeBefore);
   });
 });

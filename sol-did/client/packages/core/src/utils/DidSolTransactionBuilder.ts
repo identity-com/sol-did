@@ -262,6 +262,7 @@ export abstract class DidSolTransactionBuilder {
         getDefaultRawDidSolDataAccount(this.didDataAccount),
         INITIAL_MIN_ACCOUNT_SIZE
       );
+
       this.initialize(requiredSize, this._payer);
     } else {
       // Reallocation
@@ -317,8 +318,8 @@ export abstract class DidSolTransactionBuilder {
       this._confirmOptions
     );
 
-    const tx = await this.transaction();
     try {
+      const tx = await this.transaction();
       return await provider.sendAndConfirm(tx, this._partialSigners, opts);
     } catch (err) {
       throw translateError(err, this._idlErrors);
