@@ -256,7 +256,6 @@ describe('sol-did auth operations', () => {
         nonAuthoritySigner.publicKey
       )
       .withEthSigner(newEthKey)
-      .withPartialSigners(nonAuthoritySigner)
       .transaction();
 
     await programProvider.sendAndConfirm(transaction, [nonAuthoritySigner]);
