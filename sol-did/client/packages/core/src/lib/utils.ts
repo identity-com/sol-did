@@ -33,12 +33,10 @@ import { VerificationMethod } from './wrappers';
 export const fetchProgram = async (
   provider: Provider
 ): Promise<Program<SolDid>> => {
-  let idl = await Program.fetchIdl<SolDid>(DID_SOL_PROGRAM, provider);
-
-  // TODO: Fallback implemented. This should allow us to remove the test account IDLs
-  if (!idl) {
-    idl = IDL;
-  }
+  let idl;
+  // Download IDL from the network.
+  // idl = await Program.fetchIdl<SolDid>(DID_SOL_PROGRAM, provider);
+  idl = IDL; // default from package
 
   return new Program<SolDid>(idl, DID_SOL_PROGRAM, provider) as Program<SolDid>;
 };
