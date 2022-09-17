@@ -51,25 +51,12 @@ yarn add @identity.com/sol-did-client # or npm install @identity.com/sol-did-cli
 
 #### Create a Service
 
-[//]: # (TODO: This should be updated after Andrews branch makes it in)
 ```ts
   const authority = Keypair.generate();
   const cluster: ExtendedCluster = 'localnet';
-
+  const didSolIdentifier = DidSolIdentifier.create(authority.publicKey, cluster);
   // create service for a did:sol:${authority.publicKey}
-  const service = await DidSolService.build(
-    authority.publicKey,
-    cluster,
-    new NodeWallet(authority)
-  );
-```
-Note, that a service downloads the IDL for the anchor program dynamically from chain. Therefore,
-if the program works with other DIDs on the same cluster, a new service should be created
-from an existing one:
-
-```ts
-  const anotherAuthority = Keypair.generate();
-  const anotherService = await service.build(anotherAuthority.publicKey, new NodeWallet(anotherAuthority))
+  const service = await DidSolService.build(didSolIdentifier);
 ```
 
 ### Resolving a DID:
@@ -103,7 +90,7 @@ not a requirement. For the example, this enables the implementation of a permiss
 Generally, a manipulative DID operation has the following form:
 
 ```ts
-service.OPERATION(...params) // returns a DidSolServiceBuilder
+service.OPERATION(...params) // returns the instance of the service to chain another operation
 ```
 
 where each operation return as a builder that enables configuring certain aspects of how the operation is translated or
@@ -150,13 +137,35 @@ Here's a breakdown of all exposed Builder functions:
 8. `async transaction(): Promise<Transaction>`: Terminal method that creates the instruction(s), and builds the transaction (Eth signing will be applied if applicable, but no Solana Transaction handling is performed).
 9. `async instructions(): Promise<TransactionInstruction[]>`: Terminal method that creates and returns the instruction(s) (Eth signing will be applied if applicable).
 
+### Changing of DID Operations
+Generally, `DidSolService` allows to chain multiple operations after one another. For example
+```ts
+    await service
+      .removeService('service-4', nonAuthoritySigner.publicKey) // remove
+      .addService({
+        fragment: 'service-5',
+        serviceType: 'service-type-5',
+        serviceEndpoint: 'http://localhost:3005',
+      }, true, nonAuthoritySigner.publicKey) // update
+      .addService({
+        fragment: 'service-6',
+        serviceType: 'service-type-6',
+        serviceEndpoint: 'http://localhost:3006',
+      }, false, nonAuthoritySigner.publicKey) // add
+      .withEthSigner(ethAuthority1)
+      .withSolWallet(nonAuthorityWallet)
+      .withAutomaticAlloc(nonAuthoritySigner.publicKey)
+      .rpc();
+```
+This operation chains 1 removeService and 2 addService operations that are signed
+by and `ethSigner` and optionally resizes the account. 
 
 ### Init a DID Account
 Generally, all DID operations can be performed with `withAutomaticAlloc(payer: PublicKey)`, which automatically creates a DID data account of the required size. However, the API still supports manually initializing a DID account of any size.
 Allocating a sufficiently sized account upfront would allow not to use any payers for subsequent operations.
 
 ```ts
-  await service.initialize(10_000, payer.publicKey).rpc();
+  await service.initialize(1_000, payer.publicKey).rpc();
 ```
 The `initialize` operation does not support  `withAutomaticAlloc` OR `withEthSigner`. Using `initialize` without an
 argument will set the default DID authority as `payer` and size it to the minimal initial size required.
@@ -165,7 +174,7 @@ argument will set the default DID authority as `payer` and size it to the minima
 Generally, all DID operations can be performed with `withAutomaticAlloc(payer: PublicKey)`, which automatically creates or resizes a DID data account of the required size. However, the API still supports manually resizing a DID account of any size.
 
 ```ts
-  await service.resize(15_000, payer.publicKey).rpc();
+  await service.resize(1_500, payer.publicKey).rpc();
 ```
 The `resize` operation does not support  `withAutomaticAlloc`. Using `initialize` without an argument will set the default DID authority as `payer`.
 

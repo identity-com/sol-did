@@ -1,10 +1,14 @@
 import {
-  RawDidSolDataAccount,
-  Service,
-  RawVerificationMethod,
   AddVerificationMethodParams,
+  BitwiseVerificationMethodFlag,
+  RawDidSolDataAccount,
+  RawVerificationMethod,
+  Service,
+  VerificationMethodType,
 } from './lib/types';
 import { getBinarySize } from './lib/utils';
+import { PublicKey } from '@solana/web3.js';
+import BN from 'bn.js';
 
 export class DidAccountSizeHelper {
   constructor(private didAccount: RawDidSolDataAccount) {}
@@ -116,3 +120,21 @@ export class DidAccountSizeHelper {
     return new DidAccountSizeHelper(didAccount);
   }
 }
+
+export const getDefaultRawDidSolDataAccount = (
+  authority: PublicKey
+): RawDidSolDataAccount => ({
+  version: 0,
+  bump: 0,
+  nonce: new BN(0),
+  initialVerificationMethod: {
+    fragment: 'default',
+    flags: BitwiseVerificationMethodFlag.CapabilityInvocation,
+    methodType: VerificationMethodType.Ed25519VerificationKey2018,
+    keyData: authority.toBuffer(),
+  },
+  verificationMethods: [],
+  services: [],
+  nativeControllers: [],
+  otherControllers: [],
+});

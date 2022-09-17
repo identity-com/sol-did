@@ -241,7 +241,7 @@ describe('sol-did alloc operations', () => {
     );
   });
 
-  it('will reuse the authority of the original instruction for the resize', async () => {
+  it('can set a different authority than the default wallet for the resize operation', async () => {
     const existingControllers = (await service
       .resolve()
       .then((res) => res.controller)) as string[];
@@ -256,9 +256,11 @@ describe('sol-did alloc operations', () => {
         [...existingControllers, newController],
         nonAuthoritySigner.publicKey
       )
-      .withAutomaticAlloc(nonAuthoritySigner.publicKey)
+      .withAutomaticAlloc(
+        nonAuthoritySigner.publicKey,
+        nonAuthoritySigner.publicKey
+      )
       .withEthSigner(ethKey)
-      .withPartialSigners(nonAuthoritySigner)
       .instructions();
 
     expect(instructions.length).to.equal(2); // resize + setControllers
