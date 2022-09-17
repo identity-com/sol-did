@@ -252,7 +252,6 @@ export abstract class DidSolTransactionBuilder {
         getDefaultRawDidSolDataAccount(this.didDataAccount),
         INITIAL_MIN_ACCOUNT_SIZE
       );
-
       this.initialize(requiredSize, this._payer);
     } else {
       // Reallocation
