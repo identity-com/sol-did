@@ -236,7 +236,7 @@ describe('sol-did resolve and migrate operations', () => {
 
     const solKey = web3.Keypair.generate();
     const identifier = DidSolIdentifier.create(solKey.publicKey, TEST_CLUSTER);
-    const genDidService = await service.build(identifier);
+    const genDidService = await DidSolService.build(identifier);
 
     return expect(
       genDidService

@@ -55,7 +55,7 @@ export class DidSolService extends DidSolTransactionBuilder {
 
   static async build(
     identifier: DidSolIdentifier,
-    options: DidSolServiceOptions
+    options: DidSolServiceOptions = {}
   ): Promise<DidSolService> {
     const wallet = options.wallet || new NonSigningWallet();
     const confirmOptions =
@@ -130,39 +130,6 @@ export class DidSolService extends DidSolTransactionBuilder {
 
   get legacyDidDataAccount(): PublicKey {
     return this._legacyDidDataAccount;
-  }
-
-  /**
-   * Build a Service from an existing Service. Note, this will not allow to generate the service with a different cluster.
-   * @param identifier
-   * @param wallet
-   * @param confirmOptions
-   */
-  async build(
-    identifier: DidSolIdentifier,
-    wallet?: Wallet,
-    confirmOptions?: ConfirmOptions
-  ): Promise<DidSolService> {
-    const didAuthority = identifier.authority;
-    const [didDataAccount] = await findProgramAddress(didAuthority);
-    const [legacyDidDataAccount] = await findLegacyProgramAddress(didAuthority);
-
-    if (this._cluster !== identifier.clusterType) {
-      throw new Error(
-        'Cannot build a service from an existing service with a different cluster'
-      );
-    }
-
-    // reuse existing program
-    return new DidSolService(
-      this._program,
-      didAuthority,
-      didDataAccount,
-      legacyDidDataAccount,
-      this._cluster,
-      wallet ? wallet : this._wallet,
-      confirmOptions ? confirmOptions : this.confirmOptions
-    );
   }
 
   async getDidAccount(): Promise<DidSolDataAccount | null> {
