@@ -31,7 +31,6 @@ export enum DidSolEthSignStatusType {
 
 export type BuilderInstruction = {
   instructionPromise: Promise<TransactionInstruction>;
-  postInstructionPromises: Promise<TransactionInstruction>[];
   ethSignStatus: DidSolEthSignStatusType;
   // this takes as input the RawDidSolDataAccount before and returns the RawDidSolDataAccount after
   // with the associated delta
@@ -39,8 +38,6 @@ export type BuilderInstruction = {
     didAccountBefore: RawDidSolDataAccount,
     sizeBefore: number
   ) => [RawDidSolDataAccount, number];
-  allowsDynamicAlloc: boolean;
-  authority: PublicKey;
 };
 
 /**
@@ -58,6 +55,9 @@ export abstract class DidSolTransactionBuilder {
 
   // Close instruction (to close an existing account)
   private _closeInstruction?: BuilderInstruction;
+
+  // Generic Instructions that are appended to the instuction list
+  private _postInstructions: Promise<TransactionInstruction>[] = [];
 
   private readonly _idlErrors: Map<number, string>;
 
@@ -126,6 +126,10 @@ export abstract class DidSolTransactionBuilder {
     this._generalInstructions.push(instruction);
   }
 
+  addPostInstruction(instruction: Promise<TransactionInstruction>) {
+    this._postInstructions.push(instruction);
+  }
+
   /**
    * Clears all prepared Instructions and partialSigners, ethWallet, payer and resizeAuthority.
    */
@@ -143,15 +147,7 @@ export abstract class DidSolTransactionBuilder {
     this._resizeInstruction = undefined;
     this._closeInstruction = undefined;
     this._generalInstructions = [];
-  }
-
-  public getState() {
-    return {
-      initInstruction: this._initInstruction,
-      resizeInstruction: this._resizeInstruction,
-      closeInstruction: this._closeInstruction,
-      generalInstructions: this._generalInstructions,
-    };
+    this._postInstructions = [];
   }
 
   withConnection(connection: Connection) {
@@ -183,6 +179,7 @@ export abstract class DidSolTransactionBuilder {
     return this;
   }
 
+  // abstract functions.
   abstract getNonce(): Promise<BN>;
 
   abstract getDidAccount(): Promise<DidSolDataAccount | null>;
@@ -221,15 +218,8 @@ export abstract class DidSolTransactionBuilder {
       );
     });
 
-    //  TODO: These should probably not go all the way to the end.
-    for (const instruction of instructionsToSign) {
-      for (const postInstructions of instruction.postInstructionPromises) {
-        promises.push(postInstructions);
-      }
-    }
-
     // Mix in _postInstructions to array. Consider moving to cleaner position
-    return Promise.all(promises);
+    return Promise.all([...promises, ...this._postInstructions]);
   }
 
   private getMaxRequiredSize(

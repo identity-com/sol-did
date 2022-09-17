@@ -14,7 +14,6 @@ import {
   Connection,
   PublicKey,
   Transaction,
-  TransactionInstruction,
 } from '@solana/web3.js';
 import { DIDDocument } from 'did-resolver';
 import {
@@ -261,13 +260,10 @@ export class DidSolService extends DidSolTransactionBuilder {
 
     this.setInitInstruction({
       instructionPromise,
-      postInstructionPromises: [],
       ethSignStatus: DidSolEthSignStatusType.NotSupported,
       didAccountChangeCallback: () => {
         throw new Error('Not Implemented');
       },
-      allowsDynamicAlloc: false,
-      authority: this._didAuthority,
     });
 
     return this;
@@ -296,13 +292,10 @@ export class DidSolService extends DidSolTransactionBuilder {
 
     this.setResizeInstruction({
       instructionPromise,
-      postInstructionPromises: [],
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountChangeCallback: () => {
         throw new Error('Not Implemented');
       },
-      allowsDynamicAlloc: false,
-      authority,
     });
 
     return this;
@@ -329,13 +322,10 @@ export class DidSolService extends DidSolTransactionBuilder {
 
     this.setCloseInstruction({
       instructionPromise,
-      postInstructionPromises: [],
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountChangeCallback: () => {
         throw new Error('Not Implemented');
       },
-      allowsDynamicAlloc: false,
-      authority,
     });
 
     return this;
@@ -368,7 +358,6 @@ export class DidSolService extends DidSolTransactionBuilder {
 
     this.addGeneralInstruction({
       instructionPromise,
-      postInstructionPromises: [],
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountChangeCallback: (account, size) => {
         account.verificationMethods.push(vm);
@@ -377,8 +366,6 @@ export class DidSolService extends DidSolTransactionBuilder {
           size + DidAccountSizeHelper.getVerificationMethodSize(method),
         ];
       },
-      allowsDynamicAlloc: true,
-      authority,
     });
 
     return this;
@@ -403,7 +390,6 @@ export class DidSolService extends DidSolTransactionBuilder {
 
     this.addGeneralInstruction({
       instructionPromise,
-      postInstructionPromises: [],
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountChangeCallback: (account, size) => {
         const index = account.verificationMethods.findIndex(
@@ -419,8 +405,6 @@ export class DidSolService extends DidSolTransactionBuilder {
 
         return [account, newSize];
       },
-      allowsDynamicAlloc: true,
-      authority,
     });
 
     return this;
@@ -448,7 +432,6 @@ export class DidSolService extends DidSolTransactionBuilder {
 
     this.addGeneralInstruction({
       instructionPromise,
-      postInstructionPromises: [],
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountChangeCallback: (account, size) => {
         const index = account.services.findIndex(
@@ -465,8 +448,6 @@ export class DidSolService extends DidSolTransactionBuilder {
         newSize += DidAccountSizeHelper.getServiceSize(service);
         return [account, newSize];
       },
-      allowsDynamicAlloc: true,
-      authority,
     });
 
     return this;
@@ -492,7 +473,6 @@ export class DidSolService extends DidSolTransactionBuilder {
 
     this.addGeneralInstruction({
       instructionPromise,
-      postInstructionPromises: [],
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountChangeCallback: (account, size) => {
         const index = account.services.findIndex(
@@ -508,8 +488,6 @@ export class DidSolService extends DidSolTransactionBuilder {
 
         return [account, newSize];
       },
-      allowsDynamicAlloc: true,
-      authority,
     });
 
     return this;
@@ -542,14 +520,11 @@ export class DidSolService extends DidSolTransactionBuilder {
 
     this.addGeneralInstruction({
       instructionPromise,
-      postInstructionPromises: [],
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountChangeCallback: (account, size) => {
         // no size change (just flags)
         return [account, size];
       },
-      allowsDynamicAlloc: true,
-      authority,
     });
 
     return this;
@@ -576,7 +551,6 @@ export class DidSolService extends DidSolTransactionBuilder {
 
     this.addGeneralInstruction({
       instructionPromise,
-      postInstructionPromises: [],
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountChangeCallback: (account, size) => {
         const add =
@@ -596,8 +570,6 @@ export class DidSolService extends DidSolTransactionBuilder {
         account.otherControllers = updateControllers.otherControllers;
         return [account, size + add - remove];
       },
-      allowsDynamicAlloc: true,
-      authority,
     });
 
     return this;
@@ -661,7 +633,6 @@ export class DidSolService extends DidSolTransactionBuilder {
 
     this.addGeneralInstruction({
       instructionPromise,
-      postInstructionPromises: [],
       ethSignStatus: DidSolEthSignStatusType.Unsigned,
       didAccountChangeCallback: (account, size) => {
         let add = 0;
@@ -709,8 +680,6 @@ export class DidSolService extends DidSolTransactionBuilder {
         const newSize = size + add - remove;
         return [account, newSize];
       },
-      allowsDynamicAlloc: true,
-      authority,
     });
 
     return this;
@@ -738,24 +707,20 @@ export class DidSolService extends DidSolTransactionBuilder {
       .instruction();
 
     // close legacy accounts
-    let postInstructionPromises: Promise<TransactionInstruction>[] = [];
     if (legacyAuthority) {
-      postInstructionPromises = [
+      this.addPostInstruction(
         Promise.resolve(
           closeAccount(this._legacyDidDataAccount, legacyAuthority, payer)
-        ),
-      ];
+        )
+      );
     }
 
     this.setInitInstruction({
       instructionPromise,
-      postInstructionPromises,
       ethSignStatus: DidSolEthSignStatusType.NotSupported,
       didAccountChangeCallback: () => {
         throw new Error('Dynamic Alloc not supported');
       },
-      allowsDynamicAlloc: false,
-      authority,
     });
 
     return this;
