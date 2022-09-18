@@ -1,10 +1,20 @@
-# `did:sol` IDL
+# `did:sol` Program
 
-The [anchor-based](https://github.com/coral-xyz/anchor) auto-generated IDL for the `did:sol` program.
+The [anchor-based](https://github.com/coral-xyz/anchor) program of `did:sol` on Solana.
 
-## Program references
+## Instructions
 
-This IDL allows for the simple interaction with the `did:sol` on-chain Solana program.
+### `initialize`
+### `resize`
+### `close`
+### `add_verification_method`
+### `remove_verification_method`
+### `add_service`
+### `remove_service`
+### `set_vm_flags`
+### `set_controllers`
+### `update`
+### `migrate`
 
 ### Deployments
 
