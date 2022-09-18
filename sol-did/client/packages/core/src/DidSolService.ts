@@ -53,10 +53,10 @@ import {
 export class DidSolService extends DidSolTransactionBuilder {
   private _identifier: DidSolIdentifier;
 
-  static async build(
+  static build(
     identifier: DidSolIdentifier,
     options: DidSolServiceOptions = {}
-  ): Promise<DidSolService> {
+  ): DidSolService {
     const wallet = options.wallet || new NonSigningWallet();
     const confirmOptions =
       options.confirmOptions || AnchorProvider.defaultOptions();
@@ -70,9 +70,9 @@ export class DidSolService extends DidSolTransactionBuilder {
     // Note, DidSolService never signs, so provider does not need a valid Wallet or confirmOptions.
     const provider = new AnchorProvider(connection, wallet, confirmOptions);
 
-    const program = await fetchProgram(provider);
-    const [didDataAccount] = await findProgramAddress(identifier.authority);
-    const [legacyDidDataAccount] = await findLegacyProgramAddress(
+    const program = fetchProgram(provider);
+    const [didDataAccount] = findProgramAddress(identifier.authority);
+    const [legacyDidDataAccount] = findLegacyProgramAddress(
       identifier.authority
     );
 
@@ -87,14 +87,14 @@ export class DidSolService extends DidSolTransactionBuilder {
     );
   }
 
-  static async buildFromAnchor(
+  static buildFromAnchor(
     program: Program<SolDid>,
     identifier: DidSolIdentifier,
     provider: AnchorProvider,
     wallet?: Wallet
-  ): Promise<DidSolService> {
-    const [didDataAccount] = await identifier.dataAccount();
-    const [legacyDidDataAccount] = await identifier.legacyDataAccount();
+  ): DidSolService {
+    const [didDataAccount] = identifier.dataAccount();
+    const [legacyDidDataAccount] = identifier.legacyDataAccount();
 
     return new DidSolService(
       program,
