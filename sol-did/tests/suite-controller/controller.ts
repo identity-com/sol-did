@@ -40,7 +40,7 @@ describe('sol-did controller operations', () => {
   const ethKey = Wallet.createRandom();
 
   before(async () => {
-    [didData, didDataPDABump] = await findProgramAddress(authority.publicKey);
+    [didData, didDataPDABump] = findProgramAddress(authority.publicKey);
     service = await DidSolService.buildFromAnchor(
       program,
       DidSolIdentifier.create(authority.publicKey, TEST_CLUSTER),

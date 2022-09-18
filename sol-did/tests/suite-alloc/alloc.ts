@@ -40,7 +40,7 @@ describe('sol-did alloc operations', () => {
   let didDataAccountSize: number = 0;
 
   before(async () => {
-    [didData, didDataPDABump] = await findProgramAddress(authority.publicKey);
+    [didData, didDataPDABump] = findProgramAddress(authority.publicKey);
 
     service = await DidSolService.buildFromAnchor(
       program,
