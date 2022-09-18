@@ -19,7 +19,6 @@
     "build": "tsdx build",
     "postbuild": "mkdir dist/api && cp src/api/openapi.yml dist/api/",
     "test": "tsdx test",
-    "pretest": "(cd ../../sol-did && yarn && yarn build && cd client/packages/core && yarn link) && yarn link @identity.com/sol-did-client",
     "lint": "tsdx lint --maxWarnings 0",
     "prepublishOnly": "yarn build",
     "dev": "ts-node-dev src/index.ts",
