@@ -1,6 +1,6 @@
 [package]
 name = "sol-did"
-version = "3.0.0"
+version = "3.1.0"
 description = "Martin Riedel"
 edition = "2021"
 
