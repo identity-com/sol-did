@@ -8,7 +8,7 @@ import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { airdrop } from '../tests/utils/utils';
 import { utils, Wallet as EthWallet } from 'ethers';
 import { Wallet as NodeWallet } from '@project-serum/anchor';
-import { DidSolIdentifier } from "@identity.com/sol-did-client";
+import { DidSolIdentifier } from '@identity.com/sol-did-client';
 
 (async () => {
   const authority = Keypair.generate();
@@ -16,12 +16,9 @@ import { DidSolIdentifier } from "@identity.com/sol-did-client";
 
   const identifier = DidSolIdentifier.create(authority.publicKey, cluster);
   // create service for a did:sol:${authority.publicKey}
-  const service = DidSolService.build(
-    identifier,
-    {
-      wallet: new NodeWallet(authority),
-    }
-  );
+  const service = DidSolService.build(identifier, {
+    wallet: new NodeWallet(authority),
+  });
 
   // resolve generative did document
   const didDoc = await service.resolve();

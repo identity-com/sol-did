@@ -30,9 +30,7 @@ import { DidSolIdentifier } from '../DidSolIdentifier';
 import { ExtendedCluster } from './connection';
 import { VerificationMethod } from './wrappers';
 
-export const fetchProgram = (
-  provider: Provider
-): Program<SolDid> => {
+export const fetchProgram = (provider: Provider): Program<SolDid> => {
   let idl;
   // Download IDL from the network.
   // idl = await Program.fetchIdl<SolDid>(DID_SOL_PROGRAM, provider);

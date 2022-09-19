@@ -7,7 +7,8 @@ import {
   VerificationMethodType,
   LegacyClient,
   LEGACY_DID_SOL_PROGRAM,
-  DID_SOL_PROGRAM, BitwiseVerificationMethodFlag,
+  DID_SOL_PROGRAM,
+  BitwiseVerificationMethodFlag,
 } from '@identity.com/sol-did-client';
 import { SolDid } from '../dist/target/types/sol_did';
 
