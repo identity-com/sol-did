@@ -54,7 +54,6 @@ export default class Resolve extends Command {
     // console.log(`did:sol PDA: ${service.didDataAccount.toBase58()}`);
     // console.log(`did:sol legacy PDA: ${service.legacyDidDataAccount.toBase58()}`);
 
-
     const doc = await service.resolve();
     this.log(JSON.stringify(doc, null, 2));
   }

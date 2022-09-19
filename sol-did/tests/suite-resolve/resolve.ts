@@ -12,7 +12,8 @@ import {
   DidSolService,
   BitwiseVerificationMethodFlag,
   VerificationMethodType,
-  AddVerificationMethodParams, DidAccountSizeHelper,
+  AddVerificationMethodParams,
+  DidAccountSizeHelper,
 } from '@identity.com/sol-did-client';
 
 import {
@@ -31,7 +32,7 @@ import {
   getTestVerificationMethod,
 } from '../utils/utils';
 import { DEFAULT_KEY_ID } from '@identity.com/sol-did-client-legacy';
-import * as crypto from "crypto";
+import * as crypto from 'crypto';
 
 chai.use(chaiAsPromised);
 
@@ -214,10 +215,13 @@ describe('sol-did resolve and migrate operations', () => {
       .rpc();
 
     // check migration
-    const [didAccount, didAccountSize] = await legacyDidService.getDidAccountWithSize();
+    const [didAccount, didAccountSize] =
+      await legacyDidService.getDidAccountWithSize();
     expect(didAccount.services[0].serviceEndpoint).to.equal(randomString);
 
-    expect(new DidAccountSizeHelper(didAccount.raw).getDidAccountSize()).to.equal(490);
+    expect(
+      new DidAccountSizeHelper(didAccount.raw).getDidAccountSize()
+    ).to.equal(490);
     expect(didAccountSize).to.equal(500);
 
     // close migration again for next test
