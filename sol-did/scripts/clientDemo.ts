@@ -1,23 +1,26 @@
 import {
+  BitwiseVerificationMethodFlag,
   DidSolService,
   ExtendedCluster,
-  VerificationMethodFlags,
   VerificationMethodType,
-} from '../dist/src';
+} from '@identity.com/sol-did-client';
 import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { airdrop } from '../tests/utils/utils';
 import { utils, Wallet as EthWallet } from 'ethers';
 import { Wallet as NodeWallet } from '@project-serum/anchor';
+import { DidSolIdentifier } from "@identity.com/sol-did-client";
 
 (async () => {
   const authority = Keypair.generate();
   const cluster: ExtendedCluster = 'localnet';
 
+  const identifier = DidSolIdentifier.create(authority.publicKey, cluster);
   // create service for a did:sol:${authority.publicKey}
-  const service = await DidSolService.build(
-    authority.publicKey,
-    cluster,
-    new NodeWallet(authority)
+  const service = DidSolService.build(
+    identifier,
+    {
+      wallet: new NodeWallet(authority),
+    }
   );
 
   // resolve generative did document
@@ -67,7 +70,7 @@ import { Wallet as NodeWallet } from '@project-serum/anchor';
       fragment: 'eth-address',
       keyData: Buffer.from(ethAddress),
       methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
-      flags: VerificationMethodFlags.CapabilityInvocation,
+      flags: [BitwiseVerificationMethodFlag.CapabilityInvocation],
     })
     .withAutomaticAlloc(authority.publicKey)
     .rpc();
@@ -88,6 +91,7 @@ import { Wallet as NodeWallet } from '@project-serum/anchor';
         serviceType: 'service-type-1',
         serviceEndpoint: 'http://localhost:3000',
       },
+      false,
       nonAuthority.publicKey
     )
     .withAutomaticAlloc(nonAuthority.publicKey)

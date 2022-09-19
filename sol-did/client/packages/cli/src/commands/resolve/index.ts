@@ -48,7 +48,7 @@ export default class Resolve extends Command {
 
     const didSolIdentifier = DidSolIdentifier.parse(args.didsol);
 
-    const service = await DidSolService.build(didSolIdentifier);
+    const service = DidSolService.build(didSolIdentifier);
 
     // console.log(`did:sol: ${service.did}`);
     // console.log(`did:sol PDA: ${service.didDataAccount.toBase58()}`);

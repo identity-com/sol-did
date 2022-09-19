@@ -55,10 +55,10 @@ export class DidSolService extends DidSolTransactionBuilder {
   private readonly _didDataAccount: PublicKey;
   private readonly _legacyDidDataAccount: PublicKey;
 
-  static async build(
+  static build(
     identifier: DidSolIdentifier,
     options: DidSolServiceOptions = {}
-  ): Promise<DidSolService> {
+  ): DidSolService {
     const wallet = options.wallet || new NonSigningWallet();
     const confirmOptions =
       options.confirmOptions || AnchorProvider.defaultOptions();
@@ -72,7 +72,7 @@ export class DidSolService extends DidSolTransactionBuilder {
     // Note, DidSolService never signs, so provider does not need a valid Wallet or confirmOptions.
     const provider = new AnchorProvider(connection, wallet, confirmOptions);
 
-    const program = await fetchProgram(provider);
+    const program = fetchProgram(provider);
 
     return new DidSolService(
       program,
@@ -83,12 +83,12 @@ export class DidSolService extends DidSolTransactionBuilder {
     );
   }
 
-  static async buildFromAnchor(
+  static buildFromAnchor(
     program: Program<SolDid>,
     identifier: DidSolIdentifier,
     provider: AnchorProvider,
     wallet?: Wallet
-  ): Promise<DidSolService> {
+  ): DidSolService {
     return new DidSolService(
       program,
       identifier.authority,

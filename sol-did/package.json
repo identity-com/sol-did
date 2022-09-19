@@ -11,7 +11,9 @@
         "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
         "clean": "yarn workspace @identity.com/sol-did-idl clean && yarn workspace @identity.com/sol-did-client clean && yarn workspace @identity.com/sol-did-cli clean",
         "build": "yarn workspace @identity.com/sol-did-idl build && yarn workspace @identity.com/sol-did-client build && yarn workspace @identity.com/sol-did-cli build",
-        "build-all": "anchor build && yarn build"
+        "build-all": "anchor build && yarn build",
+        "start-validator": "solana-test-validator --bpf-program didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc ./target/deploy/sol_did.so --reset",
+        "start-validator-legacy": "solana-test-validator --bpf-program didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc ./target/deploy/sol_did.so --bpf-program idDa4XeCjVwKcprVAo812coUQbovSZ4kDGJf2sPaBnM ../legacy/program/target/deploy/sol_did_legacy.so --reset"
     },
     "dependencies": {
         "@project-serum/anchor": "0.25.0"
