@@ -134,7 +134,9 @@ export class DidSolService extends DidSolTransactionBuilder {
 
     const dataAccount =
       this._program.account.didAccount.coder.accounts.decode<RawDidSolDataAccount>(
-        'DidAccount', // TODO: from "this._program.account.didAccount._idlAccount.name" - How to get this officially?
+        // @ts-ignore: TODO: find a better way
+        this._program.account.didAccount._idlAccount.name,
+        // 'DidAccount', // TODO: from "this._program.account.didAccount._idlAccount.name" - How to get this officially?
         accountInfo.data
       );
 
@@ -156,7 +158,9 @@ export class DidSolService extends DidSolTransactionBuilder {
 
     const dataAccount =
       this._program.account.didAccount.coder.accounts.decode<RawDidSolDataAccount>(
-        'DidAccount', // TODO: from "this._program.account.didAccount._idlAccount.name" - How to get this officially?
+        // @ts-ignore: TODO: find a better way
+        this._program.account.didAccount._idlAccount.name,
+        // 'DidAccount', // TODO: from "this._program.account.didAccount._idlAccount.name" - How to get this officially?
         accountInfo.data
       );
 
