@@ -1,3 +1,4 @@
+// @ts-nocheck TODO: Anchor IDL inconsistency
 export type SolDid = {
   "version": "3.1.0",
   "name": "sol_did",
@@ -1045,7 +1046,7 @@ export const IDL: SolDid = {
   ],
   "accounts": [
     {
-      "name": "didAccount",
+      "name": "DidAccount",
       "type": {
         "kind": "struct",
         "fields": [

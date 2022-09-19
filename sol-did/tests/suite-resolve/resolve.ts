@@ -12,7 +12,7 @@ import {
   DidSolService,
   BitwiseVerificationMethodFlag,
   VerificationMethodType,
-  AddVerificationMethodParams,
+  AddVerificationMethodParams, DidAccountSizeHelper,
 } from '@identity.com/sol-did-client';
 
 import {
@@ -31,6 +31,7 @@ import {
   getTestVerificationMethod,
 } from '../utils/utils';
 import { DEFAULT_KEY_ID } from '@identity.com/sol-did-client-legacy';
+import * as crypto from "crypto";
 
 chai.use(chaiAsPromised);
 
@@ -188,6 +189,36 @@ describe('sol-did resolve and migrate operations', () => {
       BitwiseVerificationMethodFlag.OwnershipProof |
         BitwiseVerificationMethodFlag.CapabilityInvocation
     );
+
+    // close migration again for next test
+    await legacyDidService.close(authority.publicKey).rpc();
+  });
+
+  it('can successfully migrate a legacy DID resize the account up and add content', async () => {
+    const existing = await legacyDidService.getDidAccount();
+    expect(existing).to.be.null;
+
+    expect(await legacyDidService.isMigratable()).to.be.true;
+
+    const randomString = crypto.randomBytes(123).toString('hex');
+    // migrate
+    await legacyDidService
+      .migrate(nonAuthoritySigner.publicKey)
+      .resize(500)
+      .addService({
+        fragment: 'big-service',
+        serviceType: 'BigService',
+        serviceEndpoint: randomString,
+      })
+      .withPartialSigners(nonAuthoritySigner)
+      .rpc();
+
+    // check migration
+    const [didAccount, didAccountSize] = await legacyDidService.getDidAccountWithSize();
+    expect(didAccount.services[0].serviceEndpoint).to.equal(randomString);
+
+    expect(new DidAccountSizeHelper(didAccount.raw).getDidAccountSize()).to.equal(490);
+    expect(didAccountSize).to.equal(500);
 
     // close migration again for next test
     await legacyDidService.close(authority.publicKey).rpc();

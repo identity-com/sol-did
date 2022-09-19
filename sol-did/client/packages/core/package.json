@@ -1,6 +1,6 @@
 {
     "name": "@identity.com/sol-did-client",
-    "version": "3.1.0-beta2",
+    "version": "3.1.0-beta3",
     "description": "A powerful DID-method on Solana",
     "license": "MIT",
     "main": "dist/src/index.js",
@@ -34,7 +34,7 @@
     },
     "dependencies": {
         "@identity.com/sol-did-client-legacy": "^2.0.3",
-        "@identity.com/sol-did-idl": "^3.1.0-beta2",
+        "@identity.com/sol-did-idl": "^3.1.0-beta3",
         "@project-serum/anchor": "0.25.0",
         "@solana/web3.js": "^1.59.1",
         "bs58": "^5.0.0",
