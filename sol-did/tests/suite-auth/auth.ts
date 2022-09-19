@@ -1,6 +1,6 @@
 import * as anchor from '@project-serum/anchor';
 import { LangErrorCode, Program } from '@project-serum/anchor';
-import { SolDid } from '../../target/types/sol_did';
+import { SolDid } from '@identity.com/sol-did-idl';
 
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -11,10 +11,11 @@ import { utils, Wallet } from 'ethers';
 import {
   DidSolIdentifier,
   DidSolService,
-  VerificationMethodFlags,
+  BitwiseVerificationMethodFlag,
   VerificationMethodType,
-} from '../../src';
-import { findProgramAddress, DEFAULT_KEY_ID } from '../../src';
+  findProgramAddress,
+  DEFAULT_KEY_ID,
+} from '@identity.com/sol-did-client';
 import { TEST_CLUSTER } from '../utils/const';
 
 chai.use(chaiAsPromised);
@@ -41,7 +42,7 @@ describe('sol-did auth operations', () => {
   const newEthKeyAlias2 = 'new-eth-key2';
 
   before(async () => {
-    [didData, didDataPDABump] = await findProgramAddress(authority.publicKey);
+    [didData, didDataPDABump] = findProgramAddress(authority.publicKey);
     service = await DidSolService.buildFromAnchor(
       program,
       DidSolIdentifier.create(authority.publicKey, TEST_CLUSTER),
@@ -71,45 +72,39 @@ describe('sol-did auth operations', () => {
         fragment: newSolKeyAlias,
         keyData: newSolKey.publicKey.toBytes(),
         methodType: VerificationMethodType.Ed25519VerificationKey2018,
-        flags: VerificationMethodFlags.CapabilityInvocation,
+        flags: [BitwiseVerificationMethodFlag.CapabilityInvocation],
       })
       .rpc();
 
     const didDataAccount = await service.getDidAccount();
 
-    expect(didDataAccount.verificationMethods.length).to.equal(1);
-    expect(didDataAccount.verificationMethods[0].fragment).to.equal(
+    expect(didDataAccount.verificationMethods.length).to.equal(2);
+    expect(didDataAccount.verificationMethods[1].fragment).to.equal(
       newSolKeyAlias
     );
-    expect(didDataAccount.verificationMethods[0].keyData).to.deep.equal(
+    expect(didDataAccount.verificationMethods[1].keyData).to.deep.equal(
       newSolKey.publicKey.toBytes()
     );
-    expect(didDataAccount.verificationMethods[0].methodType).to.equal(
+    expect(didDataAccount.verificationMethods[1].methodType).to.equal(
       VerificationMethodType.Ed25519VerificationKey2018
     );
-    expect(didDataAccount.verificationMethods[0].flags).to.equal(
-      VerificationMethodFlags.CapabilityInvocation
-    );
+    expect(didDataAccount.verificationMethods[1].flags.array).to.deep.equal([
+      BitwiseVerificationMethodFlag.CapabilityInvocation,
+    ]);
   });
 
   it('can use the new ed25519VerificationKey2018 Key add a Service to the account', async () => {
     const tService = getTestService(1);
 
     await service
-      .addService(tService, newSolKey.publicKey)
+      .addService(tService, false, newSolKey.publicKey)
       .withPartialSigners(newSolKey)
       .rpc();
 
     const didDataAccount = await service.getDidAccount();
 
     expect(didDataAccount.services.length).to.equal(1);
-    expect(didDataAccount.services[0].fragment).to.equal(tService.fragment);
-    expect(didDataAccount.services[0].serviceType).to.equal(
-      tService.serviceType
-    );
-    expect(didDataAccount.services[0].serviceEndpoint).to.equal(
-      tService.serviceEndpoint
-    );
+    expect(didDataAccount.services[0]).to.deep.equal(tService);
   });
 
   it('can not add a new key with OwnershipProof to an account', async () => {
@@ -119,7 +114,7 @@ describe('sol-did auth operations', () => {
           fragment: 'new-key',
           keyData: newSolKey.publicKey.toBytes(),
           methodType: VerificationMethodType.Ed25519VerificationKey2018,
-          flags: VerificationMethodFlags.OwnershipProof,
+          flags: [BitwiseVerificationMethodFlag.OwnershipProof],
         })
         .rpc()
     ).to.be.rejectedWith(
@@ -134,7 +129,7 @@ describe('sol-did auth operations', () => {
           fragment: 'invalid-flag-key',
           keyData: newSolKey.publicKey.toBytes(),
           methodType: VerificationMethodType.Ed25519VerificationKey2018,
-          flags: 1 << 15,
+          flags: [1 << 15],
         })
         .rpc()
     ).to.be.rejectedWith(
@@ -149,7 +144,7 @@ describe('sol-did auth operations', () => {
           fragment: DEFAULT_KEY_ID,
           keyData: newSolKey.publicKey.toBytes(),
           methodType: VerificationMethodType.Ed25519VerificationKey2018,
-          flags: VerificationMethodFlags.CapabilityInvocation,
+          flags: [BitwiseVerificationMethodFlag.CapabilityInvocation],
         })
         .rpc()
     ).to.be.rejectedWith(
@@ -165,26 +160,26 @@ describe('sol-did auth operations', () => {
         fragment: newEthKeyAlias,
         keyData: Buffer.from(ethAddressAsBytes),
         methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
-        flags: VerificationMethodFlags.CapabilityInvocation,
+        flags: [BitwiseVerificationMethodFlag.CapabilityInvocation],
       })
       .rpc();
 
     const didDataAccount = await service.getDidAccount();
 
-    expect(didDataAccount.verificationMethods.length).to.equal(2);
-    expect(didDataAccount.verificationMethods[1].fragment).to.equal(
+    expect(didDataAccount.verificationMethods.length).to.equal(3);
+    expect(didDataAccount.verificationMethods[2].fragment).to.equal(
       newEthKeyAlias
     );
-    expect(didDataAccount.verificationMethods[1].keyData.length).to.equal(20);
-    expect(didDataAccount.verificationMethods[1].keyData).to.deep.equal(
+    expect(didDataAccount.verificationMethods[2].keyData.length).to.equal(20);
+    expect(didDataAccount.verificationMethods[2].keyData).to.deep.equal(
       ethAddressAsBytes
     );
-    expect(didDataAccount.verificationMethods[1].methodType).to.equal(
+    expect(didDataAccount.verificationMethods[2].methodType).to.equal(
       VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020
     );
-    expect(didDataAccount.verificationMethods[1].flags).to.equal(
-      VerificationMethodFlags.CapabilityInvocation
-    );
+    expect(didDataAccount.verificationMethods[2].flags.array).to.deep.equal([
+      BitwiseVerificationMethodFlag.CapabilityInvocation,
+    ]);
   });
 
   it('can use the new EcdsaSecp256k1RecoveryMethod2020 Key add a Service to the account and not reuse nonce', async () => {
@@ -194,7 +189,7 @@ describe('sol-did auth operations', () => {
 
     // use transaction to test replay attack
     const transaction = await service
-      .addService(tService, nonAuthoritySigner.publicKey)
+      .addService(tService, false, nonAuthoritySigner.publicKey)
       .withEthSigner(newEthKey)
       .transaction();
 
@@ -206,13 +201,39 @@ describe('sol-did auth operations', () => {
     expect(didDataAccount.nonce.toString()).to.be.equal(
       didDataAccountBefore.nonce.addn(1).toString()
     );
-    expect(didDataAccount.services[1].fragment).to.equal(tService.fragment);
-    expect(didDataAccount.services[1].serviceType).to.equal(
-      tService.serviceType
+    expect(didDataAccount.services[0]).to.deep.equal(tService);
+
+    // it cannot reuse a nonce
+    return expect(
+      programProvider.sendAndConfirm(transaction, [nonAuthoritySigner])
+    ).to.be.rejectedWith(
+      `Error processing Instruction 0: custom program error: 0x${LangErrorCode.ConstraintRaw.toString(
+        16
+      )}`
     );
-    expect(didDataAccount.services[1].serviceEndpoint).to.equal(
-      tService.serviceEndpoint
+  });
+
+  it('can use the new EcdsaSecp256k1RecoveryMethod2020 Key and update a Service to the account and not reuse nonce', async () => {
+    const didDataAccountBefore = await service.getDidAccount();
+    expect(didDataAccountBefore.nonce.toString()).to.be.equal('1');
+    const tService = getTestService(2);
+    tService.serviceEndpoint = `${tService.serviceEndpoint}-updated`;
+
+    // use transaction to test replay attack
+    const transaction = await service
+      .addService(tService, true, nonAuthoritySigner.publicKey)
+      .withEthSigner(newEthKey)
+      .transaction();
+
+    await programProvider.sendAndConfirm(transaction, [nonAuthoritySigner]);
+
+    const didDataAccount = await service.getDidAccount();
+
+    expect(didDataAccount.services.length).to.equal(2);
+    expect(didDataAccount.nonce.toString()).to.be.equal(
+      didDataAccountBefore.nonce.addn(1).toString()
     );
+    expect(didDataAccount.services[0]).to.deep.equal(tService);
 
     // it cannot reuse a nonce
     return expect(
@@ -230,7 +251,7 @@ describe('sol-did auth operations', () => {
 
     return expect(
       service
-        .addService(tService, nonAuthoritySigner.publicKey)
+        .addService(tService, false, nonAuthoritySigner.publicKey)
         .withEthSigner(wrongEthKey)
         .withPartialSigners(nonAuthoritySigner)
         .rpc()
@@ -250,12 +271,11 @@ describe('sol-did auth operations', () => {
           fragment: newEthKeyAlias2,
           keyData,
           methodType: VerificationMethodType.EcdsaSecp256k1VerificationKey2019,
-          flags: VerificationMethodFlags.CapabilityInvocation,
+          flags: [BitwiseVerificationMethodFlag.CapabilityInvocation],
         },
         nonAuthoritySigner.publicKey
       )
       .withEthSigner(newEthKey)
-      .withPartialSigners(nonAuthoritySigner)
       .transaction();
 
     await programProvider.sendAndConfirm(transaction, [nonAuthoritySigner]);
@@ -265,20 +285,20 @@ describe('sol-did auth operations', () => {
     expect(didDataAccount.nonce.toString()).to.be.equal(
       didDataAccountBefore.nonce.addn(1).toString()
     );
-    expect(didDataAccount.verificationMethods.length).to.equal(3);
-    expect(didDataAccount.verificationMethods[2].fragment).to.equal(
+    expect(didDataAccount.verificationMethods.length).to.equal(4);
+    expect(didDataAccount.verificationMethods[3].fragment).to.equal(
       newEthKeyAlias2
     );
-    expect(didDataAccount.verificationMethods[2].keyData.length).to.equal(64);
-    expect(didDataAccount.verificationMethods[2].keyData).to.deep.equal(
+    expect(didDataAccount.verificationMethods[3].keyData.length).to.equal(64);
+    expect(didDataAccount.verificationMethods[3].keyData).to.deep.equal(
       keyData
     );
-    expect(didDataAccount.verificationMethods[2].methodType).to.equal(
+    expect(didDataAccount.verificationMethods[3].methodType).to.equal(
       VerificationMethodType.EcdsaSecp256k1VerificationKey2019
     );
-    expect(didDataAccount.verificationMethods[2].flags).to.equal(
-      VerificationMethodFlags.CapabilityInvocation
-    );
+    expect(didDataAccount.verificationMethods[3].flags.array).to.deep.equal([
+      BitwiseVerificationMethodFlag.CapabilityInvocation,
+    ]);
 
     // it cannot reuse a nonce
     return expect(
@@ -297,7 +317,7 @@ describe('sol-did auth operations', () => {
 
     // use transaction to test replay attack
     const transaction = await service
-      .addService(tService, nonAuthoritySigner.publicKey)
+      .addService(tService, false, nonAuthoritySigner.publicKey)
       .withEthSigner(newEthKey2)
       .transaction();
 
@@ -309,13 +329,7 @@ describe('sol-did auth operations', () => {
     expect(didDataAccount.nonce.toString()).to.be.equal(
       didDataAccountBefore.nonce.addn(1).toString()
     );
-    expect(didDataAccount.services[2].fragment).to.equal(tService.fragment);
-    expect(didDataAccount.services[2].serviceType).to.equal(
-      tService.serviceType
-    );
-    expect(didDataAccount.services[2].serviceEndpoint).to.equal(
-      tService.serviceEndpoint
-    );
+    expect(didDataAccount.services[0]).to.deep.equal(tService);
 
     // it cannot reuse a nonce
     return expect(
@@ -332,9 +346,7 @@ describe('sol-did auth operations', () => {
 
     // use transaction to test replay attack
     return expect(
-      service
-        .setVerificationMethodFlags(unknownAlias, VerificationMethodFlags.None)
-        .rpc()
+      service.setVerificationMethodFlags(unknownAlias, []).rpc()
     ).to.be.rejectedWith(
       'Error Code: VmFragmentNotFound. Error Number: 6000. Error Message: No VM with the given fragment exists.'
     );
@@ -345,23 +357,27 @@ describe('sol-did auth operations', () => {
     const vmLengthBefore = didDataAccountBefore.verificationMethods.length;
 
     // Update with Wallet Key
-    const newFlags =
-      VerificationMethodFlags.CapabilityInvocation |
-      VerificationMethodFlags.Authentication;
+    const newFlags = [
+      BitwiseVerificationMethodFlag.Authentication,
+      BitwiseVerificationMethodFlag.CapabilityInvocation,
+    ];
     await service.setVerificationMethodFlags(newEthKeyAlias, newFlags).rpc();
 
     const didDataAccount = await service.getDidAccount();
     expect(didDataAccount.verificationMethods.length).to.equal(vmLengthBefore);
-    expect(didDataAccount.verificationMethods[1].fragment).to.equal(
+    expect(didDataAccount.verificationMethods[2].fragment).to.equal(
       newEthKeyAlias
     );
-    expect(didDataAccount.verificationMethods[1].flags).to.equal(newFlags);
+    expect(didDataAccount.verificationMethods[2].flags.array).to.deep.equal(
+      newFlags
+    );
   });
 
   it('cannot update the flags (WITH Ownership Proof) of a verification method with a different verification method', async () => {
-    const newFlags =
-      VerificationMethodFlags.CapabilityInvocation |
-      VerificationMethodFlags.OwnershipProof;
+    const newFlags = [
+      BitwiseVerificationMethodFlag.Authentication,
+      BitwiseVerificationMethodFlag.OwnershipProof,
+    ];
     return expect(
       service.setVerificationMethodFlags(newEthKeyAlias, newFlags).rpc()
     ).to.be.rejectedWith(
@@ -374,9 +390,10 @@ describe('sol-did auth operations', () => {
     const vmLengthBefore = didDataAccountBefore.verificationMethods.length;
 
     // Update with Wallet Key
-    const newFlags =
-      VerificationMethodFlags.CapabilityInvocation |
-      VerificationMethodFlags.OwnershipProof;
+    const newFlags = [
+      BitwiseVerificationMethodFlag.Authentication,
+      BitwiseVerificationMethodFlag.OwnershipProof,
+    ];
     await service
       .setVerificationMethodFlags(
         newEthKeyAlias,
@@ -389,22 +406,24 @@ describe('sol-did auth operations', () => {
 
     const didDataAccount = await service.getDidAccount();
     expect(didDataAccount.verificationMethods.length).to.equal(vmLengthBefore);
-    expect(didDataAccount.verificationMethods[1].fragment).to.equal(
+    expect(didDataAccount.verificationMethods[2].fragment).to.equal(
       newEthKeyAlias
     );
-    expect(didDataAccount.verificationMethods[1].flags).to.equal(newFlags);
+    expect(didDataAccount.verificationMethods[2].flags.array).to.deep.equal(
+      newFlags
+    );
   });
 
   it('successfully set flags to 0 when removing the default verification method', async () => {
     const didDataAccountBefore = await service.getDidAccount();
-    expect(didDataAccountBefore.initialVerificationMethod.flags).to.not.equal(
-      0
-    );
+    expect(
+      didDataAccountBefore.verificationMethods[0].flags.array
+    ).to.not.equal([]);
 
     await service.removeVerificationMethod(DEFAULT_KEY_ID).rpc();
 
     const didDataAccount = await service.getDidAccount();
-    expect(didDataAccount.initialVerificationMethod.flags).to.equal(0);
+    expect(didDataAccount.verificationMethods[0].flags.array).to.deep.equal([]);
   });
 
   it('can remove a verification method with the same verification method', async () => {
@@ -453,11 +472,7 @@ describe('sol-did auth operations', () => {
   it('cannot update flags (without CapabilityInvocation) of the last VM with a CapabilityInvocation', async () => {
     return expect(
       service
-        .setVerificationMethodFlags(
-          newSolKeyAlias,
-          VerificationMethodFlags.None,
-          newSolKey.publicKey
-        )
+        .setVerificationMethodFlags(newSolKeyAlias, [], newSolKey.publicKey)
         .withPartialSigners(newSolKey)
         .rpc()
     ).to.be.rejectedWith(

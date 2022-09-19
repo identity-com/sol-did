@@ -55,9 +55,10 @@ pub mod sol_did {
     pub fn add_service(
         ctx: Context<AddService>,
         service: Service,
+        allow_overwrite: bool,
         eth_signature: Option<Secp256k1RawSignature>,
     ) -> Result<()> {
-        instructions::add_service(ctx, service, eth_signature)
+        instructions::add_service(ctx, service, allow_overwrite, eth_signature)
     }
 
     pub fn remove_service(

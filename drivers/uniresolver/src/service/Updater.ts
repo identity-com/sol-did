@@ -1,12 +1,6 @@
 import { UpdateRequest, UpdateState } from './DefaultService';
-import {
-  CustomClusterUrlConfig,
-  DidSolDocument,
-  DidSolIdentifier,
-  DidSolService,
-  makeKeypair,
-} from '@identity.com/sol-did-client';
-import { getConfig } from '../config/config';
+import { DidSolDocument, makeKeypair } from '@identity.com/sol-did-client';
+import { buildService } from '../utils';
 
 export const update = async (request: UpdateRequest): Promise<UpdateState> => {
   const payer = request.secret?.payer || process.env.PAYER;
@@ -18,15 +12,8 @@ export const update = async (request: UpdateRequest): Promise<UpdateState> => {
     ? makeKeypair(request.secret.owner)
     : payerKeypair;
 
-  const didSolIdentifier = DidSolIdentifier.parse(request.identifier);
+  const service = await buildService(request.identifier);
 
-  const config = await getConfig();
-  let clusterConfig: CustomClusterUrlConfig | undefined;
-  if (config) {
-    clusterConfig = config.solanaRpcNodes;
-  }
-
-  const service = await DidSolService.build(didSolIdentifier, clusterConfig);
   const doc = await DidSolDocument.fromDoc(request.didDocument);
   await service
     .updateFromDoc(doc)

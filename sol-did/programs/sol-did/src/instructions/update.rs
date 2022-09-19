@@ -13,7 +13,7 @@ pub fn update(
         data.nonce += 1;
     }
 
-    data.set_services(update_arg.services)?;
+    data.set_services(update_arg.services, false)?;
     data.set_verification_methods(Vec::new(), update_arg.verification_methods)?;
     data.set_native_controllers(update_arg.native_controllers)?;
     data.set_other_controllers(update_arg.other_controllers)?;

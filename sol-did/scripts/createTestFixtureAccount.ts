@@ -4,12 +4,12 @@ import {
   findProgramAddress,
   DidSolService,
   DidSolIdentifier,
-  VerificationMethodFlags,
   VerificationMethodType,
   LegacyClient,
   LEGACY_DID_SOL_PROGRAM,
   DID_SOL_PROGRAM,
-} from '../dist/src/index';
+  BitwiseVerificationMethodFlag,
+} from '@identity.com/sol-did-client';
 import { SolDid } from '../dist/target/types/sol_did';
 
 import { airdrop, getTestService } from '../tests/utils/utils';
@@ -39,7 +39,7 @@ export async function idlAddress(programId: PublicKey): Promise<PublicKey> {
   const programProvider = program.provider as anchor.AnchorProvider;
 
   const authority = programProvider.wallet;
-  const [didData, _] = await findProgramAddress(authority.publicKey);
+  const [didData, _] = findProgramAddress(authority.publicKey);
 
   await airdrop(
     programProvider.connection,
@@ -49,10 +49,12 @@ export async function idlAddress(programId: PublicKey): Promise<PublicKey> {
 
   const cluster: ExtendedCluster = 'localnet';
 
-  const service = await DidSolService.buildFromAnchor(
+  const identifier = DidSolIdentifier.create(authority.publicKey, cluster);
+
+  const service = DidSolService.buildFromAnchor(
+    // @ts-ignore
     program,
-    authority.publicKey,
-    cluster,
+    identifier,
     programProvider
   );
 
@@ -78,7 +80,7 @@ export async function idlAddress(programId: PublicKey): Promise<PublicKey> {
   const ethKey = Wallet.fromMnemonic(MNEMONIC, getDerivationPath());
 
   console.log('DidIdentifier: ' + authority.publicKey.toBase58());
-  console.log('DidDataAccount: ' + didData.toBase58());
+  console.log('DidSolDataAccount: ' + didData.toBase58());
 
   console.log(`LegacyDidKey: ${legacyDidKey.publicKey.toBase58()}`);
   console.log(`EthKey: ${ethKey.address}`);
@@ -102,7 +104,7 @@ export async function idlAddress(programId: PublicKey): Promise<PublicKey> {
       fragment: 'eth-address',
       keyData: Buffer.from(ethAuthority0AddressAsBytes),
       methodType: VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020,
-      flags: VerificationMethodFlags.CapabilityInvocation,
+      flags: [BitwiseVerificationMethodFlag.CapabilityInvocation],
     })
     .withAutomaticAlloc(authority.publicKey)
     .rpc();
@@ -113,7 +115,7 @@ export async function idlAddress(programId: PublicKey): Promise<PublicKey> {
       fragment: 'eth-key',
       keyData: Buffer.from(utils.arrayify(ethAuthority1.publicKey).slice(1)),
       methodType: VerificationMethodType.EcdsaSecp256k1VerificationKey2019,
-      flags: VerificationMethodFlags.CapabilityInvocation,
+      flags: [BitwiseVerificationMethodFlag.CapabilityInvocation],
     })
     .withAutomaticAlloc(authority.publicKey)
     .rpc();
