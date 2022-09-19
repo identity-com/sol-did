@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: `addService` operation takes an additional `allowsOverwrite` flag to allow an update of an existing service without removing it first.
 - Client operations with `authority` and `payer` default to `this._wallet.publicKey` and not `this._didAuthority`
 - Do not download the IDL from the network, but use the library IDL instead.
+- `DidSolService.build` is not `async` anymore. Therefore it does not need to be awaited
 
 ### Deprecated
 

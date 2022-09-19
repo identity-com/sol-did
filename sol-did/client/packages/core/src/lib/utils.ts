@@ -30,9 +30,7 @@ import { DidSolIdentifier } from '../DidSolIdentifier';
 import { ExtendedCluster } from './connection';
 import { VerificationMethod } from './wrappers';
 
-export const fetchProgram = async (
-  provider: Provider
-): Promise<Program<SolDid>> => {
+export const fetchProgram = (provider: Provider): Program<SolDid> => {
   let idl;
   // Download IDL from the network.
   // idl = await Program.fetchIdl<SolDid>(DID_SOL_PROGRAM, provider);
@@ -41,14 +39,14 @@ export const fetchProgram = async (
   return new Program<SolDid>(idl, DID_SOL_PROGRAM, provider) as Program<SolDid>;
 };
 
-export const findProgramAddress = async (authority: PublicKey) =>
-  PublicKey.findProgramAddress(
+export const findProgramAddress = (authority: PublicKey) =>
+  PublicKey.findProgramAddressSync(
     [anchor.utils.bytes.utf8.encode(DEFAULT_SEED_STRING), authority.toBuffer()],
     DID_SOL_PROGRAM
   );
 
-export const findLegacyProgramAddress = async (authority: PublicKey) =>
-  PublicKey.findProgramAddress(
+export const findLegacyProgramAddress = (authority: PublicKey) =>
+  PublicKey.findProgramAddressSync(
     [authority.toBuffer(), anchor.utils.bytes.utf8.encode('sol')],
     LEGACY_DID_SOL_PROGRAM
   );

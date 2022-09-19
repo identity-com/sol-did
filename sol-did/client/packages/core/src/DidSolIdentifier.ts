@@ -38,12 +38,12 @@ export class DidSolIdentifier {
   /**
    * Get the key to the DID data
    */
-  async dataAccount(): Promise<[PublicKey, number]> {
-    return await findProgramAddress(this.authority);
+  dataAccount(): [PublicKey, number] {
+    return findProgramAddress(this.authority);
   }
 
-  async legacyDataAccount(): Promise<[PublicKey, number]> {
-    return await findLegacyProgramAddress(this.authority);
+  legacyDataAccount(): [PublicKey, number] {
+    return findLegacyProgramAddress(this.authority);
   }
 
   /**

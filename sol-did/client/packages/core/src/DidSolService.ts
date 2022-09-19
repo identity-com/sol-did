@@ -51,12 +51,14 @@ import {
  * Please use DidSolServiceBuilder instead
  */
 export class DidSolService extends DidSolTransactionBuilder {
-  private _identifier: DidSolIdentifier;
+  private readonly _identifier: DidSolIdentifier;
+  private readonly _didDataAccount: PublicKey;
+  private readonly _legacyDidDataAccount: PublicKey;
 
-  static async build(
+  static build(
     identifier: DidSolIdentifier,
     options: DidSolServiceOptions = {}
-  ): Promise<DidSolService> {
+  ): DidSolService {
     const wallet = options.wallet || new NonSigningWallet();
     const confirmOptions =
       options.confirmOptions || AnchorProvider.defaultOptions();
@@ -70,37 +72,26 @@ export class DidSolService extends DidSolTransactionBuilder {
     // Note, DidSolService never signs, so provider does not need a valid Wallet or confirmOptions.
     const provider = new AnchorProvider(connection, wallet, confirmOptions);
 
-    const program = await fetchProgram(provider);
-    const [didDataAccount] = await findProgramAddress(identifier.authority);
-    const [legacyDidDataAccount] = await findLegacyProgramAddress(
-      identifier.authority
-    );
+    const program = fetchProgram(provider);
 
     return new DidSolService(
       program,
       identifier.authority,
-      didDataAccount,
-      legacyDidDataAccount,
       identifier.clusterType,
       provider.wallet,
       provider.opts
     );
   }
 
-  static async buildFromAnchor(
+  static buildFromAnchor(
     program: Program<SolDid>,
     identifier: DidSolIdentifier,
     provider: AnchorProvider,
     wallet?: Wallet
-  ): Promise<DidSolService> {
-    const [didDataAccount] = await identifier.dataAccount();
-    const [legacyDidDataAccount] = await identifier.legacyDataAccount();
-
+  ): DidSolService {
     return new DidSolService(
       program,
       identifier.authority,
-      didDataAccount,
-      legacyDidDataAccount,
       identifier.clusterType,
       wallet ? wallet : provider.wallet,
       provider.opts
@@ -110,13 +101,13 @@ export class DidSolService extends DidSolTransactionBuilder {
   private constructor(
     private _program: Program<SolDid>,
     private _didAuthority: PublicKey,
-    private _didDataAccount: PublicKey,
-    private _legacyDidDataAccount: PublicKey,
     private _cluster: ExtendedCluster = 'mainnet-beta',
     wallet: Wallet = new NonSigningWallet(),
     confirmOptions: ConfirmOptions = AnchorProvider.defaultOptions()
   ) {
     super(wallet, _program.provider.connection, confirmOptions, _program.idl);
+    this._didDataAccount = findProgramAddress(_didAuthority)[0];
+    this._legacyDidDataAccount = findLegacyProgramAddress(_didAuthority)[0];
     this._identifier = DidSolIdentifier.create(_didAuthority, _cluster);
   }
 
@@ -143,7 +134,9 @@ export class DidSolService extends DidSolTransactionBuilder {
 
     const dataAccount =
       this._program.account.didAccount.coder.accounts.decode<RawDidSolDataAccount>(
-        'DidAccount', // TODO: from "this._program.account.didAccount._idlAccount.name" - How to get this officially?
+        // @ts-ignore: TODO: find a better way
+        this._program.account.didAccount._idlAccount.name,
+        // 'DidAccount', // TODO: from "this._program.account.didAccount._idlAccount.name" - How to get this officially?
         accountInfo.data
       );
 
@@ -165,7 +158,9 @@ export class DidSolService extends DidSolTransactionBuilder {
 
     const dataAccount =
       this._program.account.didAccount.coder.accounts.decode<RawDidSolDataAccount>(
-        'DidAccount', // TODO: from "this._program.account.didAccount._idlAccount.name" - How to get this officially?
+        // @ts-ignore: TODO: find a better way
+        this._program.account.didAccount._idlAccount.name,
+        // 'DidAccount', // TODO: from "this._program.account.didAccount._idlAccount.name" - How to get this officially?
         accountInfo.data
       );
 
