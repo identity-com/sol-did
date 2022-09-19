@@ -20,7 +20,7 @@ sol did:sol:devnet:6fjuEFDTircJVNCQWYe4UHNfbYrU1a4sEr8FQ5w7d8Fx # resolves a DID
 ````
 
 <!-- toc -->
-* [SOL DID CLI](#sol-did-cli)
+* [`did:sol` CLI](#didsol-cli)
 * [Usage](#usage)
 * [Commands](#commands)
 <!-- tocstop -->
@@ -31,7 +31,7 @@ $ npm install -g @identity.com/sol-did-cli
 $ sol COMMAND
 running command...
 $ sol (--version)
-@identity.com/sol-did-cli/0.0.0 darwin-arm64 node-v16.13.0
+@identity.com/sol-did-cli/3.1.0-beta4 darwin-arm64 node-v16.13.0
 $ sol --help [COMMAND]
 USAGE
   $ sol COMMAND
@@ -61,7 +61,7 @@ DESCRIPTION
   Display help for sol.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.10/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.12/src/commands/help.ts)_
 
 ## `sol resolve DIDSOL`
 
@@ -105,5 +105,5 @@ EXAMPLES
   }
 ```
 
-_See code: [dist/commands/resolve/index.ts](https://github.com/identity-com/sol-did/blob/v0.0.0/dist/commands/resolve/index.ts)_
+_See code: [dist/commands/resolve/index.ts](https://github.com/identity-com/sol-did/blob/v3.1.0-beta4/dist/commands/resolve/index.ts)_
 <!-- commandsstop -->
