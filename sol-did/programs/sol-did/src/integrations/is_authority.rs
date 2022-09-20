@@ -18,7 +18,7 @@ pub fn is_authority(
     eth_raw_signature: Option<&Secp256k1RawSignature>,
     filter_fragment: Option<&String>,
 ) -> Result<bool> {
-    if did_account.owner == &System::id() && did_account.lamports() == 0 {
+    if did_account.owner == &System::id() {
         // msg!("Validating generative DID");
         // the DID is a generative DID - the only authority is the key itself
         // verify that the authority key derives the correct did account
@@ -164,7 +164,7 @@ mod test {
         test_did_account.try_serialize(&mut data).unwrap();
         let derived_did_account = derive_did_account(&test_authority);
 
-        let mut lamports = 1; // must be > 0 to pass the Account::try_from
+        let mut lamports = 1;
         let account_info = AccountInfo {
             key: &derived_did_account.0,
             is_signer: false,
@@ -198,7 +198,7 @@ mod test {
         let test_authority = create_test_authority();
 
         let mut data: Vec<u8> = Vec::with_capacity(0);
-        let mut lamports = 0; // empty account
+        let mut lamports = 1; // account can have a balance
         let derived_did_account = derive_did_account(&test_authority);
 
         let account_info = AccountInfo {
@@ -268,7 +268,7 @@ mod test {
         test_did_account.try_serialize(&mut data).unwrap();
         let derived_did_account = derive_did_account(&test_authority);
 
-        let mut lamports = 1; // must be > 0 to pass the Account::try_from
+        let mut lamports = 1;
         let account_info = AccountInfo {
             key: &derived_did_account.0,
             is_signer: false,
@@ -312,7 +312,7 @@ mod test {
         test_did_account.try_serialize(&mut data).unwrap();
         let derived_did_account = derive_did_account(&test_authority);
 
-        let mut lamports = 1; // must be > 0 to pass the Account::try_from
+        let mut lamports = 1;
         let account_info = AccountInfo {
             key: &derived_did_account.0,
             is_signer: false,
@@ -355,7 +355,7 @@ mod test {
         let mut data: Vec<u8> = Vec::with_capacity(1024);
         test_did_account.try_serialize(&mut data).unwrap();
 
-        let mut lamports = 1; // must be > 0 to pass the Account::try_from
+        let mut lamports = 1;
         let derived_did_account = derive_did_account(&test_authority);
 
         let account_info = AccountInfo {
