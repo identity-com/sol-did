@@ -681,6 +681,11 @@ export type SolDid = {
       "code": 6009,
       "name": "ConversionError",
       "msg": "Could not convert between data types"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidControllerChain",
+      "msg": "Invalid chain of controlling DidAccounts"
     }
   ]
 };
@@ -1368,6 +1373,11 @@ export const IDL: SolDid = {
       "code": 6009,
       "name": "ConversionError",
       "msg": "Could not convert between data types"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidControllerChain",
+      "msg": "Invalid chain of controlling DidAccounts"
     }
   ]
 };
