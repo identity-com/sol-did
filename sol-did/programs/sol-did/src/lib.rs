@@ -1,11 +1,28 @@
+//! This crate contains the anchor-program code for the did:sol DID method.
+//!
+//! It exposes the public #program instructions, as well as integrations libraries that are
+//! independent of the anchor framework.
+
+#![warn(
+unused_import_braces,
+unused_imports,
+// missing_docs,
+// missing_debug_implementations,
+// clippy::pedantic
+)]
+
+pub mod integrations;
+pub mod state;
+
 mod constants;
 mod errors;
 mod instructions;
 mod legacy;
 mod security_txt;
-mod state;
 mod utils;
 
+use crate::constants::DID_ACCOUNT_SEED;
+use crate::state::DidAccount;
 use anchor_lang::prelude::*;
 use instructions::*;
 use state::{Secp256k1RawSignature, Service, VerificationMethod};
@@ -14,7 +31,6 @@ declare_id!("didso1Dpqpm4CsiCjzP766BGY89CAdD6ZBL68cRhFPc");
 
 #[program]
 pub mod sol_did {
-
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>, size: u32) -> Result<()> {
