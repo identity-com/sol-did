@@ -1,4 +1,4 @@
-FROM node:15-alpine as builder
+FROM node:16-alpine as builder
 
 WORKDIR /usr/src/app
 
@@ -15,7 +15,7 @@ RUN yarn install --production
 # See https://github.com/bug-hunters/oas3-tools/issues/19
 RUN sed -i s/this.app.use\(cookieParser\(\)\)\;/this.app.use\(cookieParser\(\)\)\;this.app.use\(require\(\"cors\"\)\(\)\)\;/ node_modules/oas3-tools/dist/middleware/express.app.config.js
 
-FROM node:15-alpine
+FROM node:16-alpine
 WORKDIR /usr/src/app
 
 EXPOSE 8080

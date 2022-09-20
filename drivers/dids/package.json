@@ -44,7 +44,7 @@
   "dependencies": {
     "@digitalbazaar/ed25519-verification-key-2020": "^2.0.0",
     "@digitalbazaar/x25519-key-agreement-key-2019": "^5.0.0",
-    "@identity.com/sol-did-client": "^1.0.0-beta",
+    "@identity.com/sol-did-client-legacy": "^2.0.3",
     "@solana/web3.js": "^1.21.0",
     "crypto-ld": "^5.0.0",
     "did-method-key": "^0.7.0",

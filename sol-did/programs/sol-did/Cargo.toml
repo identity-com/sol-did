@@ -1,0 +1,26 @@
+[package]
+name = "sol-did"
+version = "3.1.0"
+description = "Martin Riedel"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "sol_did"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.25.0"
+num-derive = "0.3"
+num-traits = "0.2"
+bitflags = "1.3.2"
+solana-program = "1.10.29"
+borsh = "0.9.3"
+itertools = "0.10.3"
+solana-security-txt = "1.0.1"

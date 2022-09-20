@@ -2,7 +2,7 @@ import { CachedResolver } from '@digitalbazaar/did-io';
 import didKey from '@digitalbazaar/did-method-key';
 import didSol, { Driver } from '../src/';
 import { Connection, Keypair } from '@solana/web3.js';
-import { ClusterType, SolanaUtil } from '@identity.com/sol-did-client';
+import { ClusterType, SolanaUtil } from '@identity.com/sol-did-client-legacy';
 
 const cluster = ClusterType.devnet();
 const resolver = new CachedResolver();

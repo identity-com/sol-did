@@ -1,9 +1,9 @@
 import { register } from './Registrar';
-import { ResponseContent } from '../utils/writer';
+import { ResponseContent } from '../utils';
 import { DIDDocument, VerificationMethod } from 'did-resolver';
-import * as DID from '@identity.com/sol-did-client';
 import { deactivate } from './Deactivator';
 import { update } from './Updater';
+import { buildService } from '../utils';
 
 type ResolutionResult = {
   didDocument: DIDDocument;
@@ -27,14 +27,10 @@ export type DeactivateRequest = {
   secret: DeactivateSecrets;
 };
 
-export type UpdateOptions = {
-  mergeBehaviour?: DID.MergeBehaviour;
-};
 export type UpdateSecrets = RegisterSecrets & { owner?: string };
 export type UpdateRequest = {
   identifier: string;
   jobId?: string;
-  options?: UpdateOptions;
   secret: UpdateSecrets;
   didDocument: DIDDocument;
 };
@@ -121,7 +117,8 @@ export const resolveDID = async (
   identifier: string,
   _accept: string
 ): Promise<ResponseContent<ResolutionResult>> => {
-  const didDocument = await DID.resolve(identifier);
+  const service = await buildService(identifier);
+  const didDocument = await service.resolve();
 
   if (didDocument) {
     const result: ResolutionResult = {

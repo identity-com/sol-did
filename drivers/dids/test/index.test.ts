@@ -1,5 +1,5 @@
 import { DIDs } from '../src';
-import { ClusterType, SolanaUtil } from '@identity.com/sol-did-client';
+import { ClusterType, SolanaUtil } from '@identity.com/sol-did-client-legacy';
 import { Keypair, Connection, PublicKey } from '@solana/web3.js';
 import { expect } from 'chai';
 import { DIDDocument } from 'did-resolver';
