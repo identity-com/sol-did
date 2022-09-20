@@ -1335,23 +1335,23 @@
     did-resolver "^3.0.1"
     ramda "^0.27.1"
 
-"@identity.com/sol-did-client@^3.1.0-beta5":
-  version "3.1.0-beta5"
-  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-client/-/sol-did-client-3.1.0-beta5.tgz#dd2c92ffac1c907ed4765b3507966bb9f6fc7c28"
-  integrity sha512-1dmqY4zmXNl6LjvXIcOmSpY5p2q2aUADkricicjWKiNOwlNbV/49ZgvWXaWbByORfyb9JT5/MQD1Jq7NkVpuTw==
+"@identity.com/sol-did-client@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-client/-/sol-did-client-3.1.0.tgz#0db8b59147ebdf89b6b444e420d71b776edfacc3"
+  integrity sha512-BgJsEpHLwiU8Gvbc37ume10DCDtNiTV3vIsLI74j0O3/4rgwOe4Uv/YOkLlfRixMwUpqqsQCzG4xU3XkPuuYlw==
   dependencies:
     "@identity.com/sol-did-client-legacy" "^2.0.3"
-    "@identity.com/sol-did-idl" "^3.1.0-beta5"
+    "@identity.com/sol-did-idl" "^3.1.0"
     "@project-serum/anchor" "0.25.0"
     "@solana/web3.js" "^1.59.1"
     bs58 "^5.0.0"
     did-resolver "^3.2.2"
     ethers "^5.6.9"
 
-"@identity.com/sol-did-idl@^3.1.0-beta5":
-  version "3.1.0-beta5"
-  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-idl/-/sol-did-idl-3.1.0-beta5.tgz#69260ea9ebf20a56a15354de631b1cc32983f24c"
-  integrity sha512-JAlDpWMrCJ9qw3kZ1B8ZkS+eEfRlqx23zZvp9lkfWVnX6Uv3RoupHZHINJneM5cfacEdXF4/mRYSd5TnO/qw+A==
+"@identity.com/sol-did-idl@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-idl/-/sol-did-idl-3.1.0.tgz#dfd00b0f80aeed25ff898a7bd95320df3abc337d"
+  integrity sha512-umy6Adt9d7v50iduN02L5hzxK9742va0yZxFDsTopXcYAgTW/jQ/xsR5Q4VTuqJXtn6szhIO1q0hbNHScq22Cg==
 
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"

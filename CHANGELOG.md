@@ -4,10 +4,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
 ## [Unreleased]
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [3.1.0] - 2022-09-19
 ### Added
 - Restructured npm packages to be a single `yarn` workspace under [sol-did](./sol-did/package.json)
 - `DidSolService` allows to chain multiple "general" operations
+- Expose `crate::integrations::is_authority` to check if a key is an authority on a DID.
 
 ### Changed
 - **Breaking**: `getDidAccount()` now returns a clearer data model for a Verification Method and not the raw on-chain version

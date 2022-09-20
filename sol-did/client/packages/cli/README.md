@@ -31,7 +31,7 @@ $ npm install -g @identity.com/sol-did-cli
 $ sol COMMAND
 running command...
 $ sol (--version)
-@identity.com/sol-did-cli/3.1.0-beta5 darwin-arm64 node-v16.13.0
+@identity.com/sol-did-cli/3.1.0 darwin-arm64 node-v16.13.0
 $ sol --help [COMMAND]
 USAGE
   $ sol COMMAND
@@ -105,5 +105,5 @@ EXAMPLES
   }
 ```
 
-_See code: [dist/commands/resolve/index.ts](https://github.com/identity-com/sol-did/blob/v3.1.0-beta5/dist/commands/resolve/index.ts)_
+_See code: [dist/commands/resolve/index.ts](https://github.com/identity-com/sol-did/blob/v3.1.0/dist/commands/resolve/index.ts)_
 <!-- commandsstop -->
