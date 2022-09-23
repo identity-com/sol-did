@@ -14,6 +14,7 @@ import {
   VerificationMethodType,
   AddVerificationMethodParams,
   DidAccountSizeHelper,
+  LegacyClient,
 } from '@identity.com/sol-did-client';
 
 import {
@@ -574,5 +575,57 @@ describe('sol-did resolve and migrate operations', () => {
     // check migration
     const didDoc = await legacyDidService.resolve();
     expect(didDoc).to.deep.equal(migratedLegacyDidDocComplete);
+  });
+
+  describe('migrate', () => {
+    let authority: Keypair;
+    let identifier: DidSolIdentifier;
+    let service: DidSolService;
+
+    before(async () => {
+      authority = Keypair.generate();
+      identifier = DidSolIdentifier.create(authority.publicKey, TEST_CLUSTER);
+      await airdrop(
+        programProvider.connection,
+        authority.publicKey,
+        5 * LAMPORTS_PER_SOL
+      );
+
+      // create legacy account
+      await LegacyClient.register({
+        payer: authority.secretKey, // payer == owner
+        cluster: LegacyClient.ClusterType.development(),
+        connection: programProvider.connection,
+      });
+
+      service = await DidSolService.build(identifier, {
+        connection: programProvider.connection,
+        wallet: new Wallet(authority),
+        confirmOptions: programProvider.opts,
+      });
+    });
+
+    it('can migrating a DID with inferred capability invocation', async () => {
+      // create a legacy did with inferred capability invocation
+      const legacyData = await service.getLegacyData();
+      expect(legacyData).to.not.be.null;
+      expect(legacyData?.capabilityInvocation).to.deep.equal([]); // inferred case.
+
+      // migrate and close legacy account
+      await service.migrate(authority.publicKey, authority.publicKey).rpc();
+
+      expect(await service.getLegacyData()).to.be.null;
+
+      const doc = await service.resolve();
+      const data = await service.getDidAccount();
+      expect(doc.capabilityInvocation).to.deep.equal([
+        `${identifier.toString()}#${DEFAULT_KEY_ID}`,
+      ]);
+
+      expect(data?.verificationMethods[0].flags.array).to.deep.equal([
+        BitwiseVerificationMethodFlag.CapabilityInvocation,
+        BitwiseVerificationMethodFlag.OwnershipProof,
+      ]);
+    });
   });
 });
