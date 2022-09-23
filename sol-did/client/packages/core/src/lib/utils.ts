@@ -192,9 +192,7 @@ export const mapVerificationMethodsToDidComponents = (
         vm.publicKeyBase58 = new PublicKey(method.keyData).toBase58();
         break;
       case VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020:
-        vm.ethereumAddress = getAddress(
-          hexlify(method.keyData)
-        );
+        vm.ethereumAddress = getAddress(hexlify(method.keyData));
         break;
       case VerificationMethodType.EcdsaSecp256k1VerificationKey2019:
         vm.publicKeyHex = hexlify(method.keyData).replace('0x', '');
