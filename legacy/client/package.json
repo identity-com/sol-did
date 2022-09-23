@@ -1,5 +1,5 @@
 {
-  "version": "2.0.3",
+  "version": "2.0.4",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -43,7 +43,7 @@
   },
   "name": "@identity.com/sol-did-client-legacy",
   "author": "dankelleher",
-  "module": "dist/sol-did-client.esm.js",
+  "module": "dist/sol-did-client-legacy.esm.js",
   "size-limit": [
     {
       "path": "dist/sol-did-client.cjs.production.min.js",

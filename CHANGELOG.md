@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [3.1.2] - 2022-09-23
+### Changed
+- Removed `ethers` dependency to reduce package size.
 
 ## [3.1.1] - 2022-09-22
 ### Fixed
