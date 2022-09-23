@@ -417,10 +417,10 @@
   dependencies:
     "@hapi/hoek" "^9.0.0"
 
-"@identity.com/sol-did-client-legacy@^2.0.3":
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-client-legacy/-/sol-did-client-legacy-2.0.3.tgz#ed8138cc3d54471119ec86369c19abc9dd4113b7"
-  integrity sha512-KbKRqYThMBtZ1aAtYgwtlk0AuAt6co+shQtkwKg7w7gFQxYtwzAs6AtZ1a/Wgf+qQZhQAU6jfehcytfRD/xyTA==
+"@identity.com/sol-did-client-legacy@^2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-client-legacy/-/sol-did-client-legacy-2.0.4.tgz#95b7be01f0022cd34abaee37cc11750f423f1b54"
+  integrity sha512-+LrYg0g3UriEMLpOrzFFZ17eeCA3Ynuyg5cbaAFnoV5bmMCOKr8Y03DERQWrtagfvVJBsWBtz6h6v/ZQSzxnlQ==
   dependencies:
     "@solana/web3.js" "^1.21.0"
     bn.js "^4.12.0"
