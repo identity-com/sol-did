@@ -143,6 +143,11 @@ impl LegacyDidAccount {
             flags |= VerificationMethodFlags::KEY_AGREEMENT;
         }
 
+        // special case for inferred "capability_invocation" verification method
+        if self.capability_invocation.is_empty() && vm_fragment == VM_DEFAULT_FRAGMENT_NAME {
+            flags |= VerificationMethodFlags::CAPABILITY_INVOCATION;
+        }
+
         flags
     }
 
