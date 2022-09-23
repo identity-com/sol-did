@@ -2,7 +2,8 @@ import * as anchor from '@project-serum/anchor';
 import { Program, Provider } from '@project-serum/anchor';
 import { SolDid, IDL } from '@identity.com/sol-did-idl';
 import { Keypair, PublicKey, TransactionInstruction } from '@solana/web3.js';
-import { utils as ethersUtils } from 'ethers';
+import { getAddress } from '@ethersproject/address';
+import { hexlify, arrayify } from '@ethersproject/bytes';
 import { decode } from 'bs58';
 
 import {
@@ -62,7 +63,7 @@ export const ethSignPayload = async (
 
   const signatureFull = await signer.signMessage(message);
   // add signature to payload
-  const signatureBytes = ethersUtils.arrayify(signatureFull);
+  const signatureBytes = arrayify(signatureFull);
   const signature = Array.from(signatureBytes.slice(0, -1));
   // // map [0x1b, 0x1c] to [0, 1]
   // https://docs.ethers.io/v4/api-utils.html#signatures
@@ -191,12 +192,12 @@ export const mapVerificationMethodsToDidComponents = (
         vm.publicKeyBase58 = new PublicKey(method.keyData).toBase58();
         break;
       case VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020:
-        vm.ethereumAddress = ethersUtils.getAddress(
-          ethersUtils.hexlify(method.keyData)
+        vm.ethereumAddress = getAddress(
+          hexlify(method.keyData)
         );
         break;
       case VerificationMethodType.EcdsaSecp256k1VerificationKey2019:
-        vm.publicKeyHex = ethersUtils.hexlify(method.keyData).replace('0x', '');
+        vm.publicKeyHex = hexlify(method.keyData).replace('0x', '');
         break;
       default:
         throw new Error(
@@ -285,11 +286,11 @@ export const getKeyDataFromVerificationMethod = (
     case VerificationMethodType[
       VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020
     ]:
-      return Buffer.from(ethersUtils.arrayify(vm.ethereumAddress as string));
+      return Buffer.from(arrayify(vm.ethereumAddress as string));
     case VerificationMethodType[
       VerificationMethodType.EcdsaSecp256k1VerificationKey2019
     ]:
-      return Buffer.from(ethersUtils.arrayify(vm.publicKeyHex as string));
+      return Buffer.from(arrayify(vm.publicKeyHex as string));
     default:
       throw new Error(`Verification method type '${vm.type}' not recognized`);
   }
