@@ -286,10 +286,12 @@ export abstract class DidSolTransactionBuilder {
       instructionChain.push(this._closeInstruction);
     }
 
-    this.clearInstructions();
-
     // ethSign
-    return this.ethSignInstructions(instructionChain);
+    const finalInstructions = await this.ethSignInstructions(instructionChain);
+
+    // needs to be the last method.
+    this.clearInstructions();
+    return finalInstructions;
   }
 
   async transaction(): Promise<Transaction> {

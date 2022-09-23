@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+- Legacy DID Migration did not work for "inferred" CapabilityInvocation on the "default" VerificationMethod
+- `migrate()` operation did not close the legacy account after migration when an legacyAuthority was specified
 
 ### Security
 
