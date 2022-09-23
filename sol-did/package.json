@@ -19,14 +19,15 @@
         "@project-serum/anchor": "0.25.0"
     },
     "devDependencies": {
-        "@identity.com/sol-did-idl": "^3.1.0",
         "@identity.com/sol-did-client": "^3.1.0",
+        "@identity.com/sol-did-idl": "^3.1.0",
         "@project-serum/anchor-cli": "https://github.com/kklas/anchor-nightly/releases/download/anchor-cli-latest/anchor-cli-0.25.0-7eb8ca8.tgz",
         "@types/bn.js": "^5.1.0",
         "@types/chai": "^4.3.0",
         "@types/mocha": "^9.0.0",
         "chai": "^4.3.4",
         "chai-as-promised": "^7.1.1",
+        "ethers": "^5.7.1",
         "mocha": "^10.0.0",
         "prettier": "^2.6.2",
         "ts-mocha": "^10.0.0",
