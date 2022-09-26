@@ -20,7 +20,7 @@
         "did-client"
     ],
     "engines": {
-        "node": ">=16"
+        "node": ">=14"
     },
     "scripts": {
         "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
