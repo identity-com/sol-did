@@ -1,4 +1,8 @@
-use crate::{errors::DidSolError, id, DidAccount, Secp256k1RawSignature, DID_ACCOUNT_SEED};
+use crate::{
+    errors::DidSolError,
+    utils::{derive_did_account, derive_did_account_with_bump},
+    DidAccount, Secp256k1RawSignature,
+};
 use anchor_lang::prelude::*;
 use solana_program::account_info::AccountInfo;
 use solana_program::pubkey::Pubkey;
@@ -9,10 +13,13 @@ use solana_program::pubkey::Pubkey;
 /// In the latter case, the chain must be provided in the following order:
 /// did_account -> controlling_did_accounts[0] -> ... -> controlling_did_accounts[n] -> authority
 /// where '->' represents the relationship "is controlled by".
+/// Controlling DID Accounts are a tuple of (AccountInfo, PublicKey)
+/// the public key is used to derive a default DidAccount object, if
+/// the DID is a generative DID
 pub fn is_authority(
     did_account: &AccountInfo,
     did_account_seed_bump: Option<u8>,
-    controlling_did_accounts: &[AccountInfo],
+    controlling_did_accounts: &[(AccountInfo, Pubkey)],
     sol_authority: &Pubkey,
     eth_message: &[u8],
     eth_raw_signature: Option<&Secp256k1RawSignature>,
@@ -39,16 +46,10 @@ pub fn is_authority(
     // validate them by parsing and checking the controller relationship,
     // and return the last one, which is the one the authority should be present on.
     // if no chain was provided, the relationship is direct, so return did_data
-
-    // WHAT I WANT
-    // let did_to_check_authority =
-    //     last_in_valid_controller_chain(&did_data, controlling_did_accounts)?.unwrap_or(&did_data);
-
-    // WHAT I HAVE TO DO INSTEAD
-    let controller_chain: Vec<Account<DidAccount>> = controlling_did_accounts
+    let controller_chain: Vec<DidAccount> = controlling_did_accounts
         .iter()
-        .map(Account::try_from)
-        .collect::<Result<Vec<Account<DidAccount>>>>()?;
+        .map(DidAccount::try_from_or_default)
+        .collect::<Result<Vec<DidAccount>>>()?;
 
     if !did_data.is_controlled_by(controller_chain.as_slice()) {
         return Err(error!(DidSolError::InvalidControllerChain));
@@ -80,31 +81,12 @@ pub fn is_authority(
     Ok(authority_exists)
 }
 
-pub fn derive_did_account(authority: &Pubkey) -> (Pubkey, u8) {
-    Pubkey::find_program_address(
-        &[DID_ACCOUNT_SEED.as_bytes(), authority.key().as_ref()],
-        &id(),
-    )
-}
-
-pub fn derive_did_account_with_bump(authority: &Pubkey, bump_seed: u8) -> Result<Pubkey> {
-    Pubkey::create_program_address(
-        &[
-            DID_ACCOUNT_SEED.as_bytes(),
-            authority.key().as_ref(),
-            &[bump_seed],
-        ],
-        &id(),
-    )
-    .map_err(|_| Error::from(ErrorCode::ConstraintSeeds))
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
     use crate::constants::VM_DEFAULT_FRAGMENT_NAME;
     use crate::state::{DidAccount, VerificationMethodFlags};
-    use crate::VerificationMethod;
+    use crate::{id, VerificationMethod};
     use std::cell::RefCell;
     use std::rc::Rc;
     use std::str::FromStr;
