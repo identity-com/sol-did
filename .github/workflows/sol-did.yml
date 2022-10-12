@@ -12,6 +12,7 @@ jobs:
     strategy:
       matrix:
         rust: ['1.61']
+        solana: ['v1.10.29']
         os: [ubuntu-latest]
 
     steps:
@@ -25,6 +26,18 @@ jobs:
           override: true
           profile: minimal
           components: rustfmt, clippy
+
+      - name: Cache Solana version
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache
+          key: solana-${{ matrix.solana }}
+
+      - name: Install Solana
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/${{ matrix.solana }}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
 
       - name: Run fmt
         uses: actions-rs/cargo@v1
@@ -40,6 +53,24 @@ jobs:
             ~/.cargo/git
             ./sol-did/target
           key: cargo-clippy-${{ hashFiles('sol-did/Cargo.lock') }}
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Cache node dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ./sol-did/node_modules
+          key: yarn-client-${{ hashFiles('sol-did/yarn.lock') }}
+
+      - name: Install & Build program
+        run: | 
+          cd sol-did
+          yarn install --ignore-scripts --frozen-lockfile
+          yarn anchor build
 
       - name: Run Clippy
         uses: actions-rs/cargo@v1
@@ -60,6 +91,7 @@ jobs:
     strategy:
       matrix:
         rust: ['1.61']
+        solana: ['v1.10.29']
         os: [ubuntu-latest]
 
     steps:
@@ -81,6 +113,36 @@ jobs:
             ~/.cargo/git
             ./sol-did/target
           key: cargo-test-${{ hashFiles('sol-did/Cargo.lock') }}
+
+      - name: Cache Solana version
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache
+          key: solana-${{ matrix.solana }}
+
+      - name: Install Solana
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/${{ matrix.solana }}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Cache node dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ./sol-did/node_modules
+          key: yarn-client-${{ hashFiles('sol-did/yarn.lock') }}
+
+      - name: Install & Build program
+        run: |
+          cd sol-did
+          yarn install --ignore-scripts --frozen-lockfile
+          yarn anchor build
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
