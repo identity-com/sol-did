@@ -24,4 +24,6 @@ pub enum DidSolError {
     ConversionError,
     #[msg("Invalid chain of controlling DidAccounts")]
     InvalidControllerChain,
+    #[msg("An error occurred while validating Secp256k1 signature")]
+    ErrorValidatingSecp256k1Signature,
 }

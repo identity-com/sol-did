@@ -7,8 +7,9 @@ use num_traits::*;
 use std::fmt::{Display, Formatter};
 
 use crate::constants::VM_DEFAULT_FRAGMENT_NAME;
-use crate::utils::{check_other_controllers, convert_secp256k1pub_key_to_address};
-use solana_program::{keccak, secp256k1_recover::secp256k1_recover};
+use crate::utils::{
+    check_other_controllers, convert_secp256k1pub_key_to_address, eth_verify_message,
+};
 
 #[account]
 pub struct DidAccount {
@@ -153,39 +154,67 @@ impl DidAccount {
             .is_empty()
     }
 
-    // TODO change to ref
-    pub fn find_authority(
+    pub fn find_authority_constraint(
         &self,
         sol_authority: &Pubkey,
         eth_message: &[u8],
         eth_raw_signature: Option<&Secp256k1RawSignature>,
         filter_fragment: Option<&String>,
     ) -> Option<&VerificationMethod> {
-        let mut vm = self.find_sol_authority(sol_authority, filter_fragment);
+        // find sol authority
+        let vm = self.find_authority(
+            &sol_authority.to_bytes(),
+            Some(&[VerificationMethodType::Ed25519VerificationKey2018]),
+            filter_fragment,
+        );
         if vm.is_some() {
             return vm;
         }
-        vm = self.find_eth_authority(eth_message, eth_raw_signature, filter_fragment);
-        if vm.is_some() {
-            return vm;
+
+        if let Some(eth_raw_signature) = eth_raw_signature {
+            // recover key
+            let secp256k1_pubkey = eth_verify_message(
+                eth_message,
+                self.nonce,
+                eth_raw_signature.signature,
+                eth_raw_signature.recovery_id,
+            )
+            .ok()?;
+
+            let vm = self.find_authority(
+                &secp256k1_pubkey.to_bytes(),
+                Some(&[VerificationMethodType::EcdsaSecp256k1VerificationKey2019]),
+                filter_fragment,
+            );
+            if vm.is_some() {
+                return vm;
+            }
+
+            let address = convert_secp256k1pub_key_to_address(&secp256k1_pubkey);
+            let vm = self.find_authority(
+                &address,
+                Some(&[VerificationMethodType::EcdsaSecp256k1RecoveryMethod2020]),
+                filter_fragment,
+            );
+            if vm.is_some() {
+                return vm;
+            }
         }
 
         None
     }
 
-    pub fn find_sol_authority(
+    pub fn find_authority(
         &self,
-        authority: &Pubkey,
+        key: &[u8],
+        filter_types: Option<&[VerificationMethodType]>,
         filter_fragment: Option<&String>,
     ) -> Option<&VerificationMethod> {
-        // msg!(
-        //     "Checking if {} is an Ed25519VerificationKey2018 authority",
-        //     authority.to_string()
-        // );
+        msg!("Checking if key {:?} is an authority", key,);
         self.verification_methods(
-            Some(&[VerificationMethodType::Ed25519VerificationKey2018]), // TODO: is this the best way to pass this?
+            filter_types,
             Some(VerificationMethodFlags::CAPABILITY_INVOCATION),
-            Some(&authority.to_bytes()),
+            Some(key),
             filter_fragment,
         )
         .into_iter()
@@ -210,83 +239,6 @@ impl DidAccount {
             },
             _ => true,
         }
-    }
-
-    pub fn find_eth_authority(
-        &self,
-        message: &[u8],
-        raw_signature: Option<&Secp256k1RawSignature>,
-        filter_fragment: Option<&String>,
-    ) -> Option<&VerificationMethod> {
-        let raw_signature = raw_signature?;
-        let message_with_nonce = [message, self.nonce.to_le_bytes().as_ref()].concat();
-        // Ethereum conforming Message Input
-        // https://docs.ethers.io/v4/api-utils.html?highlight=hashmessage#hash-function-helpers
-        let sign_message_input = [
-            "\x19Ethereum Signed Message:\n".as_bytes(),
-            message_with_nonce.len().to_string().as_bytes(),
-            message_with_nonce.as_ref(),
-        ]
-        .concat();
-
-        let hash = keccak::hash(sign_message_input.as_ref());
-        // msg!("Hash: {:x?}", hash.as_ref());
-        // msg!("Message: {:x?}", message);
-        // msg!(
-        //     "sign_message_input: {:x?}, Length: {}",
-        //     sign_message_input,
-        //     sign_message_input.len()
-        // );
-        // msg!("Signature: {:x?}", raw_signature.signature);
-        // msg!("RecoveryId: {:x}", raw_signature.recovery_id);
-
-        let secp256k1_pubkey = secp256k1_recover(
-            hash.as_ref(),
-            raw_signature.recovery_id,
-            raw_signature.signature.as_ref(),
-        )
-        .unwrap();
-        // msg!("Recovered: {:?}", secp256k1_pubkey.to_bytes());
-        //
-        // // Check EcdsaSecp256k1VerificationKey2019 matches
-        // msg!(
-        //     "Checking if {:x?} is an EcdsaSecp256k1VerificationKey2019 authority",
-        //     secp256k1_pubkey.to_bytes()
-        // );
-        let mut vm = self
-            .verification_methods(
-                Some(&[VerificationMethodType::EcdsaSecp256k1VerificationKey2019]),
-                Some(VerificationMethodFlags::CAPABILITY_INVOCATION),
-                Some(&secp256k1_pubkey.to_bytes()),
-                filter_fragment,
-            )
-            .into_iter()
-            .next();
-        if vm.is_some() {
-            return vm;
-        }
-
-        let address = convert_secp256k1pub_key_to_address(&secp256k1_pubkey);
-        // msg!("Address: {:?}", address);
-        // // Check EcdsaSecp256k1VerificationKey2019 matches
-        // msg!(
-        //     "Checking if {:x?} is an EcdsaSecp256k1RecoveryMethod2020 authority",
-        //     address
-        // );
-        vm = self
-            .verification_methods(
-                Some(&[VerificationMethodType::EcdsaSecp256k1RecoveryMethod2020]),
-                Some(VerificationMethodFlags::CAPABILITY_INVOCATION),
-                Some(&address),
-                filter_fragment,
-            )
-            .into_iter()
-            .next();
-        if vm.is_some() {
-            return vm;
-        }
-
-        None
     }
 
     pub fn set_services(&mut self, services: Vec<Service>, allow_duplicates: bool) -> Result<()> {

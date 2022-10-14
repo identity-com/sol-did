@@ -28,7 +28,7 @@ pub struct Update<'info> {
         mut,
         seeds = [b"did-account", did_data.initial_verification_method.key_data.as_ref()],
         bump = did_data.bump,
-        constraint = did_data.find_authority(&authority.key(), &update_arg.try_to_vec().unwrap(), eth_signature.as_ref(), None).is_some()
+        constraint = did_data.find_authority_constraint(&authority.key(), &update_arg.try_to_vec().unwrap(), eth_signature.as_ref(), None).is_some()
     )]
     pub did_data: Account<'info, DidAccount>,
     pub authority: Signer<'info>,

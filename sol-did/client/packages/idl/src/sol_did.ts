@@ -686,6 +686,11 @@ export type SolDid = {
       "code": 6010,
       "name": "InvalidControllerChain",
       "msg": "Invalid chain of controlling DidAccounts"
+    },
+    {
+      "code": 6011,
+      "name": "ErrorValidatingSecp256k1Signature",
+      "msg": "An error occurred while validating Secp256k1 signature"
     }
   ]
 };
@@ -1378,6 +1383,11 @@ export const IDL: SolDid = {
       "code": 6010,
       "name": "InvalidControllerChain",
       "msg": "Invalid chain of controlling DidAccounts"
+    },
+    {
+      "code": 6011,
+      "name": "ErrorValidatingSecp256k1Signature",
+      "msg": "An error occurred while validating Secp256k1 signature"
     }
   ]
 };
