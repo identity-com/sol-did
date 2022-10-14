@@ -59,19 +59,11 @@ pub fn is_authority(
     let did_to_check_authority = controller_chain.last();
     let authority_exists = if let Some(did_to_check_authority) = did_to_check_authority {
         did_to_check_authority
-            .find_authority(
-                key,
-                filter_types,
-                filter_fragment,
-            )
+            .find_authority(key, filter_types, filter_fragment)
             .is_some()
     } else {
         did_data
-            .find_authority(
-                key,
-                filter_types,
-                filter_fragment,
-            )
+            .find_authority(key, filter_types, filter_fragment)
             .is_some()
     };
 
@@ -139,7 +131,8 @@ mod test {
             Pubkey::from_str("3spWJgYRKqrZnBkgv6dwjohKG5x3ZBEdxoLxuC2LfwD2").unwrap();
         let expected_bump = 255;
 
-        let did_account_pubkey = derive_did_account_with_bump(&authority.to_bytes(), expected_bump).unwrap();
+        let did_account_pubkey =
+            derive_did_account_with_bump(&authority.to_bytes(), expected_bump).unwrap();
 
         assert_eq!(did_account_pubkey, expected_did_account);
     }
