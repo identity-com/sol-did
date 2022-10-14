@@ -210,7 +210,7 @@ impl DidAccount {
         filter_types: Option<&[VerificationMethodType]>,
         filter_fragment: Option<&String>,
     ) -> Option<&VerificationMethod> {
-        msg!("Checking if key {:?} is an authority", key,);
+        // msg!("Checking if key {:?} is an authority", key,);
         self.verification_methods(
             filter_types,
             Some(VerificationMethodFlags::CAPABILITY_INVOCATION),
