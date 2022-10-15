@@ -8,7 +8,8 @@ use std::fmt::{Display, Formatter};
 
 use crate::constants::VM_DEFAULT_FRAGMENT_NAME;
 use crate::utils::{
-    check_other_controllers, convert_secp256k1pub_key_to_address, eth_verify_message,
+    check_other_controllers, convert_secp256k1pub_key_to_address, derive_did_account,
+    eth_verify_message,
 };
 
 #[account]
@@ -283,13 +284,8 @@ impl DidAccount {
 
     /// Returns true if `other` is a valid controller of this DID
     pub fn is_directly_controlled_by(&self, other: &DidAccount) -> bool {
-        let this_did = normalize_did_cluster(self.to_string().as_str());
-        other
-            .other_controllers
-            .iter()
-            .map(|controller| controller.as_str())
-            .map(normalize_did_cluster)
-            .contains(&this_did)
+        let other_key = Pubkey::new(other.initial_verification_method.key_data.as_slice());
+        self.native_controllers.iter().contains(&other_key)
     }
 
     /// returns true if the controller chain is valid.

@@ -1,5 +1,7 @@
-use crate::state::VerificationMethodType;
-use crate::{errors::DidSolError, id, DidAccount, DID_ACCOUNT_SEED};
+use crate::{
+    errors::DidSolError, id, state::VerificationMethodType, utils::derive_did_account, DidAccount,
+    DID_ACCOUNT_SEED,
+};
 use anchor_lang::prelude::*;
 use solana_program::account_info::AccountInfo;
 use solana_program::pubkey::Pubkey;
@@ -29,7 +31,8 @@ pub fn is_authority(
         let address = if let Some(did_account_seed_bump) = did_account_seed_bump {
             derive_did_account_with_bump(key, did_account_seed_bump)?
         } else {
-            derive_did_account(key).0
+            // the key must be a solana pubkey in the generative DID case
+            derive_did_account(&Pubkey::new(key)).0
         };
         // msg!("Generative DID address for authority: {}", address);
         // msg!("DID account address: {}", did_account.key);
@@ -67,10 +70,6 @@ pub fn is_authority(
     Ok(authority_exists)
 }
 
-pub fn derive_did_account(key: &[u8]) -> (Pubkey, u8) {
-    Pubkey::find_program_address(&[DID_ACCOUNT_SEED.as_bytes(), key], &id())
-}
-
 pub fn derive_did_account_with_bump(key: &[u8], bump_seed: u8) -> Result<Pubkey> {
     Pubkey::create_program_address(&[DID_ACCOUNT_SEED.as_bytes(), key, &[bump_seed]], &id())
         .map_err(|_| Error::from(ErrorCode::ConstraintSeeds))
@@ -81,6 +80,7 @@ mod test {
     use super::*;
     use crate::constants::VM_DEFAULT_FRAGMENT_NAME;
     use crate::state::{DidAccount, VerificationMethodFlags};
+    use crate::utils::derive_did_account;
     use crate::{id, VerificationMethod};
     use std::cell::RefCell;
     use std::rc::Rc;
@@ -115,7 +115,7 @@ mod test {
             Pubkey::from_str("3spWJgYRKqrZnBkgv6dwjohKG5x3ZBEdxoLxuC2LfwD2").unwrap();
         let expected_bump = 255;
 
-        let (did_account_pubkey, bump) = derive_did_account(&authority.to_bytes());
+        let (did_account_pubkey, bump) = derive_did_account(&authority);
 
         assert_eq!(did_account_pubkey, expected_did_account);
         assert_eq!(bump, expected_bump);
@@ -140,7 +140,7 @@ mod test {
         let test_did_account = create_test_did(test_authority);
         let mut data: Vec<u8> = Vec::with_capacity(1024);
         test_did_account.try_serialize(&mut data).unwrap();
-        let derived_did_account = derive_did_account(&test_authority.to_bytes());
+        let derived_did_account = derive_did_account(&test_authority);
 
         let mut lamports = 1;
         let account_info = AccountInfo {
@@ -183,7 +183,7 @@ mod test {
 
         let mut data: Vec<u8> = Vec::with_capacity(0);
         let mut lamports = 1; // account can have a balance
-        let derived_did_account = derive_did_account(&test_authority.to_bytes());
+        let derived_did_account = derive_did_account(&test_authority);
 
         let account_info = AccountInfo {
             key: &derived_did_account.0,
@@ -248,7 +248,7 @@ mod test {
         let test_did_account = create_test_did(test_authority);
         let mut data: Vec<u8> = Vec::with_capacity(1024);
         test_did_account.try_serialize(&mut data).unwrap();
-        let derived_did_account = derive_did_account(&test_authority.to_bytes());
+        let derived_did_account = derive_did_account(&test_authority);
 
         let mut lamports = 1;
         let account_info = AccountInfo {
@@ -291,7 +291,7 @@ mod test {
 
         let mut data: Vec<u8> = Vec::with_capacity(1024);
         test_did_account.try_serialize(&mut data).unwrap();
-        let derived_did_account = derive_did_account(&test_authority.to_bytes());
+        let derived_did_account = derive_did_account(&test_authority);
 
         let mut lamports = 1;
         let account_info = AccountInfo {
@@ -336,7 +336,7 @@ mod test {
         test_did_account.try_serialize(&mut data).unwrap();
 
         let mut lamports = 1;
-        let derived_did_account = derive_did_account(&test_authority.to_bytes());
+        let derived_did_account = derive_did_account(&test_authority);
 
         let account_info = AccountInfo {
             key: &derived_did_account.0,

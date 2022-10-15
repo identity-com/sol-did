@@ -1243,10 +1243,8 @@ dependencies = [
  "bitflags",
  "borsh",
  "itertools",
- "lazy_static",
  "num-derive",
  "num-traits",
- "regex",
  "solana-program",
  "solana-security-txt",
 ]

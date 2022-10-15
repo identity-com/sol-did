@@ -1,7 +1,5 @@
 use crate::constants::DID_SOL_PREFIX;
 use crate::{id, DID_ACCOUNT_SEED};
-use lazy_static::lazy_static;
-use regex::Regex;
 use solana_program::keccak;
 use solana_program::pubkey::Pubkey;
 use solana_program::secp256k1_recover::{
@@ -15,22 +13,7 @@ pub fn convert_secp256k1pub_key_to_address(pubkey: &Secp256k1Pubkey) -> [u8; 20]
 }
 
 pub fn derive_did_account(authority: &Pubkey) -> (Pubkey, u8) {
-    Pubkey::find_program_address(
-        &[DID_ACCOUNT_SEED.as_bytes(), authority.key().as_ref()],
-        &id(),
-    )
-}
-
-pub fn derive_did_account_with_bump(authority: &Pubkey, bump_seed: u8) -> Result<Pubkey> {
-    Pubkey::create_program_address(
-        &[
-            DID_ACCOUNT_SEED.as_bytes(),
-            authority.key().as_ref(),
-            &[bump_seed],
-        ],
-        &id(),
-    )
-    .map_err(|_| Error::from(ErrorCode::ConstraintSeeds))
+    Pubkey::find_program_address(&[DID_ACCOUNT_SEED.as_bytes(), authority.as_ref()], &id())
 }
 
 pub fn is_did_sol_prefix(did: &str) -> bool {
