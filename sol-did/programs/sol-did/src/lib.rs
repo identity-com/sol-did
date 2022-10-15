@@ -13,13 +13,13 @@ unused_imports,
 
 pub mod integrations;
 pub mod state;
+pub mod utils;
 
 mod constants;
 mod errors;
 mod instructions;
 mod legacy;
 mod security_txt;
-mod utils;
 
 use crate::constants::DID_ACCOUNT_SEED;
 use crate::state::DidAccount;

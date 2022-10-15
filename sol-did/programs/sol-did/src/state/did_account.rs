@@ -282,9 +282,13 @@ impl DidAccount {
         .next()
     }
 
+    pub fn authority_key(&self) -> Pubkey {
+        Pubkey::new(self.initial_verification_method.key_data.as_slice())
+    }
+
     /// Returns true if `other` is a valid controller of this DID
     pub fn is_directly_controlled_by(&self, other: &DidAccount) -> bool {
-        let other_key = Pubkey::new(other.initial_verification_method.key_data.as_slice());
+        let other_key = other.authority_key();
         self.native_controllers.iter().contains(&other_key)
     }
 
@@ -500,8 +504,8 @@ impl Service {
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct Secp256k1RawSignature {
-    signature: [u8; 64],
-    recovery_id: u8,
+    pub signature: [u8; 64],
+    pub recovery_id: u8,
 }
 
 bitflags! {
