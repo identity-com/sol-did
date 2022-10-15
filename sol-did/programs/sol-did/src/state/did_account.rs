@@ -8,10 +8,8 @@ use std::fmt::{Display, Formatter};
 
 use crate::constants::VM_DEFAULT_FRAGMENT_NAME;
 use crate::utils::{
-    check_other_controllers, convert_secp256k1pub_key_to_address, derive_did_account,
-    eth_verify_message, normalize_did_cluster,
+    check_other_controllers, convert_secp256k1pub_key_to_address, eth_verify_message,
 };
-use solana_program::{keccak, secp256k1_recover::secp256k1_recover};
 
 #[account]
 pub struct DidAccount {
