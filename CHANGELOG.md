@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Provided `pub fn eth_verify_message` as a public utility method to verify eth signed messages.
+- expose additional modules for integration (constants, legacy, utils)
 
 ### Changed
 - Updated `is_authority` and `find_authority` function signatures to not perform secp256k1 verification anymore.
