@@ -1,6 +1,6 @@
 {
     "name": "@identity.com/sol-did-client",
-    "version": "3.1.2",
+    "version": "3.1.4",
     "description": "A powerful DID-method on Solana",
     "license": "MIT",
     "main": "dist/src/index.js",
@@ -20,7 +20,7 @@
         "did-client"
     ],
     "engines": {
-        "node": ">=16"
+        "node": ">=14"
     },
     "scripts": {
         "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",

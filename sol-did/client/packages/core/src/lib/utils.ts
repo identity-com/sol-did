@@ -58,7 +58,7 @@ export const ethSignPayload = async (
   signer: EthSigner
 ): Promise<TransactionInstruction> => {
   // Anchor 8 bytes prefix, Option<T> byte suffix
-  const nonceBytes = nonce.toBuffer('le', 8);
+  const nonceBytes = Buffer.from(nonce.toArray('le', 8));
   const message = Buffer.concat([instruction.data.subarray(8, -1), nonceBytes]);
 
   const signatureFull = await signer.signMessage(message);
