@@ -7,7 +7,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust: ['nightly-2022-05-18']
+        rust: ['stable']
         os: [ubuntu-latest]
 
     steps:
