@@ -8,7 +8,8 @@ use std::fmt::{Display, Formatter};
 
 use crate::constants::VM_DEFAULT_FRAGMENT_NAME;
 use crate::utils::{
-    check_other_controllers, convert_secp256k1pub_key_to_address, eth_verify_message,
+    check_other_controllers, convert_secp256k1pub_key_to_address, derive_did_account,
+    derive_did_account_with_bump, eth_verify_message,
 };
 
 #[account]
@@ -39,6 +40,23 @@ impl Display for DidAccount {
 }
 
 impl DidAccount {
+    pub fn new(bump: u8, authority_key: &Pubkey) -> Self {
+        Self {
+            version: 0,
+            bump,
+            nonce: 0,
+            initial_verification_method: VerificationMethod::default(
+                VerificationMethodFlags::CAPABILITY_INVOCATION
+                    | VerificationMethodFlags::OWNERSHIP_PROOF,
+                authority_key.to_bytes().to_vec(),
+            ),
+            verification_methods: vec![],
+            services: vec![],
+            native_controllers: vec![],
+            other_controllers: vec![],
+        }
+    }
+
     pub fn init(&mut self, bump: u8, authority_key: &Pubkey, flags: VerificationMethodFlags) {
         self.version = 0;
         self.bump = bump;
@@ -323,6 +341,40 @@ impl DidAccount {
         );
 
         Ok(())
+    }
+
+    // Support generative and non-generative accounts
+    pub fn try_from(
+        did_account: &AccountInfo,
+        initial_authority: &Pubkey,
+        did_account_seed_bump: Option<u8>,
+    ) -> Result<DidAccount> {
+        if did_account.owner == &System::id() {
+            // Generative account
+            let (derived_did_account, bump) =
+                if let Some(did_account_seed_bump) = did_account_seed_bump {
+                    (
+                        derive_did_account_with_bump(
+                            &initial_authority.to_bytes(),
+                            did_account_seed_bump,
+                        )
+                        .map_err(|_| Error::from(ErrorCode::ConstraintSeeds))?,
+                        did_account_seed_bump,
+                    )
+                } else {
+                    derive_did_account(&initial_authority.to_bytes())
+                };
+
+            // wrong authority for generative account
+            if derived_did_account != *did_account.key {
+                return Err(error!(DidSolError::WrongAuthorityForDid));
+            }
+
+            return Ok(DidAccount::new(bump, initial_authority));
+        }
+        // Non-generative account
+        let did_account: Account<DidAccount> = Account::try_from(did_account)?;
+        Ok(did_account.into_inner())
     }
 
     pub fn size(&self) -> usize {

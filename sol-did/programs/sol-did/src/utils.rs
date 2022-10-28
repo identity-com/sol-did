@@ -1,5 +1,7 @@
 use crate::constants::DID_SOL_PREFIX;
+use crate::{id, DID_ACCOUNT_SEED};
 use solana_program::keccak;
+use solana_program::pubkey::{Pubkey, PubkeyError};
 use solana_program::secp256k1_recover::{
     secp256k1_recover, Secp256k1Pubkey, Secp256k1RecoverError,
 };
@@ -62,4 +64,12 @@ pub fn eth_verify_message(
     //     secp256k1_pubkey.to_bytes()
     // );
     secp256k1_pubkey
+}
+
+pub fn derive_did_account(key: &[u8]) -> (Pubkey, u8) {
+    Pubkey::find_program_address(&[DID_ACCOUNT_SEED.as_bytes(), key], &id())
+}
+
+pub fn derive_did_account_with_bump(key: &[u8], bump_seed: u8) -> Result<Pubkey, PubkeyError> {
+    Pubkey::create_program_address(&[DID_ACCOUNT_SEED.as_bytes(), key, &[bump_seed]], &id())
 }
