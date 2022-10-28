@@ -691,6 +691,11 @@ export type SolDid = {
       "code": 6011,
       "name": "ErrorValidatingSecp256k1Signature",
       "msg": "An error occurred while validating Secp256k1 signature"
+    },
+    {
+      "code": 6012,
+      "name": "WrongAuthorityForDid",
+      "msg": "Wrong Authority for given DID"
     }
   ]
 };
@@ -1388,6 +1393,11 @@ export const IDL: SolDid = {
       "code": 6011,
       "name": "ErrorValidatingSecp256k1Signature",
       "msg": "An error occurred while validating Secp256k1 signature"
+    },
+    {
+      "code": 6012,
+      "name": "WrongAuthorityForDid",
+      "msg": "Wrong Authority for given DID"
     }
   ]
 };
