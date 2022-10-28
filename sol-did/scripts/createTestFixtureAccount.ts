@@ -88,13 +88,7 @@ export async function idlAddress(programId: PublicKey): Promise<PublicKey> {
 
   // Init account
 
-  const init = await service.initialize().instructions();
-  const migrate = await service.migrate().instructions();
-
-  console.log(`Init Inst: ${init[0].data.toString('hex')} instructions`);
-  console.log(`Migrate Inst: ${migrate[0].data.toString('hex')} instructions`);
-
-  return;
+  await service.initialize().rpc();
 
   // write account
   await exec(
