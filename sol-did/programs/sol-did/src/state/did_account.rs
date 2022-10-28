@@ -68,7 +68,7 @@ impl DidAccount {
 
     /// Accessor for all verification methods (including the initial one)
     /// Enables to pass several filters that are ANDed together.
-    fn verification_methods(
+    pub fn verification_methods(
         &self,
         filter_types: Option<&[VerificationMethodType]>,
         filter_flags: Option<VerificationMethodFlags>,
@@ -103,7 +103,7 @@ impl DidAccount {
     /// Accessor for all verification methods (including the initial one)
     /// Enables to pass several filters that are ANDed together.
     /// Mutable Version
-    fn verification_methods_mut(
+    pub fn verification_methods_mut(
         &mut self,
         filter_types: Option<&[VerificationMethodType]>,
         filter_flags: Option<VerificationMethodFlags>,

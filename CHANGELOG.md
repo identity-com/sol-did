@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Removed `publicKey: string;` from `EthSigner` interface. This makes it compatible with
   `class JsonRpcSigner extends Signer` of `ethers`.
+- Filter methods on `DidAccount` verificationmethods are not public.
+- `DidSolError` is now public.
 
 ### Deprecated
 
