@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Implemented `::try_from` on `DidAccount` to easily support generative and non-generative integrations
 
 ### Changed
 - Removed `publicKey: string;` from `EthSigner` interface. This makes it compatible with
