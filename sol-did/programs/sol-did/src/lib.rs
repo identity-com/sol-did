@@ -16,8 +16,8 @@ pub mod integrations;
 pub mod legacy;
 pub mod state;
 pub mod utils;
+pub mod errors;
 
-mod errors;
 mod instructions;
 mod security_txt;
 
