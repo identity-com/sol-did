@@ -21,7 +21,6 @@ const newKeyPrivateKey = [10,131,56,82,11,227,33,197,195,34,181,176,159,28,228,2
 const setup = async () => {
   // SETUP Part
   const connection = new Connection(clusterApiUrl(cluster));
-  // already funded
   const authority = Keypair.fromSecretKey(Uint8Array.from(authorityPrivateKey))
 
   const accountInfo = await connection.getAccountInfo(authority.publicKey, commitment)
@@ -33,8 +32,9 @@ const setup = async () => {
     );
   }
 
-  const wallet = new Wallet(authority)
   const didIdentifier = DidSolIdentifier.create(authority.publicKey, cluster);
+
+  const wallet = new Wallet(authority)
   const service = DidSolService.build(didIdentifier, {
     connection,
     wallet,
