@@ -64,3 +64,6 @@ yarn ts-node scripts/demo/6-set-vm-flags.ts
 10. Talk about Solana Transaction costs.
   - 5000 Lamports per transaction
   - X Lamports rent for account size. (Point to examples in explorer.solana.com)
+  - [Here](https://explorer.solana.com/tx/3Mgutjypo1PZHxHNYiJ3t2JiHtYNN89iJ6cMDTe91kao9c9GHzZU7DXm6kYeAqDAwiNhTrrz3JvvGiXfPe2ABkJW?cluster=devnet)
+    is an example of a TX for a DID with 2 keys (default ED25519 and secp256k1 eth address).
+    It costs `0.00182156 SOL`, which is `2.5 US cents`
