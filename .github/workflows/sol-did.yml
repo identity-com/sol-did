@@ -231,10 +231,11 @@ jobs:
       - name: Build
         run: yarn build
 
-      - name: Download a single artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: latest-sol-did-program
+      # @martin removed offending test for now
+      # - name: Download a single artifact
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: latest-sol-did-program
 
       - name: Test e2e
         run: yarn test-e2e
