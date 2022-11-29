@@ -373,6 +373,7 @@ describe('sol-did resolve and migrate operations', () => {
       .withSolWallet(authority)
       .rpc();
     let updated_account = await service.getDidAccount();
+    const doc = await service.resolve();
     expect(updated_account?.services).to.be.deep.equal([]);
 
     // Default Element will not be updated on verificationMethods
@@ -395,6 +396,8 @@ describe('sol-did resolve and migrate operations', () => {
       updated_account?.verificationMethods.slice(1).map((vm) => vm.toParams())
     ).to.be.deep.equal(vms); // default key will not be updated
     expect(updated_account?.controllers).to.be.deep.equal([]);
+
+    expect(doc.assertionMethod).to.be.deep.equal([]);
   });
 
   it('cannot update the verificationMethods of a Did if there are replications', async () => {
