@@ -161,8 +161,8 @@ jobs:
     strategy:
       matrix:
         node: [ '16.x' ]
-        rust: ['1.61']
-        solana: ['v1.10.29']
+        rust: ['stable']
+        solana: ['stable']
         os: [ubuntu-latest]
 
     steps:
@@ -240,8 +240,8 @@ jobs:
       matrix:
         node: ['16.x']
         os: [ubuntu-latest]
-        solana: ['v1.10.29']
-        rust: ['1.61']
+        solana: ['stable']
+        rust: ['stable']
 
     steps:
       - name: Checkout repo

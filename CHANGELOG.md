@@ -6,10 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Provided `pub fn eth_verify_message` as a public utility method to verify eth signed messages.
+- Implemented `::try_from` on `DidAccount` to easily support generative and non-generative integrations
+- Added generative method on `DidSolDataAccount` class for simple integration of `null` case.
 
 ### Changed
-- Updated `is_authority` and `find_authority` function signatures to not perform secp256k1 verification anymore.
+- Removed `publicKey: string;` from `EthSigner` interface. This makes it compatible with
+  `class JsonRpcSigner extends Signer` of `ethers`.
+- Filter methods on `DidAccount` verificationmethods are not public.
+- `DidSolError` is now public.
 
 ### Deprecated
 
@@ -18,6 +22,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## [3.1.4] - 2022-10-20
+### Added
+- Provided `pub fn eth_verify_message` as a public utility method to verify eth signed messages.
+- expose additional modules for integration (constants, legacy, utils)
+- Updated spec link to `http://g.identity.com/sol-did`
+- Added Martin Riedel as an author
+
+### Changed
+- Updated `is_authority` and `find_authority` function signatures to not perform secp256k1 verification anymore.
+
+### Fixed
+- replaced [BN](https://github.com/indutny/bn.js/) .toBuffer() usage that was not working properly in browser.
+
 
 ## [3.1.2] - 2022-09-23
 ### Changed

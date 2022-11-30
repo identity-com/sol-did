@@ -11,14 +11,14 @@ unused_imports,
 // clippy::pedantic
 )]
 
+pub mod constants;
 pub mod integrations;
+pub mod legacy;
 pub mod state;
 pub mod utils;
+pub mod errors;
 
-mod constants;
-mod errors;
 mod instructions;
-mod legacy;
 mod security_txt;
 
 use crate::constants::DID_ACCOUNT_SEED;

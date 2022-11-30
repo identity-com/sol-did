@@ -1,7 +1,7 @@
 use crate::constants::DID_SOL_PREFIX;
 use crate::{id, DID_ACCOUNT_SEED};
 use solana_program::keccak;
-use solana_program::pubkey::Pubkey;
+use solana_program::pubkey::{Pubkey, PubkeyError};
 use solana_program::secp256k1_recover::{
     secp256k1_recover, Secp256k1Pubkey, Secp256k1RecoverError,
 };
@@ -10,10 +10,6 @@ pub fn convert_secp256k1pub_key_to_address(pubkey: &Secp256k1Pubkey) -> [u8; 20]
     let mut address = [0u8; 20];
     address.copy_from_slice(&keccak::hash(pubkey.to_bytes().as_ref()).to_bytes()[12..]);
     address
-}
-
-pub fn derive_did_account(authority: &Pubkey) -> (Pubkey, u8) {
-    Pubkey::find_program_address(&[DID_ACCOUNT_SEED.as_bytes(), authority.as_ref()], &id())
 }
 
 pub fn is_did_sol_prefix(did: &str) -> bool {
@@ -61,4 +57,12 @@ pub fn eth_verify_message(
     //     secp256k1_pubkey.to_bytes()
     // );
     secp256k1_pubkey
+}
+
+pub fn derive_did_account(key: &[u8]) -> (Pubkey, u8) {
+    Pubkey::find_program_address(&[DID_ACCOUNT_SEED.as_bytes(), key], &id())
+}
+
+pub fn derive_did_account_with_bump(key: &[u8], bump_seed: u8) -> Result<Pubkey, PubkeyError> {
+    Pubkey::create_program_address(&[DID_ACCOUNT_SEED.as_bytes(), key, &[bump_seed]], &id())
 }

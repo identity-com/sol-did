@@ -1,10 +1,9 @@
-use crate::{
-    errors::DidSolError, id, state::VerificationMethodType, utils::derive_did_account, DidAccount,
-    DID_ACCOUNT_SEED,
-};
+use crate::state::VerificationMethodType;
+use crate::utils::{derive_did_account, derive_did_account_with_bump};
+use crate::{errors::DidSolError, DidAccount};
+use crate::DID_ACCOUNT_SEED;
 use anchor_lang::prelude::*;
 use solana_program::account_info::AccountInfo;
-use solana_program::pubkey::Pubkey;
 
 /// Will return if given solana public key, or ethereum address (as derived from an ethereum signature)
 /// is a valid authority (CAPABILITY_INVOCATION) on the given did_account.
@@ -23,16 +22,18 @@ pub fn is_authority(
     filter_types: Option<&[VerificationMethodType]>,
     filter_fragment: Option<&String>,
 ) -> Result<bool> {
+    // TODO: Consider to replace this with DidAccount::try_from(...)
     if did_account.owner == &System::id() {
         // msg!("Validating generative DID");
         // the DID is a generative DID - the only authority is the key itself
         // verify that the authority key derives the correct did account
 
         let address = if let Some(did_account_seed_bump) = did_account_seed_bump {
-            derive_did_account_with_bump(key, did_account_seed_bump)?
+            derive_did_account_with_bump(key, did_account_seed_bump)
+                .map_err(|_| Error::from(ErrorCode::ConstraintSeeds))?
         } else {
             // the key must be a solana pubkey in the generative DID case
-            derive_did_account(&Pubkey::new(key)).0
+            derive_did_account(key).0
         };
         // msg!("Generative DID address for authority: {}", address);
         // msg!("DID account address: {}", did_account.key);
@@ -70,15 +71,11 @@ pub fn is_authority(
     Ok(authority_exists)
 }
 
-pub fn derive_did_account_with_bump(key: &[u8], bump_seed: u8) -> Result<Pubkey> {
-    Pubkey::create_program_address(&[DID_ACCOUNT_SEED.as_bytes(), key, &[bump_seed]], &id())
-        .map_err(|_| Error::from(ErrorCode::ConstraintSeeds))
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
     use crate::constants::VM_DEFAULT_FRAGMENT_NAME;
+    use crate::id;
     use crate::state::{DidAccount, VerificationMethodFlags};
     use crate::utils::derive_did_account;
     use crate::{id, VerificationMethod};
@@ -115,7 +112,7 @@ mod test {
             Pubkey::from_str("3spWJgYRKqrZnBkgv6dwjohKG5x3ZBEdxoLxuC2LfwD2").unwrap();
         let expected_bump = 255;
 
-        let (did_account_pubkey, bump) = derive_did_account(&authority);
+        let (did_account_pubkey, bump) = derive_did_account(&authority.to_bytes());
 
         assert_eq!(did_account_pubkey, expected_did_account);
         assert_eq!(bump, expected_bump);
@@ -140,7 +137,7 @@ mod test {
         let test_did_account = create_test_did(test_authority);
         let mut data: Vec<u8> = Vec::with_capacity(1024);
         test_did_account.try_serialize(&mut data).unwrap();
-        let derived_did_account = derive_did_account(&test_authority);
+        let derived_did_account = derive_did_account(&test_authority.to_bytes());
 
         let mut lamports = 1;
         let account_info = AccountInfo {
@@ -183,7 +180,7 @@ mod test {
 
         let mut data: Vec<u8> = Vec::with_capacity(0);
         let mut lamports = 1; // account can have a balance
-        let derived_did_account = derive_did_account(&test_authority);
+        let derived_did_account = derive_did_account(&test_authority.to_bytes());
 
         let account_info = AccountInfo {
             key: &derived_did_account.0,
@@ -248,7 +245,7 @@ mod test {
         let test_did_account = create_test_did(test_authority);
         let mut data: Vec<u8> = Vec::with_capacity(1024);
         test_did_account.try_serialize(&mut data).unwrap();
-        let derived_did_account = derive_did_account(&test_authority);
+        let derived_did_account = derive_did_account(&test_authority.to_bytes());
 
         let mut lamports = 1;
         let account_info = AccountInfo {
@@ -291,7 +288,7 @@ mod test {
 
         let mut data: Vec<u8> = Vec::with_capacity(1024);
         test_did_account.try_serialize(&mut data).unwrap();
-        let derived_did_account = derive_did_account(&test_authority);
+        let derived_did_account = derive_did_account(&test_authority.to_bytes());
 
         let mut lamports = 1;
         let account_info = AccountInfo {
@@ -336,7 +333,7 @@ mod test {
         test_did_account.try_serialize(&mut data).unwrap();
 
         let mut lamports = 1;
-        let derived_did_account = derive_did_account(&test_authority);
+        let derived_did_account = derive_did_account(&test_authority.to_bytes());
 
         let account_info = AccountInfo {
             key: &derived_did_account.0,

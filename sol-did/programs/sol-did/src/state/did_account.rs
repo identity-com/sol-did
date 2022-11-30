@@ -9,7 +9,7 @@ use std::fmt::{Display, Formatter};
 use crate::constants::VM_DEFAULT_FRAGMENT_NAME;
 use crate::utils::{
     check_other_controllers, convert_secp256k1pub_key_to_address, derive_did_account,
-    eth_verify_message,
+    derive_did_account_with_bump, eth_verify_message,
 };
 
 #[account]
@@ -60,6 +60,23 @@ impl Default for DidAccount {
 }
 
 impl DidAccount {
+    pub fn new(bump: u8, authority_key: &Pubkey) -> Self {
+        Self {
+            version: 0,
+            bump,
+            nonce: 0,
+            initial_verification_method: VerificationMethod::default(
+                VerificationMethodFlags::CAPABILITY_INVOCATION
+                    | VerificationMethodFlags::OWNERSHIP_PROOF,
+                authority_key.to_bytes().to_vec(),
+            ),
+            verification_methods: vec![],
+            services: vec![],
+            native_controllers: vec![],
+            other_controllers: vec![],
+        }
+    }
+
     pub fn init(&mut self, bump: u8, authority_key: &Pubkey, flags: VerificationMethodFlags) {
         self.version = 0;
         self.bump = bump;
@@ -89,7 +106,7 @@ impl DidAccount {
                 // return a default did_account if this is a generative DID
                 // Check if the passed pubkey derives the accountInfo
                 // TODO DO we need to check the accountinfo data is empty here?
-                let derived_did_account_key = derive_did_account(&account_info_and_pubkey.1).0;
+                let derived_did_account_key = derive_did_account(&account_info_and_pubkey.1.to_bytes()).0;
                 require_keys_eq!(
                     derived_did_account_key,
                     *account_info_and_pubkey.0.key,
@@ -111,7 +128,7 @@ impl DidAccount {
 
     /// Accessor for all verification methods (including the initial one)
     /// Enables to pass several filters that are ANDed together.
-    fn verification_methods(
+    pub fn verification_methods(
         &self,
         filter_types: Option<&[VerificationMethodType]>,
         filter_flags: Option<VerificationMethodFlags>,
@@ -146,7 +163,7 @@ impl DidAccount {
     /// Accessor for all verification methods (including the initial one)
     /// Enables to pass several filters that are ANDed together.
     /// Mutable Version
-    fn verification_methods_mut(
+    pub fn verification_methods_mut(
         &mut self,
         filter_types: Option<&[VerificationMethodType]>,
         filter_flags: Option<VerificationMethodFlags>,
@@ -389,6 +406,40 @@ impl DidAccount {
         );
 
         Ok(())
+    }
+
+    // Support generative and non-generative accounts
+    pub fn try_from(
+        did_account: &AccountInfo,
+        initial_authority: &Pubkey,
+        did_account_seed_bump: Option<u8>,
+    ) -> Result<DidAccount> {
+        if did_account.owner == &System::id() {
+            // Generative account
+            let (derived_did_account, bump) =
+                if let Some(did_account_seed_bump) = did_account_seed_bump {
+                    (
+                        derive_did_account_with_bump(
+                            &initial_authority.to_bytes(),
+                            did_account_seed_bump,
+                        )
+                        .map_err(|_| Error::from(ErrorCode::ConstraintSeeds))?,
+                        did_account_seed_bump,
+                    )
+                } else {
+                    derive_did_account(&initial_authority.to_bytes())
+                };
+
+            // wrong authority for generative account
+            if derived_did_account != *did_account.key {
+                return Err(error!(DidSolError::WrongAuthorityForDid));
+            }
+
+            return Ok(DidAccount::new(bump, initial_authority));
+        }
+        // Non-generative account
+        let did_account: Account<DidAccount> = Account::try_from(did_account)?;
+        Ok(did_account.into_inner())
     }
 
     pub fn size(&self) -> usize {

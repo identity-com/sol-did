@@ -1,5 +1,5 @@
 export type SolDid = {
-  "version": "3.1.1",
+  "version": "3.1.4",
   "name": "sol_did",
   "instructions": [
     {
@@ -691,12 +691,17 @@ export type SolDid = {
       "code": 6011,
       "name": "ErrorValidatingSecp256k1Signature",
       "msg": "An error occurred while validating Secp256k1 signature"
+    },
+    {
+      "code": 6012,
+      "name": "WrongAuthorityForDid",
+      "msg": "Wrong Authority for given DID"
     }
   ]
 };
 
 export const IDL: SolDid = {
-  "version": "3.1.1",
+  "version": "3.1.4",
   "name": "sol_did",
   "instructions": [
     {
@@ -1388,6 +1393,11 @@ export const IDL: SolDid = {
       "code": 6011,
       "name": "ErrorValidatingSecp256k1Signature",
       "msg": "An error occurred while validating Secp256k1 signature"
+    },
+    {
+      "code": 6012,
+      "name": "WrongAuthorityForDid",
+      "msg": "Wrong Authority for given DID"
     }
   ]
 };

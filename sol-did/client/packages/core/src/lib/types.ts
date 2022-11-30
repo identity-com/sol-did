@@ -12,7 +12,6 @@ export type PrivateKey = number[] | string | Buffer | Uint8Array;
 
 export type Bytes = ArrayLike<number>;
 export type EthSigner = {
-  publicKey: string;
   signMessage: (message: Bytes | string) => Promise<string>;
 };
 
