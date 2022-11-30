@@ -106,7 +106,8 @@ impl DidAccount {
                 // return a default did_account if this is a generative DID
                 // Check if the passed pubkey derives the accountInfo
                 // TODO DO we need to check the accountinfo data is empty here?
-                let derived_did_account_key = derive_did_account(&account_info_and_pubkey.1.to_bytes()).0;
+                let derived_did_account_key =
+                    derive_did_account(&account_info_and_pubkey.1.to_bytes()).0;
                 require_keys_eq!(
                     derived_did_account_key,
                     *account_info_and_pubkey.0.key,
@@ -122,7 +123,7 @@ impl DidAccount {
                     **account_info_and_pubkey.0.try_borrow_lamports().unwrap(),
                     DidSolError::InvalidControllerChain
                 );
-                Ok(DidAccount::default_for_key(account_info_and_pubkey.0.key))
+                Ok(DidAccount::default_for_key(&account_info_and_pubkey.1))
             })
     }
 

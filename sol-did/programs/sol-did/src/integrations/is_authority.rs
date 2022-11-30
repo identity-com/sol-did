@@ -1,7 +1,6 @@
 use crate::state::VerificationMethodType;
 use crate::utils::{derive_did_account, derive_did_account_with_bump};
 use crate::{errors::DidSolError, DidAccount};
-use crate::DID_ACCOUNT_SEED;
 use anchor_lang::prelude::*;
 use solana_program::account_info::AccountInfo;
 
@@ -75,7 +74,6 @@ pub fn is_authority(
 mod test {
     use super::*;
     use crate::constants::VM_DEFAULT_FRAGMENT_NAME;
-    use crate::id;
     use crate::state::{DidAccount, VerificationMethodFlags};
     use crate::utils::derive_did_account;
     use crate::{id, VerificationMethod};
