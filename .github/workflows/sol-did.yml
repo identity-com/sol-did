@@ -229,7 +229,7 @@ jobs:
         run: yarn install --ignore-scripts --frozen-lockfile
 
       - name: Build
-        run: yarn build-all
+        run: yarn build
 
       # @martin removed offending test for now
       # - name: Download a single artifact
