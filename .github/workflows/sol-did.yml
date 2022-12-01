@@ -229,7 +229,8 @@ jobs:
         run: yarn install --ignore-scripts --frozen-lockfile
 
       - name: Build
-        run: yarn anchor build && yarn build
+        run: yarn build-all
+        working-directory: ./sol-did
 
       # @martin removed offending test for now
       # - name: Download a single artifact
