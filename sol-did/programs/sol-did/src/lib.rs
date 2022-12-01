@@ -12,11 +12,11 @@ unused_imports,
 )]
 
 pub mod constants;
+pub mod errors;
 pub mod integrations;
 pub mod legacy;
 pub mod state;
 pub mod utils;
-pub mod errors;
 
 mod instructions;
 mod security_txt;
