@@ -1,6 +1,6 @@
 import { DIDs } from '../src';
 import { ClusterType, SolanaUtil } from '@identity.com/sol-did-client-legacy';
-import { Keypair, Connection, PublicKey } from '@solana/web3.js';
+import { Keypair, Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { expect } from 'chai';
 import { DIDDocument } from 'did-resolver';
 
@@ -24,7 +24,7 @@ describe('DIDs', () => {
     const connection = new Connection(cluster.solanaUrl(), 'recent');
     const payerAccount = await SolanaUtil.newAccountWithLamports(
       connection,
-      10000000
+      LAMPORTS_PER_SOL
     );
 
     dids = new DIDs({
