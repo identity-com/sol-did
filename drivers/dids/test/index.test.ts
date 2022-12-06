@@ -1,6 +1,11 @@
 import { DIDs } from '../src';
 import { ClusterType, SolanaUtil } from '@identity.com/sol-did-client-legacy';
-import { Keypair, Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import {
+  Keypair,
+  Connection,
+  PublicKey,
+  LAMPORTS_PER_SOL,
+} from '@solana/web3.js';
 import { expect } from 'chai';
 import { DIDDocument } from 'did-resolver';
 
