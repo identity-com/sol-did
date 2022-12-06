@@ -297,6 +297,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: latest-sol-did-program
+          path: sol-did/target/deploy/sol_did.so
 
       - name: Test e2e
         run: yarn test-e2e
