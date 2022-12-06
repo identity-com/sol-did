@@ -21,7 +21,7 @@
     "devDependencies": {
         "@identity.com/sol-did-client": "^3.1.5-beta1",
         "@identity.com/sol-did-idl": "^3.1.0",
-        "@project-serum/anchor-cli": "https://github.com/kklas/anchor-nightly/releases/download/anchor-cli-latest/anchor-cli-0.25.0-7eb8ca8.tgz",
+        "@project-serum/anchor-cli": "https://github.com/kklas/anchor-nightly/releases/download/anchor-cli-latest/anchor-cli-0.25.0-7a0a37e.tgz",
         "@types/bn.js": "^5.1.0",
         "@types/chai": "^4.3.0",
         "@types/mocha": "^9.0.0",
