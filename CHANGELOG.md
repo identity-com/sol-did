@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Implemented `::try_from` on `DidAccount` to easily support generative and non-generative integrations
 - Added generative method on `DidSolDataAccount` class for simple integration of `null` case.
+- Added required `Cargo.toml` package data for `sol-did` publication on crates.io.
 
 ### Changed
 - Removed `publicKey: string;` from `EthSigner` interface. This makes it compatible with
