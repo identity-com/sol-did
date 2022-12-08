@@ -1,0 +1,18 @@
+[package]
+name = "sol-did-cpi"
+version = "0.0.1"
+edition = "2021"
+include = ["src/**/*", "README.md", "LICENSE", "idl.json"]
+description = "CPI helpers for the Sol-DID program"
+license-file = "LICENSE"
+
+[features]
+default = ["cpi"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+
+[dependencies]
+anchor-gen = "0.3.1"
+anchor-lang = ">=0.20"

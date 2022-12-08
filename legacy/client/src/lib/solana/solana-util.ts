@@ -4,6 +4,7 @@ import {
   TransactionSignature,
   sendAndConfirmTransaction,
   Keypair,
+  LAMPORTS_PER_SOL,
 } from '@solana/web3.js';
 import { SOLANA_COMMITMENT } from '../constants';
 
@@ -22,7 +23,7 @@ export class SolanaUtil {
 
   static async newAccountWithLamports(
     connection: Connection,
-    lamports = 1000000
+    lamports = LAMPORTS_PER_SOL
   ): Promise<Keypair> {
     const account = Keypair.generate();
 

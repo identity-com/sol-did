@@ -19,7 +19,8 @@
   },
   "include": [
     "src/**/*",
-    "target/types/sol_did.ts"
+    "target/types/sol_did.ts",
+    "target/types/example.ts"
   ],
   "exclude": [
     "ui",
