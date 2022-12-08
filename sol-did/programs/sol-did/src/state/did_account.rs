@@ -39,6 +39,26 @@ impl Display for DidAccount {
     }
 }
 
+impl Default for DidAccount {
+    fn default() -> Self {
+        DidAccount {
+            version: 0,
+            bump: 0,
+            nonce: 0,
+            initial_verification_method: VerificationMethod {
+                fragment: VM_DEFAULT_FRAGMENT_NAME.to_string(),
+                flags: VerificationMethodFlags::CAPABILITY_INVOCATION.bits(),
+                method_type: 0,
+                key_data: vec![],
+            },
+            verification_methods: vec![],
+            services: vec![],
+            native_controllers: vec![],
+            other_controllers: vec![],
+        }
+    }
+}
+
 impl DidAccount {
     pub fn new(bump: u8, authority_key: &Pubkey) -> Self {
         Self {
@@ -64,6 +84,47 @@ impl DidAccount {
 
         self.initial_verification_method =
             VerificationMethod::default(flags, authority_key.to_bytes().to_vec());
+    }
+
+    pub fn default_for_key(authority_key: &Pubkey) -> DidAccount {
+        let mut did_account = DidAccount::default();
+        did_account.init(
+            0,
+            authority_key,
+            VerificationMethodFlags::CAPABILITY_INVOCATION,
+        );
+        did_account
+    }
+
+    /// Return either the DidAccount inside the account or a default one derived from the pubkey
+    pub fn try_from_or_default(
+        account_info_and_pubkey: &(AccountInfo, Pubkey),
+    ) -> Result<DidAccount> {
+        Account::<DidAccount>::try_from(&account_info_and_pubkey.0)
+            .map(|account| Ok(account.into_inner()))
+            .unwrap_or_else(|_| {
+                // return a default did_account if this is a generative DID
+                // Check if the passed pubkey derives the accountInfo
+                // TODO DO we need to check the accountinfo data is empty here?
+                let derived_did_account_key =
+                    derive_did_account(&account_info_and_pubkey.1.to_bytes()).0;
+                require_keys_eq!(
+                    derived_did_account_key,
+                    *account_info_and_pubkey.0.key,
+                    DidSolError::InvalidControllerChain
+                );
+                require_keys_eq!(
+                    System::id(),
+                    *account_info_and_pubkey.0.owner,
+                    DidSolError::InvalidControllerChain
+                );
+                require_eq!(
+                    0u64,
+                    **account_info_and_pubkey.0.try_borrow_lamports().unwrap(),
+                    DidSolError::InvalidControllerChain
+                );
+                Ok(DidAccount::default_for_key(&account_info_and_pubkey.1))
+            })
     }
 
     /// Accessor for all verification methods (including the initial one)
@@ -239,9 +300,14 @@ impl DidAccount {
         .next()
     }
 
+    pub fn authority_key(&self) -> Pubkey {
+        Pubkey::new(self.initial_verification_method.key_data.as_slice())
+    }
+
     /// Returns true if `other` is a valid controller of this DID
     pub fn is_directly_controlled_by(&self, other: &DidAccount) -> bool {
-        other.other_controllers.contains(&self.to_string())
+        let other_key = other.authority_key();
+        self.native_controllers.iter().contains(&other_key)
     }
 
     /// returns true if the controller chain is valid.
@@ -249,7 +315,7 @@ impl DidAccount {
     /// this -> chain[0] -> ... -> chain[n]
     /// where '->' represents the relationship "is controlled by".
     /// NOTE: an empty chain returns `true`.
-    pub fn is_controlled_by(&self, chain: &[Account<DidAccount>]) -> bool {
+    pub fn is_controlled_by(&self, chain: &[DidAccount]) -> bool {
         match chain {
             [head, tail @ ..] => match self.is_directly_controlled_by(head) {
                 true => head.is_controlled_by(tail),
@@ -379,30 +445,30 @@ impl DidAccount {
 
     pub fn size(&self) -> usize {
         1 // version
-        + 1 // bump
-        + 8 // nonce
-        + VerificationMethod::default_size() // initial_authority
-        + 4 + self.verification_methods.iter().fold(0, | accum, item| { accum + item.size() }) // verification_methods
-        + 4 + self.services.iter().fold(0, | accum, item| { accum + item.size() }) // services
-        + 4 + self.native_controllers.len() * 32 // native_controllers
-        + 4 + self.other_controllers.iter().fold(0, | accum, item| { accum + 4 + item.len() })
+            + 1 // bump
+            + 8 // nonce
+            + VerificationMethod::default_size() // initial_authority
+            + 4 + self.verification_methods.iter().fold(0, |accum, item| { accum + item.size() }) // verification_methods
+            + 4 + self.services.iter().fold(0, |accum, item| { accum + item.size() }) // services
+            + 4 + self.native_controllers.len() * 32 // native_controllers
+            + 4 + self.other_controllers.iter().fold(0, |accum, item| { accum + 4 + item.len() })
         // other_controllers
     }
 
     pub fn initial_size() -> usize {
         1 // version
-        + 1 // bump
-        + 8 // nonce
-        + VerificationMethod::default_size() // initial_authority
-        + 4 // verification_methods
-        + 4 // services
-        + 4 // native_controllers
-        + 4 // other_controllers
+            + 1 // bump
+            + 8 // nonce
+            + VerificationMethod::default_size() // initial_authority
+            + 4 // verification_methods
+            + 4 // services
+            + 4 // native_controllers
+            + 4 // other_controllers
     }
 }
 
 #[derive(
-    AnchorSerialize, AnchorDeserialize, Copy, Clone, FromPrimitive, ToPrimitive, PartialEq,
+    AnchorSerialize, AnchorDeserialize, Copy, Clone, FromPrimitive, ToPrimitive, PartialEq, Eq,
 )]
 pub enum VerificationMethodType {
     /// The main Ed25519Verification Method.
@@ -443,7 +509,8 @@ pub struct VerificationMethod {
     /// The permissions this key has
     pub flags: u16,
     /// The actual verification method
-    pub method_type: u8, // Type: VerificationMethodType- Anchor does not yet provide mappings for enums
+    pub method_type: u8,
+    // Type: VerificationMethodType- Anchor does not yet provide mappings for enums
     /// Dynamically sized key matching the given VerificationType
     pub key_data: Vec<u8>,
 }
@@ -451,9 +518,9 @@ pub struct VerificationMethod {
 impl VerificationMethod {
     pub fn size(&self) -> usize {
         4 + self.fragment.len()
-        + 2 // flags
-        + 1 // method
-        + 4 + self.key_data.len()
+            + 2 // flags
+            + 1 // method
+            + 4 + self.key_data.len()
     }
 
     pub fn default(flags: VerificationMethodFlags, key_data: Vec<u8>) -> VerificationMethod {
@@ -467,9 +534,9 @@ impl VerificationMethod {
 
     pub fn default_size() -> usize {
         4 + 7 // fragment "default"
-        + 2 // flags
-        + 1 // method
-        + 4 + 32 // ed25519 pubkey
+            + 2 // flags
+            + 1 // method
+            + 4 + 32 // ed25519 pubkey
     }
 }
 
@@ -489,8 +556,8 @@ impl Service {
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct Secp256k1RawSignature {
-    signature: [u8; 64],
-    recovery_id: u8,
+    pub signature: [u8; 64],
+    pub recovery_id: u8,
 }
 
 bitflags! {
