@@ -160,7 +160,7 @@ export const mapVerificationMethodsToDidComponents = (
         `${identifier.toString()}#${method.fragment}`
       );
     }
-    if (method.flags.has(BitwiseVerificationMethodFlag.Authentication)) {
+    if (method.flags.has(BitwiseVerificationMethodFlag.Assertion)) {
       didComponents.assertionMethod.push(
         `${identifier.toString()}#${method.fragment}`
       );
