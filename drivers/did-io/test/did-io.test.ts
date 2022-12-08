@@ -1,7 +1,7 @@
 import { CachedResolver } from '@digitalbazaar/did-io';
 import didKey from '@digitalbazaar/did-method-key';
 import didSol, { Driver } from '../src/';
-import { Connection, Keypair } from '@solana/web3.js';
+import { Connection, Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { ClusterType, SolanaUtil } from '@identity.com/sol-did-client-legacy';
 
 const cluster = ClusterType.devnet();
@@ -23,7 +23,7 @@ describe('did-io integration', () => {
     const connection = new Connection(cluster.solanaUrl(), 'recent');
     const payerAccount = await SolanaUtil.newAccountWithLamports(
       connection,
-      10000000
+      LAMPORTS_PER_SOL
     );
 
     didSolDriver = didSol.driver({ payer: payerAccount.secretKey });
