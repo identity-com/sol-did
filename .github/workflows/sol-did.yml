@@ -302,3 +302,8 @@ jobs:
       - name: Test e2e
         run: yarn test-e2e
         working-directory: ./sol-did/client/packages/cli
+
+      - name: Output logs
+        if: failure()
+        run: cat ./test-ledger/validator.log
+        working-directory: ./sol-did/client/packages/cli
