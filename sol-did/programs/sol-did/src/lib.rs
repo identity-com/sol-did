@@ -2,7 +2,7 @@
 //!
 //! It exposes the public #program instructions, as well as integrations libraries that are
 //! independent of the anchor framework.
-
+#![allow(clippy::result_large_err)]
 #![warn(
 unused_import_braces,
 unused_imports,

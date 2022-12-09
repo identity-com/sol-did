@@ -98,9 +98,9 @@ impl DidAccount {
 
     /// Return either the DidAccount inside the account or a default one derived from the pubkey
     pub fn try_from_or_default(
-        account_info_and_pubkey: &(AccountInfo, Pubkey),
+        account_info_and_pubkey: &(&AccountInfo, Pubkey),
     ) -> Result<DidAccount> {
-        Account::<DidAccount>::try_from(&account_info_and_pubkey.0)
+        Account::<DidAccount>::try_from(account_info_and_pubkey.0)
             .map(|account| Ok(account.into_inner()))
             .unwrap_or_else(|_| {
                 // return a default did_account if this is a generative DID
@@ -116,11 +116,6 @@ impl DidAccount {
                 require_keys_eq!(
                     System::id(),
                     *account_info_and_pubkey.0.owner,
-                    DidSolError::InvalidControllerChain
-                );
-                require_eq!(
-                    0u64,
-                    **account_info_and_pubkey.0.try_borrow_lamports().unwrap(),
                     DidSolError::InvalidControllerChain
                 );
                 Ok(DidAccount::default_for_key(&account_info_and_pubkey.1))
