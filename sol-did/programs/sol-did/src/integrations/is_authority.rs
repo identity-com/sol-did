@@ -369,7 +369,7 @@ mod test {
         let controller_did_account_address = derive_did_account(&controller_authority.to_bytes());
         let controlled_did_account_address = derive_did_account(&controller_authority.to_bytes());
 
-        controlled_did_account.set_native_controllers(vec![controller_authority]);
+        controlled_did_account.set_native_controllers(vec![controller_authority]).unwrap();
 
         let mut controller_data: Vec<u8> = Vec::with_capacity(1024);
         controller_did_account
@@ -425,13 +425,12 @@ mod test {
 
         assert_ne!(controller_authority, controlled_authority);
 
-        let controller_did_account = create_test_did(controller_authority);
         let mut controlled_did_account = create_test_did(controlled_authority);
 
         let controller_did_account_address = derive_did_account(&controller_authority.to_bytes());
         let controlled_did_account_address = derive_did_account(&controller_authority.to_bytes());
 
-        controlled_did_account.set_native_controllers(vec![controller_authority]);
+        controlled_did_account.set_native_controllers(vec![controller_authority]).unwrap();
 
         let mut controller_data: Vec<u8> = Vec::with_capacity(0);
 
