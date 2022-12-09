@@ -1,3 +1,4 @@
+#![allow(clippy::result_large_err)]
 use anchor_lang::prelude::*;
 use sol_did_cpi::cpi::accounts::{AddService as CpiAddService, Initialize as CpiInitialize};
 use sol_did_cpi::cpi::{add_service as cpi_add_service, initialize as cpi_initialize};
