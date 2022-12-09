@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use Rust ${{ matrix.rust }}
         uses: actions-rs/toolchain@v1
@@ -28,7 +28,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Cache Solana version
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache
@@ -46,7 +46,7 @@ jobs:
           args: --manifest-path sol-did/Cargo.toml --all -- --check
 
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -60,7 +60,7 @@ jobs:
           node-version: ${{ matrix.node }}
 
       - name: Cache node dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ./sol-did/node_modules
@@ -96,7 +96,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use Rust ${{ matrix.rust }}
         uses: actions-rs/toolchain@v1
@@ -106,7 +106,7 @@ jobs:
           profile: minimal
 
       - name: Cache build dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -115,7 +115,7 @@ jobs:
           key: cargo-test-${{ hashFiles('sol-did/Cargo.lock') }}
 
       - name: Cache Solana version
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache
@@ -132,7 +132,7 @@ jobs:
           node-version: ${{ matrix.node }}
 
       - name: Cache node dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ./sol-did/node_modules
@@ -167,7 +167,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use Rust ${{ matrix.rust }}
         uses: actions-rs/toolchain@v1
@@ -177,7 +177,7 @@ jobs:
           profile: minimal
 
       - name: Cache build dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -186,7 +186,7 @@ jobs:
           key: cargo-build-${{ hashFiles('sol-did/Cargo.lock') }}
 
       - name: Cache Solana version
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache
@@ -203,7 +203,7 @@ jobs:
           node-version: ${{ matrix.node }}
 
       - name: Cache node dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ./sol-did/node_modules
@@ -245,7 +245,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use Rust ${{ matrix.rust }}
         uses: actions-rs/toolchain@v1
@@ -255,7 +255,7 @@ jobs:
           profile: minimal
 
       - name: Cache build dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -264,7 +264,7 @@ jobs:
           key: cargo-build-${{ hashFiles('sol-did/Cargo.lock') }}
 
       - name: Cache Solana version
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache
@@ -281,7 +281,7 @@ jobs:
           node-version: ${{ matrix.node }}
 
       - name: Cache node dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ./sol-did/node_modules
