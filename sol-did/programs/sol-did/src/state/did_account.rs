@@ -86,42 +86,6 @@ impl DidAccount {
             VerificationMethod::default(flags, authority_key.to_bytes().to_vec());
     }
 
-    pub fn default_for_key(authority_key: &Pubkey) -> DidAccount {
-        let mut did_account = DidAccount::default();
-        did_account.init(
-            0,
-            authority_key,
-            VerificationMethodFlags::CAPABILITY_INVOCATION,
-        );
-        did_account
-    }
-
-    /// Return either the DidAccount inside the account or a default one derived from the pubkey
-    pub fn try_from_or_default(
-        account_info_and_pubkey: &(&AccountInfo, Pubkey),
-    ) -> Result<DidAccount> {
-        Account::<DidAccount>::try_from(account_info_and_pubkey.0)
-            .map(|account| Ok(account.into_inner()))
-            .unwrap_or_else(|_| {
-                // return a default did_account if this is a generative DID
-                // Check if the passed pubkey derives the accountInfo
-                // TODO DO we need to check the accountinfo data is empty here?
-                let derived_did_account_key =
-                    derive_did_account(&account_info_and_pubkey.1.to_bytes()).0;
-                require_keys_eq!(
-                    derived_did_account_key,
-                    *account_info_and_pubkey.0.key,
-                    DidSolError::InvalidControllerChain
-                );
-                require_keys_eq!(
-                    System::id(),
-                    *account_info_and_pubkey.0.owner,
-                    DidSolError::InvalidControllerChain
-                );
-                Ok(DidAccount::default_for_key(&account_info_and_pubkey.1))
-            })
-    }
-
     /// Accessor for all verification methods (including the initial one)
     /// Enables to pass several filters that are ANDed together.
     pub fn verification_methods(
