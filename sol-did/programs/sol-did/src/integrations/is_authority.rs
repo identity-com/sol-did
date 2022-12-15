@@ -47,7 +47,7 @@ pub fn is_authority(
     // if no chain was provided, the relationship is direct, so return did_data
     let controller_chain: Vec<DidAccount> = controlling_did_accounts
         .iter()
-        .map(DidAccount::try_from_or_default)
+        .map(|c| DidAccount::try_from(c.0, &c.1, None))
         .collect::<Result<Vec<DidAccount>>>()?;
 
     if !did_data.is_controlled_by(controller_chain.as_slice()) {
