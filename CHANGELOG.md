@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+
+## [3.2.0] - 2022-10-20
+### Added
 - Implemented `::try_from` on `DidAccount` to easily support generative and non-generative integrations
 - Added generative method on `DidSolDataAccount` class for simple integration of `null` case.
 - Added required `Cargo.toml` package data for `sol-did` publication on crates.io.
