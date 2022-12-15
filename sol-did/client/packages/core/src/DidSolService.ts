@@ -44,6 +44,8 @@ import {
   DidSolTransactionBuilder,
 } from './utils/DidSolTransactionBuilder';
 
+const isStringDID = (identifier: DidSolIdentifier | string): identifier is string => typeof identifier === 'string';
+
 /**
  * The DidSolService class is a wrapper around the Solana DID program.
  * It provides methods for creating, reading, updating, and deleting DID documents.
@@ -56,9 +58,14 @@ export class DidSolService extends DidSolTransactionBuilder {
   private readonly _legacyDidDataAccount: PublicKey;
 
   static build(
-    identifier: DidSolIdentifier,
+    identifier: DidSolIdentifier | string,
     options: DidSolServiceOptions = {}
   ): DidSolService {
+    // if identifier is a string, parse it
+    if (isStringDID(identifier)) {
+      identifier = DidSolIdentifier.parse(identifier);
+    }
+
     const wallet = options.wallet || new NonSigningWallet();
     const confirmOptions =
       options.confirmOptions || AnchorProvider.defaultOptions();
@@ -85,10 +92,15 @@ export class DidSolService extends DidSolTransactionBuilder {
 
   static buildFromAnchor(
     program: Program<SolDid>,
-    identifier: DidSolIdentifier,
+    identifier: DidSolIdentifier | string,
     provider: AnchorProvider,
     wallet?: Wallet
   ): DidSolService {
+    // if identifier is a string, parse it
+    if (isStringDID(identifier)) {
+      identifier = DidSolIdentifier.parse(identifier);
+    }
+
     return new DidSolService(
       program,
       identifier.authority,

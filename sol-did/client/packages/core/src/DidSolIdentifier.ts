@@ -104,7 +104,7 @@ export class DidSolIdentifier {
    * @param did the did string
    */
   static parse(did: string | VerificationMethod): DidSolIdentifier {
-    if (typeof did == 'string') {
+    if (typeof did === 'string') {
       const matches = DidSolIdentifier.REGEX.exec(did);
 
       if (!matches) throw new Error('Invalid DID');

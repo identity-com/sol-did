@@ -46,9 +46,7 @@ export default class Resolve extends Command {
   async run(): Promise<void> {
     const { args } = await this.parse(Resolve);
 
-    const didSolIdentifier = DidSolIdentifier.parse(args.didsol);
-
-    const service = DidSolService.build(didSolIdentifier);
+    const service = DidSolService.build(args.didsol);
 
     // console.log(`did:sol: ${service.did}`);
     // console.log(`did:sol PDA: ${service.didDataAccount.toBase58()}`);
