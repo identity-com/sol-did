@@ -11,12 +11,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust: ['1.61']
+        rust: ['stable']
+        solana: ['v1.14.7']
         os: [ubuntu-latest]
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use Rust ${{ matrix.rust }}
         uses: actions-rs/toolchain@v1
@@ -26,6 +27,18 @@ jobs:
           profile: minimal
           components: rustfmt, clippy
 
+      - name: Cache Solana version
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache
+          key: solana-${{ matrix.solana }}
+
+      - name: Install Solana
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/${{ matrix.solana }}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
       - name: Run fmt
         uses: actions-rs/cargo@v1
         with:
@@ -33,13 +46,31 @@ jobs:
           args: --manifest-path sol-did/Cargo.toml --all -- --check
 
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             ./sol-did/target
           key: cargo-clippy-${{ hashFiles('sol-did/Cargo.lock') }}
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Cache node dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./sol-did/node_modules
+          key: yarn-client-${{ hashFiles('sol-did/yarn.lock') }}
+
+      - name: Install & Build program
+        run: | 
+          cd sol-did
+          yarn install --ignore-scripts --frozen-lockfile
+          yarn anchor build
 
       - name: Run Clippy
         uses: actions-rs/cargo@v1
@@ -59,12 +90,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust: ['1.61']
+        rust: ['stable']
+        solana: ['v1.14.7']
         os: [ubuntu-latest]
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use Rust ${{ matrix.rust }}
         uses: actions-rs/toolchain@v1
@@ -74,13 +106,43 @@ jobs:
           profile: minimal
 
       - name: Cache build dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             ./sol-did/target
           key: cargo-test-${{ hashFiles('sol-did/Cargo.lock') }}
+
+      - name: Cache Solana version
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache
+          key: solana-${{ matrix.solana }}
+
+      - name: Install Solana
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/${{ matrix.solana }}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Cache node dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./sol-did/node_modules
+          key: yarn-client-${{ hashFiles('sol-did/yarn.lock') }}
+
+      - name: Install & Build program
+        run: |
+          cd sol-did
+          yarn install --ignore-scripts --frozen-lockfile
+          yarn anchor build
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
@@ -99,13 +161,13 @@ jobs:
     strategy:
       matrix:
         node: [ '16.x' ]
-        rust: ['1.61']
-        solana: ['v1.10.29']
+        rust: ['stable']
+        solana: ['v1.14.7']
         os: [ubuntu-latest]
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use Rust ${{ matrix.rust }}
         uses: actions-rs/toolchain@v1
@@ -115,7 +177,7 @@ jobs:
           profile: minimal
 
       - name: Cache build dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -124,7 +186,7 @@ jobs:
           key: cargo-build-${{ hashFiles('sol-did/Cargo.lock') }}
 
       - name: Cache Solana version
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache
@@ -141,7 +203,7 @@ jobs:
           node-version: ${{ matrix.node }}
 
       - name: Cache node dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ./sol-did/node_modules
@@ -178,12 +240,12 @@ jobs:
       matrix:
         node: ['16.x']
         os: [ubuntu-latest]
-        solana: ['v1.10.29']
-        rust: ['1.61']
+        solana: ['v1.14.7']
+        rust: ['stable']
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use Rust ${{ matrix.rust }}
         uses: actions-rs/toolchain@v1
@@ -193,7 +255,7 @@ jobs:
           profile: minimal
 
       - name: Cache build dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -202,7 +264,7 @@ jobs:
           key: cargo-build-${{ hashFiles('sol-did/Cargo.lock') }}
 
       - name: Cache Solana version
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache
@@ -219,7 +281,7 @@ jobs:
           node-version: ${{ matrix.node }}
 
       - name: Cache node dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ./sol-did/node_modules
@@ -235,7 +297,13 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: latest-sol-did-program
+          path: sol-did/target/deploy
 
       - name: Test e2e
         run: yarn test-e2e
+        working-directory: ./sol-did/client/packages/cli
+
+      - name: Output logs
+        if: failure()
+        run: cat ./test-ledger/validator.log
         working-directory: ./sol-did/client/packages/cli

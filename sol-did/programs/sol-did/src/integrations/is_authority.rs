@@ -1,8 +1,8 @@
 use crate::state::VerificationMethodType;
-use crate::{errors::DidSolError, id, DidAccount, DID_ACCOUNT_SEED};
+pub use crate::utils::{derive_did_account, derive_did_account_with_bump};
+use crate::{errors::DidSolError, DidAccount};
 use anchor_lang::prelude::*;
 use solana_program::account_info::AccountInfo;
-use solana_program::pubkey::Pubkey;
 
 /// Will return if given solana public key, or ethereum address (as derived from an ethereum signature)
 /// is a valid authority (CAPABILITY_INVOCATION) on the given did_account.
@@ -10,22 +10,28 @@ use solana_program::pubkey::Pubkey;
 /// In the latter case, the chain must be provided in the following order:
 /// did_account -> controlling_did_accounts[0] -> ... -> controlling_did_accounts[n] -> authority
 /// where '->' represents the relationship "is controlled by".
+/// Controlling DID Accounts are a tuple of (AccountInfo, PublicKey)
+/// the public key is used to derive a default DidAccount object, if
+/// the DID is a generative DID
 pub fn is_authority(
     did_account: &AccountInfo,
     did_account_seed_bump: Option<u8>,
-    controlling_did_accounts: &[AccountInfo],
+    controlling_did_accounts: &[(&AccountInfo, Pubkey)],
     key: &[u8],
     filter_types: Option<&[VerificationMethodType]>,
     filter_fragment: Option<&String>,
 ) -> Result<bool> {
+    // TODO: Consider to replace this with DidAccount::try_from(...)
     if did_account.owner == &System::id() {
         // msg!("Validating generative DID");
         // the DID is a generative DID - the only authority is the key itself
         // verify that the authority key derives the correct did account
 
         let address = if let Some(did_account_seed_bump) = did_account_seed_bump {
-            derive_did_account_with_bump(key, did_account_seed_bump)?
+            derive_did_account_with_bump(key, did_account_seed_bump)
+                .map_err(|_| Error::from(ErrorCode::ConstraintSeeds))?
         } else {
+            // the key must be a solana pubkey in the generative DID case
             derive_did_account(key).0
         };
         // msg!("Generative DID address for authority: {}", address);
@@ -39,16 +45,10 @@ pub fn is_authority(
     // validate them by parsing and checking the controller relationship,
     // and return the last one, which is the one the authority should be present on.
     // if no chain was provided, the relationship is direct, so return did_data
-
-    // WHAT I WANT
-    // let did_to_check_authority =
-    //     last_in_valid_controller_chain(&did_data, controlling_did_accounts)?.unwrap_or(&did_data);
-
-    // WHAT I HAVE TO DO INSTEAD
-    let controller_chain: Vec<Account<DidAccount>> = controlling_did_accounts
+    let controller_chain: Vec<DidAccount> = controlling_did_accounts
         .iter()
-        .map(Account::try_from)
-        .collect::<Result<Vec<Account<DidAccount>>>>()?;
+        .map(|c| DidAccount::try_from(c.0, &c.1, None))
+        .collect::<Result<Vec<DidAccount>>>()?;
 
     if !did_data.is_controlled_by(controller_chain.as_slice()) {
         return Err(error!(DidSolError::InvalidControllerChain));
@@ -70,21 +70,13 @@ pub fn is_authority(
     Ok(authority_exists)
 }
 
-pub fn derive_did_account(key: &[u8]) -> (Pubkey, u8) {
-    Pubkey::find_program_address(&[DID_ACCOUNT_SEED.as_bytes(), key], &id())
-}
-
-pub fn derive_did_account_with_bump(key: &[u8], bump_seed: u8) -> Result<Pubkey> {
-    Pubkey::create_program_address(&[DID_ACCOUNT_SEED.as_bytes(), key, &[bump_seed]], &id())
-        .map_err(|_| Error::from(ErrorCode::ConstraintSeeds))
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
     use crate::constants::VM_DEFAULT_FRAGMENT_NAME;
     use crate::state::{DidAccount, VerificationMethodFlags};
-    use crate::VerificationMethod;
+    use crate::utils::derive_did_account;
+    use crate::{id, VerificationMethod};
     use std::cell::RefCell;
     use std::rc::Rc;
     use std::str::FromStr;
@@ -362,5 +354,129 @@ mod test {
         )
         .unwrap();
         assert!(!should_be_false);
+    }
+
+    #[test]
+    fn test_is_authority_with_non_generative_controller() {
+        let controller_authority = create_test_authority();
+        let controlled_authority = create_test_authority();
+
+        assert_ne!(controller_authority, controlled_authority);
+
+        let controller_did_account = create_test_did(controller_authority);
+        let mut controlled_did_account = create_test_did(controlled_authority);
+
+        let controller_did_account_address = derive_did_account(&controller_authority.to_bytes());
+        let controlled_did_account_address = derive_did_account(&controller_authority.to_bytes());
+
+        controlled_did_account
+            .set_native_controllers(vec![controller_authority])
+            .unwrap();
+
+        let mut controller_data: Vec<u8> = Vec::with_capacity(1024);
+        controller_did_account
+            .try_serialize(&mut controller_data)
+            .unwrap();
+
+        let mut controlled_data: Vec<u8> = Vec::with_capacity(1024);
+        controlled_did_account
+            .try_serialize(&mut controlled_data)
+            .unwrap();
+
+        let mut controlled_lamports = 1;
+        let controlled_account_info = AccountInfo {
+            key: &controlled_did_account_address.0,
+            is_signer: false,
+            is_writable: false,
+            lamports: Rc::new(RefCell::new(&mut controlled_lamports)),
+            data: Rc::new(RefCell::new(&mut controlled_data)),
+            owner: &id(),
+            executable: false,
+            rent_epoch: 0,
+        };
+
+        let mut controller_lamports = 1;
+        let controller_account_info = AccountInfo {
+            key: &controller_did_account_address.0,
+            is_signer: false,
+            is_writable: false,
+            lamports: Rc::new(RefCell::new(&mut controller_lamports)),
+            data: Rc::new(RefCell::new(&mut controller_data)),
+            owner: &id(),
+            executable: false,
+            rent_epoch: 0,
+        };
+
+        // check if the controller authority is an authority on the controlled did
+        let should_be_true = is_authority(
+            &controlled_account_info,
+            Some(controlled_did_account_address.1),
+            &[(&controller_account_info, controller_authority)],
+            &controller_authority.to_bytes(),
+            Some(&[VerificationMethodType::Ed25519VerificationKey2018]),
+            None,
+        )
+        .unwrap();
+        assert!(should_be_true);
+    }
+
+    #[test]
+    fn test_is_authority_with_generative_controller() {
+        let controller_authority = create_test_authority();
+        let controlled_authority = create_test_authority();
+
+        assert_ne!(controller_authority, controlled_authority);
+
+        let mut controlled_did_account = create_test_did(controlled_authority);
+
+        let controller_did_account_address = derive_did_account(&controller_authority.to_bytes());
+        let controlled_did_account_address = derive_did_account(&controller_authority.to_bytes());
+
+        controlled_did_account
+            .set_native_controllers(vec![controller_authority])
+            .unwrap();
+
+        let mut controller_data: Vec<u8> = Vec::with_capacity(0);
+
+        let mut controlled_data: Vec<u8> = Vec::with_capacity(1024);
+        controlled_did_account
+            .try_serialize(&mut controlled_data)
+            .unwrap();
+
+        let mut controlled_lamports = 1;
+        let controlled_account_info = AccountInfo {
+            key: &controlled_did_account_address.0,
+            is_signer: false,
+            is_writable: false,
+            lamports: Rc::new(RefCell::new(&mut controlled_lamports)),
+            data: Rc::new(RefCell::new(&mut controlled_data)),
+            owner: &id(),
+            executable: false,
+            rent_epoch: 0,
+        };
+
+        let mut controller_lamports = 1;
+        let generative_controller_account_info = AccountInfo {
+            key: &controller_did_account_address.0,
+            is_signer: false,
+            is_writable: false,
+            lamports: Rc::new(RefCell::new(&mut controller_lamports)),
+            data: Rc::new(RefCell::new(&mut controller_data)),
+            owner: &System::id(),
+            executable: false,
+            rent_epoch: 0,
+        };
+
+        // check if the controller authority is an authority on the controlled did
+        let should_be_true = is_authority(
+            &controlled_account_info,
+            Some(controlled_did_account_address.1),
+            &[(&generative_controller_account_info, controller_authority)],
+            &controller_authority.to_bytes(),
+            Some(&[VerificationMethodType::Ed25519VerificationKey2018]),
+            None,
+        )
+        .unwrap();
+        assert!(should_be_true);
     }
 }

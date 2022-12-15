@@ -17,6 +17,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+
+## [3.2.0] - 2022-10-20
+### Added
+- Implemented `::try_from` on `DidAccount` to easily support generative and non-generative integrations
+- Added generative method on `DidSolDataAccount` class for simple integration of `null` case.
+- Added required `Cargo.toml` package data for `sol-did` publication on crates.io.
+
+### Changed
+- Removed `publicKey: string;` from `EthSigner` interface. This makes it compatible with
+  `class JsonRpcSigner extends Signer` of `ethers`.
+- Filter methods on `DidAccount` verificationmethods are not public.
+- `DidSolError` is now public.
+- Fixed resolve error when setting verificationmethod flags
+
+### Deprecated
+
+### Removed
+- Removed legacy codebase (did:sol v1) from repository.
+
+### Fixed
+
+### Security
+
 ## [3.1.4] - 2022-10-20
 ### Added
 - Provided `pub fn eth_verify_message` as a public utility method to verify eth signed messages.

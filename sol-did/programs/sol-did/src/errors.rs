@@ -26,4 +26,6 @@ pub enum DidSolError {
     InvalidControllerChain,
     #[msg("An error occurred while validating Secp256k1 signature")]
     ErrorValidatingSecp256k1Signature,
+    #[msg("Wrong Authority for given DID")]
+    WrongAuthorityForDid,
 }

@@ -8,10 +8,11 @@ import {
   AddVerificationMethodParams,
 } from './types';
 import { BN } from '@project-serum/anchor';
-import { mapControllers } from './utils';
+import { findProgramAddress, mapControllers } from './utils';
 import { ExtendedCluster } from './connection';
 import { DidSolIdentifier } from '../DidSolIdentifier';
 import { PublicKey } from '@solana/web3.js';
+import { DEFAULT_KEY_ID } from './const';
 
 /**
  * A class representing the on-chain data for a SOL DID
@@ -34,6 +35,38 @@ export class DidSolDataAccount {
     cluster: ExtendedCluster
   ): DidSolDataAccount {
     return new DidSolDataAccount(rawDidDataAccount, cluster);
+  }
+
+  static generative(identifier: DidSolIdentifier): DidSolDataAccount {
+    if (!identifier.clusterType) {
+      throw new Error(
+        `Cannot create generative DID from unknown cluster: ${identifier.toString()}`
+      );
+    }
+
+    // calculate bump
+    const [_, bump] = findProgramAddress(identifier.authority);
+
+    return new DidSolDataAccount(
+      {
+        version: 0,
+        bump,
+        nonce: new BN(0),
+        initialVerificationMethod: {
+          fragment: DEFAULT_KEY_ID,
+          methodType: VerificationMethodType.Ed25519VerificationKey2018,
+          keyData: identifier.authority.toBuffer(),
+          flags:
+            BitwiseVerificationMethodFlag.CapabilityInvocation |
+            BitwiseVerificationMethodFlag.OwnershipProof,
+        },
+        verificationMethods: [],
+        services: [],
+        nativeControllers: [],
+        otherControllers: [],
+      },
+      identifier.clusterType
+    );
   }
 
   get identifier(): DidSolIdentifier {

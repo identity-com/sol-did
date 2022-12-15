@@ -1,5 +1,8 @@
 use crate::constants::DID_SOL_PREFIX;
+use crate::{id, DID_ACCOUNT_SEED};
+use anchor_lang::prelude::{Error, ErrorCode};
 use solana_program::keccak;
+use solana_program::pubkey::Pubkey;
 use solana_program::secp256k1_recover::{
     secp256k1_recover, Secp256k1Pubkey, Secp256k1RecoverError,
 };
@@ -9,13 +12,6 @@ pub fn convert_secp256k1pub_key_to_address(pubkey: &Secp256k1Pubkey) -> [u8; 20]
     address.copy_from_slice(&keccak::hash(pubkey.to_bytes().as_ref()).to_bytes()[12..]);
     address
 }
-
-// pub fn is_valid_did(did: &str) -> bool {
-//     lazy_static! {
-//         static ref DID_RE: Regex = Regex::new(r"^did:([a-z0-9:]*):([a-zA-z\d]+)$").unwrap();
-//     }
-//     DID_RE.is_match(did)
-// }
 
 pub fn is_did_sol_prefix(did: &str) -> bool {
     did.starts_with(DID_SOL_PREFIX)
@@ -62,4 +58,13 @@ pub fn eth_verify_message(
     //     secp256k1_pubkey.to_bytes()
     // );
     secp256k1_pubkey
+}
+
+pub fn derive_did_account(key: &[u8]) -> (Pubkey, u8) {
+    Pubkey::find_program_address(&[DID_ACCOUNT_SEED.as_bytes(), key], &id())
+}
+
+pub fn derive_did_account_with_bump(key: &[u8], bump_seed: u8) -> Result<Pubkey, Error> {
+    Pubkey::create_program_address(&[DID_ACCOUNT_SEED.as_bytes(), key, &[bump_seed]], &id())
+        .map_err(|_| Error::from(ErrorCode::ConstraintSeeds))
 }

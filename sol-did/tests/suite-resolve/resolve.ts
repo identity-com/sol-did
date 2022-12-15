@@ -15,6 +15,7 @@ import {
   AddVerificationMethodParams,
   DidAccountSizeHelper,
   LegacyClient,
+  RawDidSolDataAccount,
 } from '@identity.com/sol-did-client';
 
 import {
@@ -172,14 +173,14 @@ describe('sol-did resolve and migrate operations', () => {
     expect(didDoc).to.deep.equal(
       Object.assign({}, migratedLegacyDidDocComplete, {
         capabilityInvocation:
-          migratedLegacyDidDocComplete.capabilityInvocation.filter(
+          migratedLegacyDidDocComplete.capabilityInvocation?.filter(
             (x: string) => !x.endsWith('ledger')
           ),
         verificationMethod:
-          migratedLegacyDidDocComplete.verificationMethod.filter(
+          migratedLegacyDidDocComplete.verificationMethod?.filter(
             (vm) => !vm.id.endsWith('#ledger')
           ),
-        service: migratedLegacyDidDocComplete.service.filter(
+        service: migratedLegacyDidDocComplete.service?.filter(
           (s) => !s.id.endsWith('#test784378')
         ),
       })
@@ -187,7 +188,7 @@ describe('sol-did resolve and migrate operations', () => {
 
     // check that auth
     const didAccount = await legacyDidService.getDidAccount();
-    expect(didAccount.verificationMethods[0].flags.raw).to.equal(
+    expect(didAccount?.verificationMethods[0].flags.raw).to.equal(
       BitwiseVerificationMethodFlag.OwnershipProof |
         BitwiseVerificationMethodFlag.CapabilityInvocation
     );
@@ -218,10 +219,12 @@ describe('sol-did resolve and migrate operations', () => {
     // check migration
     const [didAccount, didAccountSize] =
       await legacyDidService.getDidAccountWithSize();
-    expect(didAccount.services[0].serviceEndpoint).to.equal(randomString);
+    expect(didAccount?.services[0].serviceEndpoint).to.equal(randomString);
 
     expect(
-      new DidAccountSizeHelper(didAccount.raw).getDidAccountSize()
+      new DidAccountSizeHelper(
+        didAccount?.raw as RawDidSolDataAccount
+      ).getDidAccountSize()
     ).to.equal(490);
     expect(didAccountSize).to.equal(500);
 
@@ -247,7 +250,7 @@ describe('sol-did resolve and migrate operations', () => {
 
     // check that auth
     const didAccount = await legacyDidService.getDidAccount();
-    expect(didAccount.verificationMethods[0].flags.raw).to.equal(
+    expect(didAccount?.verificationMethods[0].flags.raw).to.equal(
       BitwiseVerificationMethodFlag.OwnershipProof |
         BitwiseVerificationMethodFlag.CapabilityInvocation
     );
@@ -296,7 +299,7 @@ describe('sol-did resolve and migrate operations', () => {
     //   legacyAuthority.publicKey
     // );
     // replacement check
-    expect(legacyAccount.authority.toPublicKey().toBase58()).to.equal(
+    expect(legacyAccount?.authority.toPublicKey().toBase58()).to.equal(
       legacyAuthority.publicKey.toBase58()
     );
 
@@ -383,7 +386,7 @@ describe('sol-did resolve and migrate operations', () => {
     );
     expect(
       updated_account?.verificationMethods[0].flags.array
-    ).to.be.deep.equal(lastElement.flags);
+    ).to.be.deep.equal(lastElement?.flags);
     expect(updated_account?.verificationMethods[0].keyData).to.be.deep.equal(
       authority.publicKey.toBytes()
     );
@@ -395,6 +398,45 @@ describe('sol-did resolve and migrate operations', () => {
       updated_account?.verificationMethods.slice(1).map((vm) => vm.toParams())
     ).to.be.deep.equal(vms); // default key will not be updated
     expect(updated_account?.controllers).to.be.deep.equal([]);
+  });
+
+  it('updates the verificationMethods of a DID with the correct flags', async () => {
+    await existingAccount(service);
+    let vms: AddVerificationMethodParams[] = [
+      getTestVerificationMethod('key1'),
+      getTestVerificationMethod('key2', Keypair.generate().publicKey, [
+        BitwiseVerificationMethodFlag.Authentication,
+        BitwiseVerificationMethodFlag.Assertion,
+        BitwiseVerificationMethodFlag.KeyAgreement,
+        BitwiseVerificationMethodFlag.CapabilityDelegation,
+      ]),
+      getTestVerificationMethod('key3'),
+      getTestVerificationMethod('key4'),
+    ];
+    await service
+      .update({
+        controllerDIDs: [],
+        services: [],
+        verificationMethods: vms,
+      })
+      .withSolWallet(authority)
+      .rpc();
+    let updated_account = await service.getDidAccount();
+    const doc = await service.resolve();
+    expect(doc.authentication).to.be.deep.equal([
+      `did:sol:localnet:A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3#default`,
+      `did:sol:localnet:A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3#key2`,
+    ]);
+    expect(doc.assertionMethod).to.be.deep.equal([
+      `did:sol:localnet:A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3#key2`,
+    ]);
+    expect(doc.keyAgreement).to.be.deep.equal([
+      `did:sol:localnet:A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3#default`,
+      `did:sol:localnet:A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3#key2`,
+    ]);
+    expect(doc.capabilityDelegation).to.be.deep.equal([
+      `did:sol:localnet:A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3#key2`,
+    ]);
   });
 
   it('cannot update the verificationMethods of a Did if there are replications', async () => {

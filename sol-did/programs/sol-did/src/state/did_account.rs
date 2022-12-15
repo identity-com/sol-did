@@ -8,7 +8,8 @@ use std::fmt::{Display, Formatter};
 
 use crate::constants::VM_DEFAULT_FRAGMENT_NAME;
 use crate::utils::{
-    check_other_controllers, convert_secp256k1pub_key_to_address, eth_verify_message,
+    check_other_controllers, convert_secp256k1pub_key_to_address, derive_did_account,
+    derive_did_account_with_bump, eth_verify_message,
 };
 
 #[account]
@@ -38,7 +39,44 @@ impl Display for DidAccount {
     }
 }
 
+impl Default for DidAccount {
+    fn default() -> Self {
+        DidAccount {
+            version: 0,
+            bump: 0,
+            nonce: 0,
+            initial_verification_method: VerificationMethod {
+                fragment: VM_DEFAULT_FRAGMENT_NAME.to_string(),
+                flags: VerificationMethodFlags::CAPABILITY_INVOCATION.bits(),
+                method_type: 0,
+                key_data: vec![],
+            },
+            verification_methods: vec![],
+            services: vec![],
+            native_controllers: vec![],
+            other_controllers: vec![],
+        }
+    }
+}
+
 impl DidAccount {
+    pub fn new(bump: u8, authority_key: &Pubkey) -> Self {
+        Self {
+            version: 0,
+            bump,
+            nonce: 0,
+            initial_verification_method: VerificationMethod::default(
+                VerificationMethodFlags::CAPABILITY_INVOCATION
+                    | VerificationMethodFlags::OWNERSHIP_PROOF,
+                authority_key.to_bytes().to_vec(),
+            ),
+            verification_methods: vec![],
+            services: vec![],
+            native_controllers: vec![],
+            other_controllers: vec![],
+        }
+    }
+
     pub fn init(&mut self, bump: u8, authority_key: &Pubkey, flags: VerificationMethodFlags) {
         self.version = 0;
         self.bump = bump;
@@ -50,7 +88,7 @@ impl DidAccount {
 
     /// Accessor for all verification methods (including the initial one)
     /// Enables to pass several filters that are ANDed together.
-    fn verification_methods(
+    pub fn verification_methods(
         &self,
         filter_types: Option<&[VerificationMethodType]>,
         filter_flags: Option<VerificationMethodFlags>,
@@ -85,7 +123,7 @@ impl DidAccount {
     /// Accessor for all verification methods (including the initial one)
     /// Enables to pass several filters that are ANDed together.
     /// Mutable Version
-    fn verification_methods_mut(
+    pub fn verification_methods_mut(
         &mut self,
         filter_types: Option<&[VerificationMethodType]>,
         filter_flags: Option<VerificationMethodFlags>,
@@ -221,9 +259,14 @@ impl DidAccount {
         .next()
     }
 
+    pub fn authority_key(&self) -> Pubkey {
+        Pubkey::new(self.initial_verification_method.key_data.as_slice())
+    }
+
     /// Returns true if `other` is a valid controller of this DID
     pub fn is_directly_controlled_by(&self, other: &DidAccount) -> bool {
-        other.other_controllers.contains(&self.to_string())
+        let other_key = other.authority_key();
+        self.native_controllers.iter().contains(&other_key)
     }
 
     /// returns true if the controller chain is valid.
@@ -231,7 +274,7 @@ impl DidAccount {
     /// this -> chain[0] -> ... -> chain[n]
     /// where '->' represents the relationship "is controlled by".
     /// NOTE: an empty chain returns `true`.
-    pub fn is_controlled_by(&self, chain: &[Account<DidAccount>]) -> bool {
+    pub fn is_controlled_by(&self, chain: &[DidAccount]) -> bool {
         match chain {
             [head, tail @ ..] => match self.is_directly_controlled_by(head) {
                 true => head.is_controlled_by(tail),
@@ -325,32 +368,66 @@ impl DidAccount {
         Ok(())
     }
 
+    // Support generative and non-generative accounts
+    pub fn try_from(
+        did_account: &AccountInfo,
+        initial_authority: &Pubkey,
+        did_account_seed_bump: Option<u8>,
+    ) -> Result<DidAccount> {
+        if did_account.owner == &System::id() {
+            // Generative account
+            let (derived_did_account, bump) =
+                if let Some(did_account_seed_bump) = did_account_seed_bump {
+                    (
+                        derive_did_account_with_bump(
+                            &initial_authority.to_bytes(),
+                            did_account_seed_bump,
+                        )
+                        .map_err(|_| Error::from(ErrorCode::ConstraintSeeds))?,
+                        did_account_seed_bump,
+                    )
+                } else {
+                    derive_did_account(&initial_authority.to_bytes())
+                };
+
+            // wrong authority for generative account
+            if derived_did_account != *did_account.key {
+                return Err(error!(DidSolError::WrongAuthorityForDid));
+            }
+
+            return Ok(DidAccount::new(bump, initial_authority));
+        }
+        // Non-generative account
+        let did_account: Account<DidAccount> = Account::try_from(did_account)?;
+        Ok(did_account.into_inner())
+    }
+
     pub fn size(&self) -> usize {
         1 // version
-        + 1 // bump
-        + 8 // nonce
-        + VerificationMethod::default_size() // initial_authority
-        + 4 + self.verification_methods.iter().fold(0, | accum, item| { accum + item.size() }) // verification_methods
-        + 4 + self.services.iter().fold(0, | accum, item| { accum + item.size() }) // services
-        + 4 + self.native_controllers.len() * 32 // native_controllers
-        + 4 + self.other_controllers.iter().fold(0, | accum, item| { accum + 4 + item.len() })
+            + 1 // bump
+            + 8 // nonce
+            + VerificationMethod::default_size() // initial_authority
+            + 4 + self.verification_methods.iter().fold(0, |accum, item| { accum + item.size() }) // verification_methods
+            + 4 + self.services.iter().fold(0, |accum, item| { accum + item.size() }) // services
+            + 4 + self.native_controllers.len() * 32 // native_controllers
+            + 4 + self.other_controllers.iter().fold(0, |accum, item| { accum + 4 + item.len() })
         // other_controllers
     }
 
     pub fn initial_size() -> usize {
         1 // version
-        + 1 // bump
-        + 8 // nonce
-        + VerificationMethod::default_size() // initial_authority
-        + 4 // verification_methods
-        + 4 // services
-        + 4 // native_controllers
-        + 4 // other_controllers
+            + 1 // bump
+            + 8 // nonce
+            + VerificationMethod::default_size() // initial_authority
+            + 4 // verification_methods
+            + 4 // services
+            + 4 // native_controllers
+            + 4 // other_controllers
     }
 }
 
 #[derive(
-    AnchorSerialize, AnchorDeserialize, Copy, Clone, FromPrimitive, ToPrimitive, PartialEq,
+    AnchorSerialize, AnchorDeserialize, Copy, Clone, FromPrimitive, ToPrimitive, PartialEq, Eq,
 )]
 pub enum VerificationMethodType {
     /// The main Ed25519Verification Method.
@@ -391,7 +468,8 @@ pub struct VerificationMethod {
     /// The permissions this key has
     pub flags: u16,
     /// The actual verification method
-    pub method_type: u8, // Type: VerificationMethodType- Anchor does not yet provide mappings for enums
+    pub method_type: u8,
+    // Type: VerificationMethodType- Anchor does not yet provide mappings for enums
     /// Dynamically sized key matching the given VerificationType
     pub key_data: Vec<u8>,
 }
@@ -399,9 +477,9 @@ pub struct VerificationMethod {
 impl VerificationMethod {
     pub fn size(&self) -> usize {
         4 + self.fragment.len()
-        + 2 // flags
-        + 1 // method
-        + 4 + self.key_data.len()
+            + 2 // flags
+            + 1 // method
+            + 4 + self.key_data.len()
     }
 
     pub fn default(flags: VerificationMethodFlags, key_data: Vec<u8>) -> VerificationMethod {
@@ -415,9 +493,9 @@ impl VerificationMethod {
 
     pub fn default_size() -> usize {
         4 + 7 // fragment "default"
-        + 2 // flags
-        + 1 // method
-        + 4 + 32 // ed25519 pubkey
+            + 2 // flags
+            + 1 // method
+            + 4 + 32 // ed25519 pubkey
     }
 }
 
@@ -437,8 +515,8 @@ impl Service {
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct Secp256k1RawSignature {
-    signature: [u8; 64],
-    recovery_id: u8,
+    pub signature: [u8; 64],
+    pub recovery_id: u8,
 }
 
 bitflags! {

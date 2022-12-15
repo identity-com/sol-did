@@ -10,7 +10,7 @@ import {
   DID_SOL_PROGRAM,
   BitwiseVerificationMethodFlag,
 } from '@identity.com/sol-did-client';
-import { SolDid } from '../dist/target/types/sol_did';
+import { SolDid } from '../target/types/sol_did';
 
 import { airdrop, getTestService } from '../tests/utils/utils';
 import { getDerivationPath, MNEMONIC } from '../tests/fixtures/config';
