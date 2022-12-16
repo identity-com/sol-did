@@ -555,7 +555,7 @@ export class DidSolService extends DidSolTransactionBuilder {
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
   updateFromDoc(
-    document: DidSolDocument,
+    document: DIDDocument,
     authority: PublicKey = this._wallet.publicKey
   ): DidSolService {
     if (document.id !== this.did) {
@@ -564,7 +564,9 @@ export class DidSolService extends DidSolTransactionBuilder {
       );
     }
 
-    const updateArgs = document.getDocUpdateArgs();
+    const didSolDocument = DidSolDocument.fromDoc(document)
+
+    const updateArgs = didSolDocument.getDocUpdateArgs();
     return this.update(updateArgs, authority);
   }
 
