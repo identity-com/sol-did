@@ -44,7 +44,9 @@ import {
   DidSolTransactionBuilder,
 } from './utils/DidSolTransactionBuilder';
 
-const isStringDID = (identifier: DidSolIdentifier | string): identifier is string => typeof identifier === 'string';
+const isStringDID = (
+  identifier: DidSolIdentifier | string
+): identifier is string => typeof identifier === 'string';
 
 /**
  * The DidSolService class is a wrapper around the Solana DID program.
@@ -564,7 +566,7 @@ export class DidSolService extends DidSolTransactionBuilder {
       );
     }
 
-    const didSolDocument = DidSolDocument.fromDoc(document)
+    const didSolDocument = DidSolDocument.fromDoc(document);
 
     const updateArgs = didSolDocument.getDocUpdateArgs();
     return this.update(updateArgs, authority);
