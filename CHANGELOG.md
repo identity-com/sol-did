@@ -6,8 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Allow to initialize `DidService` with a `did:` string
 
 ### Changed
+- Updated `updateFromDoc` to expect a generalized `DidDocument` and not a `DidSolDocument`
 
 ### Deprecated
 
