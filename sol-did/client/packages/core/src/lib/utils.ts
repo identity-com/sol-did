@@ -5,6 +5,7 @@ import { Keypair, PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { getAddress } from '@ethersproject/address';
 import { hexlify, arrayify } from '@ethersproject/bytes';
 import { decode } from 'bs58';
+import { VerificationMethod as ResolverVerificationMethod } from 'did-resolver';
 
 import {
   Bytes,
@@ -293,3 +294,7 @@ export const getKeyDataFromVerificationMethod = (
       throw new Error(`Verification method type '${vm.type}' not recognized`);
   }
 };
+
+export const isStringDID = (
+  identifier: ResolverVerificationMethod | DidSolIdentifier | string
+): identifier is string => typeof identifier === 'string';

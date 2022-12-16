@@ -1,6 +1,10 @@
 import { PublicKey } from '@solana/web3.js';
 import { DecentralizedIdentifierConstructor } from './lib/types';
-import { findLegacyProgramAddress, findProgramAddress } from './lib/utils';
+import {
+  findLegacyProgramAddress,
+  findProgramAddress,
+  isStringDID,
+} from './lib/utils';
 import { DID_SOL_PREFIX } from './lib/const';
 import { VerificationMethod } from 'did-resolver';
 import { ExtendedCluster } from './lib/connection';
@@ -104,7 +108,7 @@ export class DidSolIdentifier {
    * @param did the did string
    */
   static parse(did: string | VerificationMethod): DidSolIdentifier {
-    if (typeof did === 'string') {
+    if (isStringDID(did)) {
       const matches = DidSolIdentifier.REGEX.exec(did);
 
       if (!matches) throw new Error('Invalid DID');

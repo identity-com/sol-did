@@ -6,6 +6,7 @@ import {
   findLegacyProgramAddress,
   findProgramAddress,
   getBinarySize,
+  isStringDID,
   validateAndSplitControllers,
 } from './lib/utils';
 import {
@@ -43,10 +44,6 @@ import {
   DidSolEthSignStatusType,
   DidSolTransactionBuilder,
 } from './utils/DidSolTransactionBuilder';
-
-const isStringDID = (
-  identifier: DidSolIdentifier | string
-): identifier is string => typeof identifier === 'string';
 
 /**
  * The DidSolService class is a wrapper around the Solana DID program.
