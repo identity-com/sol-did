@@ -100,7 +100,7 @@ describe('sol-did alloc operations', () => {
     expect(didDataAccount.services.length).to.equal(0);
     expect(didDataAccount.verificationMethods.length).to.equal(1);
     expect(didDataAccount.verificationMethods[0].keyData).to.deep.equal(
-      authority.publicKey.toBytes()
+      authority.publicKey.toBuffer()
     );
     expect(didDataAccount.verificationMethods[0].flags.array).to.deep.equal([
       BitwiseVerificationMethodFlag.CapabilityInvocation,
