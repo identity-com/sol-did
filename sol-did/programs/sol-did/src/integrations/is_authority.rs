@@ -229,7 +229,8 @@ mod test {
             &test_authority.to_bytes(),
             Some(&[VerificationMethodType::Ed25519VerificationKey2018]),
             None,
-        ).unwrap_or(false);
+        )
+        .unwrap_or(false);
 
         assert!(!should_be_false);
     }
