@@ -480,4 +480,23 @@ describe('sol-did auth operations', () => {
         'Error Message: Removing the last verification method would lead to a lockout.'
     );
   });
+
+  it('cannot use update to remove all VerificationMethods with a CapabilityInvocation', async () => {
+    return expect(
+      service
+        .update(
+          {
+            services: [],
+            controllerDIDs: [],
+            verificationMethods: [],
+          },
+          newSolKey.publicKey
+        )
+        .withPartialSigners(newSolKey)
+        .rpc()
+    ).to.be.rejectedWith(
+      'Error Code: VmCannotRemoveLastAuthority. Error Number: 6003. ' +
+        'Error Message: Removing the last verification method would lead to a lockout.'
+    );
+  });
 });
