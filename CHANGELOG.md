@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated `updateFromDoc` to expect a generalized `DidDocument` and not a `DidSolDocument`
+- Updated `anchor-lang` dependency to `0.26.0`
+- Updated program Solana dependencies to latest version.
 
 ### Deprecated
 

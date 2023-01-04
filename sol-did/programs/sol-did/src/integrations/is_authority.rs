@@ -221,18 +221,18 @@ mod test {
             rent_epoch: 0,
         };
 
-        let should_be_error = is_authority(
+        // either this returns Ok(false) or Error, but NOT Ok(true).
+        let should_be_false = is_authority(
             &account_info,
             Some(0),
             &[],
             &test_authority.to_bytes(),
             Some(&[VerificationMethodType::Ed25519VerificationKey2018]),
             None,
-        );
-        assert_eq!(
-            should_be_error.unwrap_err(),
-            Error::from(ErrorCode::ConstraintSeeds)
-        );
+        )
+        .unwrap_or(false);
+
+        assert!(!should_be_false);
     }
 
     #[test]

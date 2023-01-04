@@ -276,7 +276,7 @@ export const getPublicKey = (privateKey: PrivateKey): PublicKey =>
 
 export const getKeyDataFromVerificationMethod = (
   vm: DidVerificationMethod
-): Bytes => {
+): Buffer => {
   switch (vm.type) {
     case VerificationMethodType[
       VerificationMethodType.Ed25519VerificationKey2018

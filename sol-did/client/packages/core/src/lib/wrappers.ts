@@ -135,7 +135,7 @@ export class VerificationMethod {
     return this._rawVerificationMethod.fragment;
   }
 
-  get keyData(): Bytes {
+  get keyData(): Buffer {
     return this._rawVerificationMethod.keyData;
   }
 
