@@ -6,6 +6,7 @@ import {
   findLegacyProgramAddress,
   findProgramAddress,
   getBinarySize,
+  isStringDID,
   validateAndSplitControllers,
 } from './lib/utils';
 import {
@@ -56,9 +57,14 @@ export class DidSolService extends DidSolTransactionBuilder {
   private readonly _legacyDidDataAccount: PublicKey;
 
   static build(
-    identifier: DidSolIdentifier,
+    identifier: DidSolIdentifier | string,
     options: DidSolServiceOptions = {}
   ): DidSolService {
+    // if identifier is a string, parse it
+    if (isStringDID(identifier)) {
+      identifier = DidSolIdentifier.parse(identifier);
+    }
+
     const wallet = options.wallet || new NonSigningWallet();
     const confirmOptions =
       options.confirmOptions || AnchorProvider.defaultOptions();
@@ -85,10 +91,15 @@ export class DidSolService extends DidSolTransactionBuilder {
 
   static buildFromAnchor(
     program: Program<SolDid>,
-    identifier: DidSolIdentifier,
+    identifier: DidSolIdentifier | string,
     provider: AnchorProvider,
     wallet?: Wallet
   ): DidSolService {
+    // if identifier is a string, parse it
+    if (isStringDID(identifier)) {
+      identifier = DidSolIdentifier.parse(identifier);
+    }
+
     return new DidSolService(
       program,
       identifier.authority,
@@ -543,7 +554,7 @@ export class DidSolService extends DidSolTransactionBuilder {
    * @param authority The authority to use. Can be "wrong" if instruction is later signed with ethSigner
    */
   updateFromDoc(
-    document: DidSolDocument,
+    document: DIDDocument,
     authority: PublicKey = this._wallet.publicKey
   ): DidSolService {
     if (document.id !== this.did) {
@@ -552,7 +563,9 @@ export class DidSolService extends DidSolTransactionBuilder {
       );
     }
 
-    const updateArgs = document.getDocUpdateArgs();
+    const didSolDocument = DidSolDocument.fromDoc(document);
+
+    const updateArgs = didSolDocument.getDocUpdateArgs();
     return this.update(updateArgs, authority);
   }
 

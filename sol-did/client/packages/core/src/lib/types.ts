@@ -28,7 +28,7 @@ export type RawDidSolDataAccount = {
 
 export type RawVerificationMethod = {
   fragment: string;
-  keyData: Bytes;
+  keyData: Buffer;
   methodType: VerificationMethodType;
   flags: number;
 };

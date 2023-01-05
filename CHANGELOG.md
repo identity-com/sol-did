@@ -17,8 +17,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [3.3.0] - 2023-01-04
+### Added
+- Allow to initialize `DidService` with a `did:` string
 
-## [3.2.0] - 2022-10-20
+### Changed
+- Updated `updateFromDoc` to expect a generalized `DidDocument` and not a `DidSolDocument`
+- Updated `anchor-lang` dependency to `0.26.0`
+- Updated program Solana dependencies to latest version.
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [3.2.0] - 2022-12-15
 ### Added
 - Implemented `::try_from` on `DidAccount` to easily support generative and non-generative integrations
 - Added generative method on `DidSolDataAccount` class for simple integration of `null` case.

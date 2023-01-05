@@ -388,7 +388,7 @@ describe('sol-did resolve and migrate operations', () => {
       updated_account?.verificationMethods[0].flags.array
     ).to.be.deep.equal(lastElement?.flags);
     expect(updated_account?.verificationMethods[0].keyData).to.be.deep.equal(
-      authority.publicKey.toBytes()
+      authority.publicKey.toBuffer()
     );
     expect(updated_account?.verificationMethods[0].methodType).to.be.equal(
       VerificationMethodType.Ed25519VerificationKey2018

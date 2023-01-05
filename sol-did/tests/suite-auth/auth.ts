@@ -70,7 +70,7 @@ describe('sol-did auth operations', () => {
     await service
       .addVerificationMethod({
         fragment: newSolKeyAlias,
-        keyData: newSolKey.publicKey.toBytes(),
+        keyData: newSolKey.publicKey.toBuffer(),
         methodType: VerificationMethodType.Ed25519VerificationKey2018,
         flags: [BitwiseVerificationMethodFlag.CapabilityInvocation],
       })
@@ -83,7 +83,7 @@ describe('sol-did auth operations', () => {
       newSolKeyAlias
     );
     expect(didDataAccount.verificationMethods[1].keyData).to.deep.equal(
-      newSolKey.publicKey.toBytes()
+      newSolKey.publicKey.toBuffer()
     );
     expect(didDataAccount.verificationMethods[1].methodType).to.equal(
       VerificationMethodType.Ed25519VerificationKey2018
@@ -112,7 +112,7 @@ describe('sol-did auth operations', () => {
       service
         .addVerificationMethod({
           fragment: 'new-key',
-          keyData: newSolKey.publicKey.toBytes(),
+          keyData: newSolKey.publicKey.toBuffer(),
           methodType: VerificationMethodType.Ed25519VerificationKey2018,
           flags: [BitwiseVerificationMethodFlag.OwnershipProof],
         })
@@ -127,7 +127,7 @@ describe('sol-did auth operations', () => {
       service
         .addVerificationMethod({
           fragment: 'invalid-flag-key',
-          keyData: newSolKey.publicKey.toBytes(),
+          keyData: newSolKey.publicKey.toBuffer(),
           methodType: VerificationMethodType.Ed25519VerificationKey2018,
           flags: [1 << 15],
         })
@@ -142,7 +142,7 @@ describe('sol-did auth operations', () => {
       service
         .addVerificationMethod({
           fragment: DEFAULT_KEY_ID,
-          keyData: newSolKey.publicKey.toBytes(),
+          keyData: newSolKey.publicKey.toBuffer(),
           methodType: VerificationMethodType.Ed25519VerificationKey2018,
           flags: [BitwiseVerificationMethodFlag.CapabilityInvocation],
         })

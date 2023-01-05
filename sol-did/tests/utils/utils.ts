@@ -51,7 +51,7 @@ export const getTestVerificationMethod = (
   methodType: VerificationMethodType = VerificationMethodType.Ed25519VerificationKey2018
 ): AddVerificationMethodParams => ({
   fragment,
-  keyData: key.toBytes(),
+  keyData: key.toBuffer(),
   methodType,
   flags,
 });
