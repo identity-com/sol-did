@@ -1,5 +1,5 @@
 export type SolDid = {
-  "version": "3.2.0",
+  "version": "3.3.0",
   "name": "sol_did",
   "instructions": [
     {
@@ -701,7 +701,7 @@ export type SolDid = {
 };
 
 export const IDL: SolDid = {
-  "version": "3.2.0",
+  "version": "3.3.0",
   "name": "sol_did",
   "instructions": [
     {
