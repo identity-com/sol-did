@@ -23,7 +23,7 @@
     "prepublishOnly": "yarn build",
     "dev": "ts-node-dev src/index.ts",
     "app": "node dist/index.js",
-    "buildAndPush": "docker-compose build && docker push identitydotcom/driver-did-sol"
+    "buildAndPush": "docker compose build && docker push identitydotcom/driver-did-sol"
   },
   "prettier": {
     "printWidth": 80,
