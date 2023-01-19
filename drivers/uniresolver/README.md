@@ -21,3 +21,15 @@ nvm install
 yarn
 yarn dev
 ```
+
+## Publishing to docker
+
+You'll need to get access to the idenetitycom docker hub account.
+
+```shell
+yarn run prepublishOnly
+docker compose build
+DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose build
+docker tag identitydotcom/driver-did-sol identitydotcom/driver-did-sol:{tag}
+docker push identitydotcom/driver-did-sol:{tag}
+```
