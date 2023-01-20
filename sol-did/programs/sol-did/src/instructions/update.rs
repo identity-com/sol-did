@@ -1,6 +1,6 @@
+use crate::errors::DidSolError;
 use crate::state::{DidAccount, Secp256k1RawSignature};
 use crate::{Service, VerificationMethod};
-use crate::errors::DidSolError;
 use anchor_lang::prelude::*;
 
 pub fn update(

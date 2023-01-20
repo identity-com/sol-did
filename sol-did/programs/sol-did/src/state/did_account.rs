@@ -157,13 +157,14 @@ impl DidAccount {
     }
 
     pub fn has_protected_verification_method(&self, filter_fragment: Option<&String>) -> bool {
-        !self.verification_methods(
-            None,
-            Some(VerificationMethodFlags::PROTECTED),
-            None,
-            filter_fragment,
-        )
-        .is_empty()
+        !self
+            .verification_methods(
+                None,
+                Some(VerificationMethodFlags::PROTECTED),
+                None,
+                filter_fragment,
+            )
+            .is_empty()
     }
 
     pub fn remove_verification_method(&mut self, fragment: &String) -> Result<()> {
@@ -322,7 +323,9 @@ impl DidAccount {
         incoming.iter().try_for_each(|vm| {
             match VerificationMethodFlags::from_bits(vm.flags)
                 .ok_or(DidSolError::ConversionError)?
-                .intersection(VerificationMethodFlags::OWNERSHIP_PROOF | VerificationMethodFlags::PROTECTED)
+                .intersection(
+                    VerificationMethodFlags::OWNERSHIP_PROOF | VerificationMethodFlags::PROTECTED,
+                )
                 .is_empty()
             {
                 false => Err(DidSolError::VmGuardedFlagOnAdd),
