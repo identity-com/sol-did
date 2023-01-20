@@ -644,8 +644,8 @@ export type SolDid = {
     },
     {
       "code": 6002,
-      "name": "VmOwnershipOnAdd",
-      "msg": "Cannot add a verification method with OwnershipProof flag"
+      "name": "VmGuardedFlagOnAdd",
+      "msg": "Cannot add a verification method with guarded flag (OwnershipProof or Protected)"
     },
     {
       "code": 6003,
@@ -696,6 +696,11 @@ export type SolDid = {
       "code": 6012,
       "name": "WrongAuthorityForDid",
       "msg": "Wrong Authority for given DID"
+    },
+    {
+      "code": 6013,
+      "name": "VmCannotRemoveProtected",
+      "msg": "Cannot remove a protected verification method. You need to remove the flag first."
     }
   ]
 };
@@ -1346,8 +1351,8 @@ export const IDL: SolDid = {
     },
     {
       "code": 6002,
-      "name": "VmOwnershipOnAdd",
-      "msg": "Cannot add a verification method with OwnershipProof flag"
+      "name": "VmGuardedFlagOnAdd",
+      "msg": "Cannot add a verification method with guarded flag (OwnershipProof or Protected)"
     },
     {
       "code": 6003,
@@ -1398,6 +1403,11 @@ export const IDL: SolDid = {
       "code": 6012,
       "name": "WrongAuthorityForDid",
       "msg": "Wrong Authority for given DID"
+    },
+    {
+      "code": 6013,
+      "name": "VmCannotRemoveProtected",
+      "msg": "Cannot remove a protected verification method. You need to remove the flag first."
     }
   ]
 };

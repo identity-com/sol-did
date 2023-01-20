@@ -13,6 +13,12 @@ pub fn remove_verification_method(
         data.nonce += 1;
     }
 
+    // cannot remove protected verification methods
+    require!(
+        !data.has_protcted_verification_method(Some(&fragment)),
+        DidSolError::VmCannotRemoveProtected
+    );
+
     let _ = data.remove_verification_method(&fragment);
 
     // prevent lockout

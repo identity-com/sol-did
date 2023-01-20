@@ -8,14 +8,14 @@ import chaiAsPromised from 'chai-as-promised';
 import { airdrop, checkConnectionLogs, getTestService } from '../utils/utils';
 import { before } from 'mocha';
 import {
+  BitwiseVerificationMethodFlag,
   DidAccountSizeHelper,
+  DidSolDataAccount,
   DidSolIdentifier,
   DidSolService,
-  DidSolDataAccount,
-  BitwiseVerificationMethodFlag,
-  VerificationMethodType,
   findProgramAddress,
   INITIAL_MIN_ACCOUNT_SIZE,
+  VerificationMethodType,
 } from '@identity.com/sol-did-client';
 import { TEST_CLUSTER } from '../utils/const';
 import { utils, Wallet } from 'ethers';
@@ -105,6 +105,7 @@ describe('sol-did alloc operations', () => {
     expect(didDataAccount.verificationMethods[0].flags.array).to.deep.equal([
       BitwiseVerificationMethodFlag.CapabilityInvocation,
       BitwiseVerificationMethodFlag.OwnershipProof,
+      BitwiseVerificationMethodFlag.Protected,
     ]);
 
     expect(didDataAccountSize).to.equal(INITIAL_MIN_ACCOUNT_SIZE);

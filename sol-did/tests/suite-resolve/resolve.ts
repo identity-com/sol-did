@@ -189,8 +189,9 @@ describe('sol-did resolve and migrate operations', () => {
     // check that auth
     const didAccount = await legacyDidService.getDidAccount();
     expect(didAccount?.verificationMethods[0].flags.raw).to.equal(
+      BitwiseVerificationMethodFlag.CapabilityInvocation |
       BitwiseVerificationMethodFlag.OwnershipProof |
-        BitwiseVerificationMethodFlag.CapabilityInvocation
+      BitwiseVerificationMethodFlag.Protected
     );
 
     // close migration again for next test
@@ -251,8 +252,9 @@ describe('sol-did resolve and migrate operations', () => {
     // check that auth
     const didAccount = await legacyDidService.getDidAccount();
     expect(didAccount?.verificationMethods[0].flags.raw).to.equal(
+      BitwiseVerificationMethodFlag.CapabilityInvocation |
       BitwiseVerificationMethodFlag.OwnershipProof |
-        BitwiseVerificationMethodFlag.CapabilityInvocation
+      BitwiseVerificationMethodFlag.Protected
     );
   });
 
@@ -598,7 +600,7 @@ describe('sol-did resolve and migrate operations', () => {
         .withSolWallet(authority)
         .rpc()
     ).to.be.rejectedWith(
-      'Error Code: VmOwnershipOnAdd. Error Number: 6002. Error Message: Cannot add a verification method with OwnershipProof flag.'
+      'Error Code: VmGuardedFlagOnAdd. Error Number: 6002'
     );
   });
 
@@ -667,6 +669,7 @@ describe('sol-did resolve and migrate operations', () => {
       expect(data?.verificationMethods[0].flags.array).to.deep.equal([
         BitwiseVerificationMethodFlag.CapabilityInvocation,
         BitwiseVerificationMethodFlag.OwnershipProof,
+        BitwiseVerificationMethodFlag.Protected,
       ]);
     });
   });

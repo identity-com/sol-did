@@ -118,7 +118,22 @@ describe('sol-did auth operations', () => {
         })
         .rpc()
     ).to.be.rejectedWith(
-      'VmOwnershipOnAdd. Error Number: 6002. Error Message: Cannot add a verification method with OwnershipProof flag.'
+      'VmGuardedFlagOnAdd. Error Number: 6002'
+    );
+  });
+
+  it('can not add a new key with Protected to an account', async () => {
+    return expect(
+      service
+        .addVerificationMethod({
+          fragment: 'new-key',
+          keyData: newSolKey.publicKey.toBuffer(),
+          methodType: VerificationMethodType.Ed25519VerificationKey2018,
+          flags: [BitwiseVerificationMethodFlag.Protected],
+        })
+        .rpc()
+    ).to.be.rejectedWith(
+      'VmGuardedFlagOnAdd. Error Number: 6002'
     );
   });
 

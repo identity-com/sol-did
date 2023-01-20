@@ -58,6 +58,7 @@ export enum BitwiseVerificationMethodFlag {
   CapabilityDelegation = 1 << 4,
   DidDocHidden = 1 << 5,
   OwnershipProof = 1 << 6,
+  Protected = 1 << 7,
 }
 
 export enum VerificationMethodType {
