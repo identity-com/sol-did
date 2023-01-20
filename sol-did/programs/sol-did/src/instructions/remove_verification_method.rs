@@ -15,7 +15,7 @@ pub fn remove_verification_method(
 
     // cannot remove protected verification methods
     require!(
-        !data.has_protcted_verification_method(Some(&fragment)),
+        !data.has_protected_verification_method(Some(&fragment)),
         DidSolError::VmCannotRemoveProtected
     );
 

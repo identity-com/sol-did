@@ -156,7 +156,7 @@ impl DidAccount {
             .collect()
     }
 
-    pub fn has_protcted_verification_method(&self, filter_fragment: Option<&String>) -> bool {
+    pub fn has_protected_verification_method(&self, filter_fragment: Option<&String>) -> bool {
         !self.verification_methods(
             None,
             Some(VerificationMethodFlags::PROTECTED),

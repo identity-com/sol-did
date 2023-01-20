@@ -7,15 +7,15 @@ import chaiAsPromised from 'chai-as-promised';
 
 import { before } from 'mocha';
 import {
+  AddVerificationMethodParams,
+  BitwiseVerificationMethodFlag,
+  DidAccountSizeHelper,
   DidSolDocument,
   DidSolIdentifier,
   DidSolService,
-  BitwiseVerificationMethodFlag,
-  VerificationMethodType,
-  AddVerificationMethodParams,
-  DidAccountSizeHelper,
   LegacyClient,
   RawDidSolDataAccount,
+  VerificationMethodType,
 } from '@identity.com/sol-did-client';
 
 import {
@@ -29,7 +29,6 @@ import { DIDDocument } from 'did-resolver';
 import { Wallet as EtherWallet } from 'ethers';
 import {
   airdrop,
-  existingAccount,
   getTestService,
   getTestVerificationMethod,
 } from '../utils/utils';
@@ -190,8 +189,8 @@ describe('sol-did resolve and migrate operations', () => {
     const didAccount = await legacyDidService.getDidAccount();
     expect(didAccount?.verificationMethods[0].flags.raw).to.equal(
       BitwiseVerificationMethodFlag.CapabilityInvocation |
-      BitwiseVerificationMethodFlag.OwnershipProof |
-      BitwiseVerificationMethodFlag.Protected
+        BitwiseVerificationMethodFlag.OwnershipProof |
+        BitwiseVerificationMethodFlag.Protected
     );
 
     // close migration again for next test
@@ -253,8 +252,8 @@ describe('sol-did resolve and migrate operations', () => {
     const didAccount = await legacyDidService.getDidAccount();
     expect(didAccount?.verificationMethods[0].flags.raw).to.equal(
       BitwiseVerificationMethodFlag.CapabilityInvocation |
-      BitwiseVerificationMethodFlag.OwnershipProof |
-      BitwiseVerificationMethodFlag.Protected
+        BitwiseVerificationMethodFlag.OwnershipProof |
+        BitwiseVerificationMethodFlag.Protected
     );
   });
 
@@ -345,8 +344,29 @@ describe('sol-did resolve and migrate operations', () => {
     );
   });
 
+  it('cannot update an existing DidAccount if ANY verification method is protected', async () => {
+    return expect(
+      service
+        .update({
+          controllerDIDs: [],
+          services: [],
+          verificationMethods: [],
+        })
+        .rpc()
+    ).to.be.rejectedWith(
+      'Error Code: VmCannotRemoveProtected. Error Number: 6013.'
+    );
+  });
+
   it('can update the verificationMethods of a Did', async () => {
-    await existingAccount(service);
+    // Remove all protection flag from DEFAULT
+    await service
+      .setVerificationMethodFlags(DEFAULT_KEY_ID, [
+        BitwiseVerificationMethodFlag.CapabilityInvocation,
+        BitwiseVerificationMethodFlag.OwnershipProof,
+      ])
+      .rpc();
+
     let vms: AddVerificationMethodParams[] = [
       getTestVerificationMethod('key1', Keypair.generate().publicKey, [
         BitwiseVerificationMethodFlag.KeyAgreement,
@@ -375,7 +395,6 @@ describe('sol-did resolve and migrate operations', () => {
         services: [],
         verificationMethods: vms,
       })
-      .withSolWallet(authority)
       .rpc();
     let updated_account = await service.getDidAccount();
     expect(updated_account?.services).to.be.deep.equal([]);
@@ -403,7 +422,6 @@ describe('sol-did resolve and migrate operations', () => {
   });
 
   it('updates the verificationMethods of a DID with the correct flags', async () => {
-    await existingAccount(service);
     let vms: AddVerificationMethodParams[] = [
       getTestVerificationMethod('key1'),
       getTestVerificationMethod('key2', Keypair.generate().publicKey, [
@@ -421,9 +439,8 @@ describe('sol-did resolve and migrate operations', () => {
         services: [],
         verificationMethods: vms,
       })
-      .withSolWallet(authority)
       .rpc();
-    let updated_account = await service.getDidAccount();
+
     const doc = await service.resolve();
     expect(doc.authentication).to.be.deep.equal([
       `did:sol:localnet:A2oYuurjzc8ACwQQN56SBLv1kUmYJJTBjwMNWVNgVaT3#default`,
@@ -442,7 +459,6 @@ describe('sol-did resolve and migrate operations', () => {
   });
 
   it('cannot update the verificationMethods of a Did if there are replications', async () => {
-    await existingAccount(service);
     let vms = [
       getTestVerificationMethod('key1'),
       getTestVerificationMethod('key2'),
@@ -456,7 +472,6 @@ describe('sol-did resolve and migrate operations', () => {
           services: [],
           verificationMethods: vms,
         })
-        .withSolWallet(authority)
         .rpc()
     ).to.be.rejectedWith(
       'Error Code: VmFragmentAlreadyInUse. Error Number: 6001. Error Message: Given VM fragment is already in use.'
@@ -464,7 +479,6 @@ describe('sol-did resolve and migrate operations', () => {
   });
 
   it('can update the services of a Did', async () => {
-    await existingAccount(service);
     let services = [getTestService(5), getTestService(9)];
     await service
       .update({
@@ -472,7 +486,6 @@ describe('sol-did resolve and migrate operations', () => {
         services: services,
         verificationMethods: [],
       })
-      .withSolWallet(authority)
       .rpc();
     let updated_account = await service.getDidAccount();
     expect(updated_account?.services).to.be.deep.equal(services);
@@ -481,7 +494,6 @@ describe('sol-did resolve and migrate operations', () => {
   });
 
   it('cannot update the services of a Did when there are duplicates', async () => {
-    await existingAccount(service);
     let services = [getTestService(5), getTestService(5)];
     return expect(
       service
@@ -490,7 +502,6 @@ describe('sol-did resolve and migrate operations', () => {
           services: services,
           verificationMethods: [],
         })
-        .withSolWallet(authority)
         .rpc()
     ).to.be.rejectedWith(
       'Error Code: ServiceFragmentAlreadyInUse. Error Number: 6004. Error Message: Service already exists in current service list.'
@@ -498,7 +509,6 @@ describe('sol-did resolve and migrate operations', () => {
   });
 
   it('can update controllers of a Did', async () => {
-    await existingAccount(service);
     const ethrDid = `did:ethr:${ethKey.address}`;
     const solDid = DidSolIdentifier.create(
       solKey.publicKey,
@@ -511,7 +521,6 @@ describe('sol-did resolve and migrate operations', () => {
         services: [],
         verificationMethods: [],
       })
-      .withSolWallet(authority)
       .rpc();
     let updated_account = await service.getDidAccount();
     expect(updated_account?.services).to.be.deep.equal([]);
@@ -523,7 +532,6 @@ describe('sol-did resolve and migrate operations', () => {
   });
 
   it('cannot update controllers when itself is added', async () => {
-    await existingAccount(service);
     const ethrDid = `did:ethr:${ethKey.address}`;
     const selfSolDid = service.did;
     return expect(
@@ -533,7 +541,6 @@ describe('sol-did resolve and migrate operations', () => {
           services: [],
           verificationMethods: [],
         })
-        .withSolWallet(authority)
         .rpc()
     ).to.be.rejectedWith(
       'Error Code: InvalidNativeControllers. Error Number: 6007. Error Message: Invalid native controllers. Cannot set itself as a controller.'
@@ -555,7 +562,6 @@ describe('sol-did resolve and migrate operations', () => {
   });
 
   it('can successfully update the state of a DID', async () => {
-    await existingAccount(service);
     let vms = [
       getTestVerificationMethod('key1'),
       getTestVerificationMethod('key2'),
@@ -569,7 +575,6 @@ describe('sol-did resolve and migrate operations', () => {
         services: services,
         verificationMethods: vms,
       })
-      .withSolWallet(authority)
       .rpc();
     let updated_account = await service.getDidAccount();
     expect(updated_account?.services).to.be.deep.equal(services);
@@ -580,7 +585,6 @@ describe('sol-did resolve and migrate operations', () => {
   });
 
   it('fails to update when any verification methods try to set the Ownership flag.', async () => {
-    await existingAccount(service);
     let vms = [
       getTestVerificationMethod('key1'),
       getTestVerificationMethod('key2', Keypair.generate().publicKey, [
@@ -597,11 +601,8 @@ describe('sol-did resolve and migrate operations', () => {
           services: [],
           verificationMethods: vms,
         })
-        .withSolWallet(authority)
         .rpc()
-    ).to.be.rejectedWith(
-      'Error Code: VmGuardedFlagOnAdd. Error Number: 6002'
-    );
+    ).to.be.rejectedWith('Error Code: VmGuardedFlagOnAdd. Error Number: 6002');
   });
 
   it('can update a did:sol with a DID Document', async () => {
@@ -612,6 +613,11 @@ describe('sol-did resolve and migrate operations', () => {
     const document = DidSolDocument.fromDoc(migratedLegacyDidDocComplete);
     // recreate legacyDidService with update
     await legacyDidService
+      // Remove the protected flag from DEFAULT
+      .setVerificationMethodFlags(DEFAULT_KEY_ID, [
+        BitwiseVerificationMethodFlag.CapabilityInvocation,
+        BitwiseVerificationMethodFlag.OwnershipProof,
+      ])
       .updateFromDoc(document)
       .withAutomaticAlloc(legacyAuthority.publicKey)
       .rpc();

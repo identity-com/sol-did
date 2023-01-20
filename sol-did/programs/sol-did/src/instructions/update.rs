@@ -1,5 +1,6 @@
 use crate::state::{DidAccount, Secp256k1RawSignature};
 use crate::{Service, VerificationMethod};
+use crate::errors::DidSolError;
 use anchor_lang::prelude::*;
 
 pub fn update(
@@ -12,6 +13,12 @@ pub fn update(
     if eth_signature.is_some() {
         data.nonce += 1;
     }
+
+    // Cannot update DID if protected services exist.
+    require!(
+        !data.has_protected_verification_method(None),
+        DidSolError::VmCannotRemoveProtected
+    );
 
     data.set_services(update_arg.services, false)?;
     data.set_verification_methods(Vec::new(), update_arg.verification_methods)?;
