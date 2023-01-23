@@ -28,6 +28,6 @@ pub enum DidSolError {
     ErrorValidatingSecp256k1Signature,
     #[msg("Wrong Authority for given DID")]
     WrongAuthorityForDid,
-    #[msg("Cannot remove a protected verification method. You need to remove the flag first.")]
+    #[msg("Cannot remove a protected verification method. You need to first remove the Protected Verification Method Flag in order for this operation to succeed")]
     VmCannotRemoveProtected,
 }

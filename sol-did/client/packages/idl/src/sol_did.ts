@@ -700,7 +700,7 @@ export type SolDid = {
     {
       "code": 6013,
       "name": "VmCannotRemoveProtected",
-      "msg": "Cannot remove a protected verification method. You need to remove the flag first."
+      "msg": "Cannot remove a protected verification method. You need to first remove the Protected Verification Method Flag in order for this operation to succeed"
     }
   ]
 };
@@ -1407,7 +1407,7 @@ export const IDL: SolDid = {
     {
       "code": 6013,
       "name": "VmCannotRemoveProtected",
-      "msg": "Cannot remove a protected verification method. You need to remove the flag first."
+      "msg": "Cannot remove a protected verification method. You need to first remove the Protected Verification Method Flag in order for this operation to succeed"
     }
   ]
 };

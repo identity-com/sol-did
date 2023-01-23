@@ -107,7 +107,7 @@ describe('sol-did auth operations', () => {
     expect(didDataAccount.services[0]).to.deep.equal(tService);
   });
 
-  it('can not add a new key with OwnershipProof to an account', async () => {
+  it('cannot add a new verification method when the Ownership Proof Verification Method Flag is applied', async () => {
     return expect(
       service
         .addVerificationMethod({
@@ -120,7 +120,7 @@ describe('sol-did auth operations', () => {
     ).to.be.rejectedWith('VmGuardedFlagOnAdd. Error Number: 6002');
   });
 
-  it('can not add a new key with Protected to an account', async () => {
+  it('cannot add a new verification method when the Protected Verification Method Flag is applied', async () => {
     return expect(
       service
         .addVerificationMethod({

@@ -49,15 +49,12 @@ pub struct UpdateFlagsVerificationMethod {
 impl UpdateFlagsVerificationMethod {
     pub fn get_filter_fragment(&self) -> Option<&String> {
         let flags = VerificationMethodFlags::from_bits(self.flags).unwrap();
-        if flags
-            .intersection(
-                VerificationMethodFlags::OWNERSHIP_PROOF | VerificationMethodFlags::PROTECTED,
-            )
-            .is_empty()
-        {
-            None
-        } else {
+        if flags.intersects(
+            VerificationMethodFlags::OWNERSHIP_PROOF | VerificationMethodFlags::PROTECTED,
+        ) {
             Some(&self.fragment)
+        } else {
+            None
         }
     }
 }

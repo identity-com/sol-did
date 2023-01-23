@@ -323,13 +323,11 @@ impl DidAccount {
         incoming.iter().try_for_each(|vm| {
             match VerificationMethodFlags::from_bits(vm.flags)
                 .ok_or(DidSolError::ConversionError)?
-                .intersection(
+                .intersects(
                     VerificationMethodFlags::OWNERSHIP_PROOF | VerificationMethodFlags::PROTECTED,
-                )
-                .is_empty()
-            {
-                false => Err(DidSolError::VmGuardedFlagOnAdd),
-                true => Ok(()),
+                ) {
+                true => Err(DidSolError::VmGuardedFlagOnAdd),
+                false => Ok(()),
             }
         })?;
 
