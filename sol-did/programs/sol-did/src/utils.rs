@@ -1,4 +1,4 @@
-use crate::constants::DID_SOL_PREFIX;
+use crate::constants::{DID_PREFIX, DID_SOL_PREFIX};
 use crate::{id, DID_ACCOUNT_SEED};
 use anchor_lang::prelude::{Error, ErrorCode};
 use solana_program::keccak;
@@ -17,8 +17,14 @@ pub fn is_did_sol_prefix(did: &str) -> bool {
     did.starts_with(DID_SOL_PREFIX)
 }
 
+pub fn is_did_prefix(did: &str) -> bool {
+    did.starts_with(DID_PREFIX)
+}
+
 pub fn check_other_controllers(controllers: &[String]) -> bool {
-    controllers.iter().all(|did| !is_did_sol_prefix(did))
+    controllers
+        .iter()
+        .all(|did| is_did_prefix(did) && !is_did_sol_prefix(did))
 }
 
 /// Returns the address that signed message producing signature.

@@ -50,7 +50,7 @@ describe('sol-did controller operations', () => {
     didDataAccount = await service.getDidAccount();
   });
 
-  it('fails to update the controller if it includes an invalid DID.', async () => {
+  it('fails to update the controller if it includes an invalid DID (client).', async () => {
     return expect(() =>
       service.setControllers([
         `did:ethr:${ethKey.address}`,
@@ -58,6 +58,51 @@ describe('sol-did controller operations', () => {
         'wrong-did',
       ])
     ).to.be.throw('Invalid DID found in controllers');
+  });
+
+  it('fails to update the "other" controller if it includes an invalid DID (program).', async () => {
+    return expect(
+      program.methods
+        .setControllers(
+          {
+            nativeControllers: [],
+            otherControllers: ['wrong-did'],
+          },
+          null
+        )
+        .accounts({
+          didData,
+          authority: authority.publicKey,
+        })
+        .rpc()
+    ).to.be.rejectedWith(
+      'Error Code: InvalidOtherControllers. Error Number: 6006. Error Message: Invalid other controllers. Invalid DID format or did:sol:<did>'
+    );
+  });
+
+  it('fails to update the "other" controller if it includes a did:sol DID (program).', async () => {
+    return expect(
+      program.methods
+        .setControllers(
+          {
+            nativeControllers: [],
+            otherControllers: [
+              DidSolIdentifier.create(
+                solKey.publicKey,
+                TEST_CLUSTER
+              ).toString(),
+            ],
+          },
+          null
+        )
+        .accounts({
+          didData,
+          authority: authority.publicKey,
+        })
+        .rpc()
+    ).to.be.rejectedWith(
+      'Error Code: InvalidOtherControllers. Error Number: 6006. Error Message: Invalid other controllers. Invalid DID format or did:sol:<did>'
+    );
   });
 
   it('can update the controllers of a DID.', async () => {
