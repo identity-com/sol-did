@@ -49,7 +49,9 @@ pub struct UpdateFlagsVerificationMethod {
 impl UpdateFlagsVerificationMethod {
     pub fn get_filter_fragment(&self) -> Option<&String> {
         let flags = VerificationMethodFlags::from_bits(self.flags).unwrap();
-        if flags.contains(VerificationMethodFlags::OWNERSHIP_PROOF) {
+        if flags.intersects(
+            VerificationMethodFlags::OWNERSHIP_PROOF | VerificationMethodFlags::PROTECTED,
+        ) {
             Some(&self.fragment)
         } else {
             None

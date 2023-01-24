@@ -14,7 +14,9 @@ pub fn initialize(ctx: Context<Initialize>, size: u32) -> Result<()> {
     data.init(
         bump,
         &ctx.accounts.authority.key(),
-        VerificationMethodFlags::CAPABILITY_INVOCATION | VerificationMethodFlags::OWNERSHIP_PROOF,
+        VerificationMethodFlags::CAPABILITY_INVOCATION
+            | VerificationMethodFlags::OWNERSHIP_PROOF
+            | VerificationMethodFlags::PROTECTED,
     );
 
     Ok(())

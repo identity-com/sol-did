@@ -14,6 +14,12 @@ pub fn update(
         data.nonce += 1;
     }
 
+    // Cannot update DID if protected services exist.
+    require!(
+        !data.has_protected_verification_method(None),
+        DidSolError::VmCannotRemoveProtected
+    );
+
     data.set_services(update_arg.services, false)?;
     data.set_verification_methods(Vec::new(), update_arg.verification_methods)?;
     data.set_native_controllers(update_arg.native_controllers)?;

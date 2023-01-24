@@ -9,12 +9,12 @@ import { airdrop, getTestService } from '../utils/utils';
 import { before } from 'mocha';
 import { utils, Wallet } from 'ethers';
 import {
+  BitwiseVerificationMethodFlag,
+  DEFAULT_KEY_ID,
   DidSolIdentifier,
   DidSolService,
-  BitwiseVerificationMethodFlag,
-  VerificationMethodType,
   findProgramAddress,
-  DEFAULT_KEY_ID,
+  VerificationMethodType,
 } from '@identity.com/sol-did-client';
 import { TEST_CLUSTER } from '../utils/const';
 
@@ -107,7 +107,7 @@ describe('sol-did auth operations', () => {
     expect(didDataAccount.services[0]).to.deep.equal(tService);
   });
 
-  it('can not add a new key with OwnershipProof to an account', async () => {
+  it('cannot add a new verification method when the Ownership Proof Verification Method Flag is applied', async () => {
     return expect(
       service
         .addVerificationMethod({
@@ -117,9 +117,20 @@ describe('sol-did auth operations', () => {
           flags: [BitwiseVerificationMethodFlag.OwnershipProof],
         })
         .rpc()
-    ).to.be.rejectedWith(
-      'VmOwnershipOnAdd. Error Number: 6002. Error Message: Cannot add a verification method with OwnershipProof flag.'
-    );
+    ).to.be.rejectedWith('VmGuardedFlagOnAdd. Error Number: 6002');
+  });
+
+  it('cannot add a new verification method when the Protected Verification Method Flag is applied', async () => {
+    return expect(
+      service
+        .addVerificationMethod({
+          fragment: 'new-key',
+          keyData: newSolKey.publicKey.toBuffer(),
+          methodType: VerificationMethodType.Ed25519VerificationKey2018,
+          flags: [BitwiseVerificationMethodFlag.Protected],
+        })
+        .rpc()
+    ).to.be.rejectedWith('VmGuardedFlagOnAdd. Error Number: 6002');
   });
 
   it('can not add a new key with an invalid flag', async () => {
@@ -385,6 +396,18 @@ describe('sol-did auth operations', () => {
     );
   });
 
+  it('cannot update the flags (WITH Protected Flag) of a verification method with a different verification method', async () => {
+    const newFlags = [
+      BitwiseVerificationMethodFlag.Authentication,
+      BitwiseVerificationMethodFlag.Protected,
+    ];
+    return expect(
+      service.setVerificationMethodFlags(newEthKeyAlias, newFlags).rpc()
+    ).to.be.rejectedWith(
+      'Error Code: ConstraintRaw. Error Number: 2003. Error Message: A raw constraint was violated.'
+    );
+  });
+
   it('can update the flags (WITH Ownership Proof) of a verification method with a same verification method', async () => {
     const didDataAccountBefore = await service.getDidAccount();
     const vmLengthBefore = didDataAccountBefore.verificationMethods.length;
@@ -412,6 +435,47 @@ describe('sol-did auth operations', () => {
     expect(didDataAccount.verificationMethods[2].flags.array).to.deep.equal(
       newFlags
     );
+  });
+
+  it('cannot remove default verification method with protected flag set', async () => {
+    const didDataAccountBefore = await service.getDidAccount();
+    expect(
+      didDataAccountBefore.verificationMethods[0].flags.array
+    ).to.deep.equal([
+      BitwiseVerificationMethodFlag.CapabilityInvocation,
+      BitwiseVerificationMethodFlag.OwnershipProof,
+      BitwiseVerificationMethodFlag.Protected,
+    ]);
+
+    return expect(
+      service.removeVerificationMethod(DEFAULT_KEY_ID).rpc()
+    ).to.be.rejectedWith(
+      'Error Code: VmCannotRemoveProtected. Error Number: 6013.'
+    );
+  });
+
+  it('successfully remove the Protected Flag from the DEFAULT verification method', async () => {
+    const didDataAccountBefore = await service.getDidAccount();
+    expect(
+      didDataAccountBefore.verificationMethods[0].flags.array
+    ).to.deep.equal([
+      BitwiseVerificationMethodFlag.CapabilityInvocation,
+      BitwiseVerificationMethodFlag.OwnershipProof,
+      BitwiseVerificationMethodFlag.Protected,
+    ]);
+
+    await service
+      .setVerificationMethodFlags(DEFAULT_KEY_ID, [
+        BitwiseVerificationMethodFlag.CapabilityInvocation,
+        BitwiseVerificationMethodFlag.OwnershipProof,
+      ])
+      .rpc();
+
+    const didDataAccount = await service.getDidAccount();
+    expect(didDataAccount.verificationMethods[0].flags.array).to.deep.equal([
+      BitwiseVerificationMethodFlag.CapabilityInvocation,
+      BitwiseVerificationMethodFlag.OwnershipProof,
+    ]);
   });
 
   it('successfully set flags to 0 when removing the default verification method', async () => {

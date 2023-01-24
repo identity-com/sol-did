@@ -91,9 +91,10 @@ impl LegacyDidAccount {
     }
 
     pub fn migrate(&self, into: &mut DidAccount, bump: u8) -> Result<()> {
-        // "default" authority always has proven ownership of the DID
+        // "default" authority always has proven ownership and is protected of the DID
         let default_flags = self.get_flags(&VM_DEFAULT_FRAGMENT_NAME.to_string())
-            | VerificationMethodFlags::OWNERSHIP_PROOF;
+            | VerificationMethodFlags::OWNERSHIP_PROOF
+            | VerificationMethodFlags::PROTECTED;
         into.init(bump, &self.authority, default_flags);
         let migrated = self.migrate_verification_methods();
         into.set_verification_methods(Vec::new(), migrated)?;

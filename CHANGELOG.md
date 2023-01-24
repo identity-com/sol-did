@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Added `BitwiseVerificationMethodFlag.Protected` as a VerificationMethodFlag. VMs with that flag set cannot be removed from the DID Document.
+- Only the VM itself can set or remove the flag `BitwiseVerificationMethodFlag.Protected`
 
 ### Changed
 

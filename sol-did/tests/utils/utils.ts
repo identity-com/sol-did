@@ -1,8 +1,7 @@
 import * as anchor from '@project-serum/anchor';
 import { web3 } from '@project-serum/anchor';
-import { expect } from 'chai';
+
 import {
-  DidSolService,
   Service,
   BitwiseVerificationMethodFlag,
   VerificationMethodType,
@@ -35,12 +34,6 @@ export const getTestService = (n: number): Service => ({
   serviceType: `testType${n}`,
   serviceEndpoint: `testEndpoint${n}`,
 });
-
-export const existingAccount = async (service: DidSolService) => {
-  const existing = await service.getDidAccount();
-  expect(existing).to.not.be.equal(null);
-  return existing;
-};
 
 export const getTestVerificationMethod = (
   fragment: string,

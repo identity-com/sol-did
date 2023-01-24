@@ -67,7 +67,8 @@ impl DidAccount {
             nonce: 0,
             initial_verification_method: VerificationMethod::default(
                 VerificationMethodFlags::CAPABILITY_INVOCATION
-                    | VerificationMethodFlags::OWNERSHIP_PROOF,
+                    | VerificationMethodFlags::OWNERSHIP_PROOF
+                    | VerificationMethodFlags::PROTECTED,
                 authority_key.to_bytes().to_vec(),
             ),
             verification_methods: vec![],
@@ -153,6 +154,17 @@ impl DidAccount {
                 None => true,
             })
             .collect()
+    }
+
+    pub fn has_protected_verification_method(&self, filter_fragment: Option<&String>) -> bool {
+        !self
+            .verification_methods(
+                None,
+                Some(VerificationMethodFlags::PROTECTED),
+                None,
+                filter_fragment,
+            )
+            .is_empty()
     }
 
     pub fn remove_verification_method(&mut self, fragment: &String) -> Result<()> {
@@ -307,13 +319,14 @@ impl DidAccount {
         existing: Vec<VerificationMethod>,
         incoming: Vec<VerificationMethod>,
     ) -> Result<()> {
-        // check that incoming VMs do NOT set any Ownership flags.
+        // check that incoming VMs do NOT set any Ownership or Protected flags.
         incoming.iter().try_for_each(|vm| {
             match VerificationMethodFlags::from_bits(vm.flags)
                 .ok_or(DidSolError::ConversionError)?
-                .contains(VerificationMethodFlags::OWNERSHIP_PROOF)
-            {
-                true => Err(DidSolError::VmOwnershipOnAdd),
+                .intersects(
+                    VerificationMethodFlags::OWNERSHIP_PROOF | VerificationMethodFlags::PROTECTED,
+                ) {
+                true => Err(DidSolError::VmGuardedFlagOnAdd),
                 false => Ok(()),
             }
         })?;
@@ -536,5 +549,7 @@ bitflags! {
         const DID_DOC_HIDDEN = 1 << 5;
         /// The subject did proof to be in possession of the private key
         const OWNERSHIP_PROOF = 1 << 6;
+        /// The Verification Method is marked as protected. This means it cannot be removed
+        const PROTECTED = 1 << 7;
     }
 }
