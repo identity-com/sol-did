@@ -1,3 +1,4 @@
+use crate::errors::DidSolError;
 use crate::state::{DidAccount, Secp256k1RawSignature};
 use crate::{Service, VerificationMethod};
 use anchor_lang::prelude::*;
@@ -17,6 +18,12 @@ pub fn update(
     data.set_verification_methods(Vec::new(), update_arg.verification_methods)?;
     data.set_native_controllers(update_arg.native_controllers)?;
     data.set_other_controllers(update_arg.other_controllers)?;
+
+    // prevent lockout
+    require!(
+        data.has_authority_verification_methods(),
+        DidSolError::VmCannotRemoveLastAuthority
+    );
 
     Ok(())
 }
