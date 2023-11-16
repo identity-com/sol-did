@@ -30,14 +30,6 @@ import { DEFAULT_KEY_ID, INITIAL_MIN_ACCOUNT_SIZE } from './lib/const';
 import { DidSolDocument } from './DidSolDocument';
 import { ExtendedCluster, getConnectionByCluster } from './lib/connection';
 import { DidSolIdentifier } from './DidSolIdentifier';
-import {
-  closeAccount,
-  ClusterType,
-  DecentralizedIdentifier,
-  SolData,
-  SolPublicKey,
-  SolTransaction,
-} from '@identity.com/sol-did-client-legacy';
 import { DidAccountSizeHelper } from './DidAccountSizeHelper';
 import { DidSolDataAccount, VerificationMethodFlags } from './lib/wrappers';
 import {
@@ -180,15 +172,6 @@ export class DidSolService extends DidSolTransactionBuilder {
     }
 
     return [DidSolDataAccount.from(dataAccount, this._cluster), size];
-  }
-
-  /**
-   * Return true if the DID can be migrated to the new program.
-   */
-  async isMigratable(): Promise<boolean> {
-    const current = await this.getDidAccount();
-    const legacy = await this.getLegacyData();
-    return !current && !!legacy;
   }
 
   get did(): string {
@@ -659,48 +642,6 @@ export class DidSolService extends DidSolTransactionBuilder {
 
     return this;
   }
-
-  /**
-   * Updates several properties of a service.
-   * @param payer Payer for the creation of the new Account
-   * @param legacyAuthority if passed, close the legacy account after migration. Refund will go to payer.
-   */
-  migrate(
-    payer: PublicKey = this._wallet.publicKey,
-    legacyAuthority?: PublicKey
-  ): DidSolService {
-    const authority = this._didAuthority;
-
-    const instructionPromise = this._program.methods
-      .migrate()
-      .accounts({
-        didData: this._didDataAccount,
-        authority,
-        legacyDidData: this._legacyDidDataAccount,
-        payer,
-      })
-      .instruction();
-
-    // close legacy accounts
-    if (legacyAuthority) {
-      this.addPostInstruction(
-        Promise.resolve(
-          closeAccount(this._legacyDidDataAccount, legacyAuthority, payer)
-        )
-      );
-    }
-
-    this.setInitInstruction({
-      instructionPromise,
-      ethSignStatus: DidSolEthSignStatusType.NotSupported,
-      didAccountChangeCallback: () => {
-        throw new Error('Dynamic Alloc not supported');
-      },
-    });
-
-    return this;
-  }
-
   /**
    * Resolves the DID Document for the did:sol account.
    */
@@ -710,42 +651,10 @@ export class DidSolService extends DidSolTransactionBuilder {
       return DidSolDocument.from(didDataAccount);
     }
 
-    // backwards compatibility
-    if (checkLegacy) {
-      const legacyDocument = await this.resolveLegacy();
-      if (legacyDocument) {
-        return legacyDocument;
-      }
-    }
-
     // generative case
     return DidSolDocument.sparse(
       DidSolIdentifier.create(this._didAuthority, this._cluster)
     );
-  }
-
-  public async getLegacyData(): Promise<SolData | null> {
-    const id = new DecentralizedIdentifier({
-      clusterType: ClusterType.parse(this._cluster),
-      authorityPubkey: SolPublicKey.fromPublicKey(this._didAuthority),
-    });
-    return SolTransaction.getSol(
-      this.connection,
-      id.clusterType,
-      await id.pdaSolanaPubkey()
-    );
-  }
-
-  /**
-   * Resolves a legacy did:sol account (program: idDa...).
-   * Returns null if the account does not exist.
-   */
-  private async resolveLegacy(): Promise<DIDDocument | null> {
-    const solData = await this.getLegacyData();
-    if (solData !== null) {
-      return solData.toDIDDocument();
-    }
-    return null;
   }
 }
 
